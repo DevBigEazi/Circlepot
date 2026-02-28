@@ -69,6 +69,7 @@ export default function InstallPrompt() {
     // Check if already dismissed in this session
     const wasDismissed = sessionStorage.getItem("circlepot-install-dismissed");
     if (wasDismissed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDismissed(true);
     }
 
