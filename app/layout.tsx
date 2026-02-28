@@ -1,17 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Schibsted_Grotesk, Martian_Mono } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import InstallPrompt from "./components/InstallPrompt";
+import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
+import { ZeroDevSmartWalletConnectors } from "@dynamic-labs/ethereum-aa";
+import { ClientProviders } from "./components/ClientProviders";
+
+const schibstedGrotesk = Schibsted_Grotesk({
+  variable: "--font-schibsted-grotesk",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const martianMono = Martian_Mono({
+  variable: "--font-martian-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -23,12 +30,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Circlepot",
     startupImage: [
-      // iPhone / iPod touch
       {
         url: "/assets/images/pwa-512x512.png",
         media: "(device-width: 320px)",
       },
-      // Fallback for all other iOS devices
       {
         url: "/assets/images/pwa-512x512.png",
       },
@@ -70,13 +75,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
+        className={`${schibstedGrotesk.variable} ${martianMono.variable} antialiased`}
       >
-        <ServiceWorkerRegistrar />
-        {children}
-        <InstallPrompt />
+        <DynamicContextProvider
+          settings={{
+            environmentId:
+              process.env.DYNAMIC_ENV_ID ||
+              "3e0269ab-0989-4554-83de-7ba909487dc6",
+            walletConnectors: [
+              EthereumWalletConnectors,
+              ZeroDevSmartWalletConnectors,
+            ],
+          }}
+        >
+          <ClientProviders>
+            <ServiceWorkerRegistrar />
+            {children}
+            <InstallPrompt />
+          </ClientProviders>
+        </DynamicContextProvider>
       </body>
     </html>
   );

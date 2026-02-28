@@ -1,31 +1,184 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* ── Circlepot Core Design System ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Colors */
+  --color-primary: #5c6f2b; /* Vibrant Circlepot Sage */
+  --color-secondary: #de802b; /* Warm Gold */
+  --color-accent: #2e3338;
+
+  /* Backgrounds & Surfaces */
+  --background: #f8f9fa;
+  --surface: #f1f5f1;
+  --foreground: #2e3338;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+  --hover-bg: #f3f4f6;
+
+  /* Semantic Feedback */
+  --info-bg: #f9fafb;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+  --warning-bg: #fef9c3;
+  --warning-border: #fde047;
+  --error-bg: #fee2e2;
+  --error-border: #fecaca;
+  --accent-bg: #eff6ff;
+  --accent-border: #bfdbfe;
+
+  /* Component Properties */
+  --radius: 0.75rem;
+  --ring: #5c6f2b;
 }
 
+.dark {
+  /* Brand Colors */
+  --color-primary: #5c6f2b;
+  --color-secondary: #de802b;
+  --color-accent: #e5e7eb;
+
+  /* Backgrounds & Surfaces */
+  --background: #0f0f11;
+  --surface: #161618;
+  --foreground: #f1f5f9;
+  --text-light: #94a3b8;
+  --border: #334155;
+  --hover-bg: #334155;
+
+  /* Semantic Feedback */
+  --info-bg: #1e293b;
+  --success-bg: #022c22;
+  --success-border: #14532d;
+  --warning-bg: #422006;
+  --warning-border: #713f12;
+  --error-bg: #450a0a;
+  --error-border: #7f1d1d;
+  --accent-bg: #172554;
+  --accent-border: #1e3a8a;
+
+  --ring: #5c6f2b;
+}
+
+/* ── Tailwind v4 @theme configuration ── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-text-light: var(--text-light);
+  --color-border: var(--border);
+  --color-hover-bg: var(--hover-bg);
+
+  /* Functional Colors */
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+
+  /* Semantic Colors */
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-error-bg: var(--error-bg);
+  --color-error-border: var(--error-border);
+  --color-info-bg: var(--info-bg);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-border: var(--accent-border);
+
+  /* Fonts */
+  --font-schibsted-grotesk: var(--font-schibsted-grotesk);
+  --font-martian-mono: var(--font-martian-mono);
+
+  /* Borders & Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-ring: var(--ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ── Custom Utilities ── */
+@utility flex-center {
+  @apply flex items-center justify-center;
+}
+
+@utility text-gradient {
+  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text font-semibold text-transparent;
+}
+
+@utility glass {
+  @apply bg-surface/70 backdrop-blur-xl border border-border/50;
+}
+
+@utility card-shadow {
+  box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Base Reset & Defaults ── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-schibsted-grotesk antialiased;
+    overscroll-behavior: none;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-schibsted-grotesk font-bold tracking-tight;
+  }
+
+  code,
+  pre {
+    @apply font-martian-mono;
+  }
+
+  /* Default container configuration */
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Global Component Refinements ── */
+@layer components {
+  /* Input & Textarea defaults */
+  input,
+  textarea {
+    @apply bg-surface border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none transition-all;
+  }
+
+  /* Button basic structure */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors flex-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary hover:bg-secondary/90 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors flex-center gap-2;
+  }
+
+  /* Info Box Base (used widely in Circlepot for alerts/details) */
+  .info-box {
+    @apply p-4 rounded-xl border flex flex-col gap-2;
+  }
 }
 
-/* PWA Install Prompt animation */
+/* ── Animations ── */
 @keyframes slideUp {
   from {
     transform: translateY(100%);
@@ -37,26 +190,25 @@ body {
   }
 }
 
-/* Dark mode support for Install Prompt */
-@media (prefers-color-scheme: dark) {
-  [data-install-prompt] {
-    background-color: #161618 !important;
-    box-shadow:
-      0 -4px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(92, 111, 43, 0.15) !important;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
+  to {
+    opacity: 1;
+  }
+}
 
-  [data-install-prompt] h3 {
-    color: #f1f5f9 !important;
-  }
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
-  [data-install-prompt] .step-text,
-  [data-install-prompt] p {
-    color: #94a3b8 !important;
-  }
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
 
-  [data-install-prompt] .ios-instructions {
-    background-color: #1e293b !important;
-    border-color: #334155 !important;
-  }
+/* ── PWA (Ensuring clean dark mode transitions) ── */
+.dark [data-install-prompt] {
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
 }
