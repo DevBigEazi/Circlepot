@@ -33,21 +33,23 @@ export const OnboardingSlide: React.FC<OnboardingSlideProps> = ({
         >
           {isCustomGraphic ? (
             // A dynamic abstract graphical placeholder if needed, otherwise uses standard Image
-            <div className="w-full h-full flex-center overflow-hidden relative">
+            <div className="w-full h-full flex items-center justify-center overflow-hidden relative">
               <Image
                 src={imageSrc}
                 alt={imageAlt}
                 fill
+                sizes="(max-width: 768px) 256px, 320px"
                 className="object-contain"
                 priority
               />
             </div>
           ) : (
-            <div className="w-full h-full flex-center overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center overflow-hidden relative">
               <Image
                 src={imageSrc}
                 alt={imageAlt}
                 fill
+                sizes="(max-width: 768px) 256px, 320px"
                 className="object-contain"
                 priority
               />

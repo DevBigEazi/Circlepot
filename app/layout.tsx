@@ -13,12 +13,14 @@ const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-schibsted-grotesk",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 const martianMono = Martian_Mono({
   variable: "--font-martian-mono",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -75,16 +77,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
         suppressHydrationWarning
-        className={`${schibstedGrotesk.variable} ${martianMono.variable} antialiased`}
+        className={`${schibstedGrotesk.className} ${schibstedGrotesk.variable} ${martianMono.className} ${martianMono.variable} antialiased`}
       >
         <DynamicContextProvider
           settings={{
-            environmentId:
-              process.env.DYNAMIC_ENV_ID ||
-              "3e0269ab-0989-4554-83de-7ba909487dc6",
+            environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID || "",
             walletConnectors: [
               EthereumWalletConnectors,
               ZeroDevSmartWalletConnectors,
