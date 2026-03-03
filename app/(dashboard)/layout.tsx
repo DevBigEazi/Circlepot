@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useRouter } from "next/navigation";
+import { useUserProfile } from "../hooks/useUserProfile";
+import ProfileCreationModal from "../components/ProfileCreationModal";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function DashboardLayout({
   children,
@@ -11,6 +14,11 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { user, sdkHasLoaded } = useDynamicContext();
+  const {
+    isLoading: isProfileLoading,
+    hasProfile,
+    refreshProfile,
+  } = useUserProfile();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -33,16 +41,26 @@ export default function DashboardLayout({
   }, [isClient, sdkHasLoaded, user, router]);
 
   // Handle loading states to prevent layout flashes
-  if (!isClient || !sdkHasLoaded) {
+  if (!isClient || !sdkHasLoaded || (user && isProfileLoading)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <LoadingSpinner size="lg" text={user ? "Loading..." : "Loading..."} />
       </div>
     );
   }
 
-  // If we have a user, render the dashboard
+  // If we have a user, check for profile
   if (user) {
+    if (!hasProfile && !isProfileLoading) {
+      return (
+        <section className="w-full h-screen overflow-hidden">
+          <ProfileCreationModal onProfileCreated={refreshProfile} />
+          {/* We show children behind the modal if needed, or just the modal */}
+          {children}
+        </section>
+      );
+    }
+
     return <section className="w-full flex flex-col">{children}</section>;
   }
 
