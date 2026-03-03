@@ -9,6 +9,7 @@ interface AuthMethodSelectProps {
   onSelectPhone: () => void;
   onGoogleLogin: () => void;
   isLoading?: boolean;
+  isOnline?: boolean;
 }
 
 export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
@@ -16,22 +17,38 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
   onSelectPhone,
   onGoogleLogin,
   isLoading = false,
+  isOnline = true,
 }) => {
   return (
     <div className="flex flex-col gap-4 animate-fade-in [animation-delay:200ms]">
       <button
         onClick={onGoogleLogin}
-        disabled={isLoading}
-        className="flex justify-center items-center rounded-2xl py-3.5 font-bold gap-3 transition-all border-2 border-border hover:border-primary hover:shadow-lg disabled:opacity-50 cursor-pointer bg-white group w-full"
+        disabled={isLoading || !isOnline}
+        className="flex justify-center items-center rounded-2xl py-3.5 font-bold gap-3 transition-all border-2 border-border hover:border-primary hover:shadow-lg disabled:opacity-50 cursor-wait bg-white group w-full relative"
       >
-        <Image
-          src="/assets/images/google.svg"
-          alt="google logo"
-          width={24}
-          height={24}
-        />
-        <span className="text-foreground">Continue with Google</span>
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-foreground/70">Connecting...</span>
+          </div>
+        ) : (
+          <>
+            <Image
+              src="/assets/images/google.svg"
+              alt="google logo"
+              width={24}
+              height={24}
+            />
+            <span className="text-foreground">Continue with Google</span>
+          </>
+        )}
       </button>
+
+      {!isOnline && (
+        <p className="text-[11px] text-red-500 font-bold text-center -mt-2">
+          Offline: Please connect to internet
+        </p>
+      )}
 
       <div className="flex justify-center items-center gap-4 my-2 px-10">
         <div className="flex-1 h-0.5 bg-border rounded-full" />
@@ -43,7 +60,7 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
 
       <button
         onClick={onSelectEmail}
-        disabled={isLoading}
+        disabled={isLoading || !isOnline}
         className="flex justify-center items-center rounded-2xl py-3.5 font-bold gap-3 transition-all border-2 border-primary/20 bg-success-bg hover:bg-success-bg/80 hover:border-primary text-primary hover:shadow-lg disabled:opacity-50 cursor-pointer w-full group"
       >
         <Mail
@@ -55,7 +72,7 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
 
       <button
         onClick={onSelectPhone}
-        disabled={isLoading}
+        disabled={isLoading || !isOnline}
         className="flex justify-center items-center rounded-2xl py-3.5 font-bold gap-3 transition-all border-2 border-border/80 bg-accent-bg hover:bg-accent-bg/80 hover:border-primary text-foreground hover:shadow-lg disabled:opacity-50 cursor-pointer w-full group"
       >
         <Phone
@@ -64,20 +81,6 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
         />
         <span>Continue with Phone</span>
       </button>
-
-      {/* Info Card */}
-      <div className="mt-8 glass rounded-2xl p-5 border border-primary/20 bg-primary/5 transition-all hover:bg-primary/10">
-        <div className="flex items-center gap-3 mb-3">
-          <Zap size={18} className="text-primary animate-pulse" />
-          <span className="text-sm font-bold text-foreground">
-            Secure & Simple
-          </span>
-        </div>
-        <p className="text-[13px] text-text-light leading-relaxed">
-          Secure dollar wallet • Full self-custody • Easy account recovery
-        </p>
-      </div>
-
       {/* Benefits List */}
       <div className="mt-6 grid grid-cols-1 gap-3">
         {[

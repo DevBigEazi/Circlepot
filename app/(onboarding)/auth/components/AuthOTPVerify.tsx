@@ -9,6 +9,7 @@ interface AuthOTPVerifyProps {
   onResend: () => void;
   targetAddress: string;
   isLoading?: boolean;
+  isOnline?: boolean;
 }
 
 export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
@@ -17,6 +18,7 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
   onResend,
   targetAddress,
   isLoading = false,
+  isOnline = true,
 }) => {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -126,7 +128,7 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
               className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 border-border/80 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none bg-white text-foreground disabled:opacity-50 shadow-sm"
-              disabled={isLoading}
+              disabled={isLoading || !isOnline}
               autoFocus={index === 0}
             />
           ))}
@@ -134,7 +136,7 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
 
         <button
           onClick={() => onVerify(otp.join(""))}
-          disabled={isLoading || otp.some((digit) => !digit)}
+          disabled={isLoading || otp.some((digit) => !digit) || !isOnline}
           className="flex justify-center items-center rounded-2xl py-4 font-bold gap-3 transition-all bg-primary hover:bg-primary/95 text-white hover:shadow-xl disabled:opacity-50 cursor-pointer w-full group overflow-hidden relative"
         >
           {isLoading ? (
@@ -156,11 +158,16 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
         <div className="text-center flex flex-col gap-3">
           <button
             onClick={handleResend}
-            disabled={resendTimer > 0 || isLoading}
+            disabled={resendTimer > 0 || isLoading || !isOnline}
             className="text-sm font-bold text-primary hover:underline disabled:text-text-light disabled:no-underline transition-all cursor-pointer"
           >
             {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : "Resend Code"}
           </button>
+          {!isOnline && (
+            <p className="text-[11px] text-red-500 font-bold">
+              Check internet to resend code
+            </p>
+          )}
         </div>
 
         {/* Informative nudge */}
