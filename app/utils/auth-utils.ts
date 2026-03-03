@@ -53,10 +53,15 @@ export const parsePhoneNumber = (phoneInput: string) => {
 /**
  * Maps Dynamic SDK errors to user-friendly messages
  */
-export const mapDynamicError = (error: any): string | null => {
+export const mapDynamicError = (error: unknown): string | null => {
   if (!error) return null;
 
-  const message = error.message?.toLowerCase() || "";
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : typeof error === "object" && "message" in error
+        ? String((error as { message: string }).message).toLowerCase()
+        : "";
 
   // 1. Network / Offline Errors
   if (
@@ -116,7 +121,11 @@ export const mapDynamicError = (error: any): string | null => {
   }
 
   // 6. Generic Fallback
-  return error.message || "Authentication failed. Please try again.";
+  return error instanceof Error
+    ? error.message
+    : typeof error === "object" && "message" in error!
+      ? String((error as { message: string }).message)
+      : "Authentication failed. Please try again.";
 };
 
 /**

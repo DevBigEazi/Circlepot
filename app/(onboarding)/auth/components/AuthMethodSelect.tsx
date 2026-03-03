@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Mail, Phone, Zap, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, CheckCircle2 } from "lucide-react";
 
 interface AuthMethodSelectProps {
   onSelectEmail: () => void;
