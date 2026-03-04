@@ -11,27 +11,25 @@ import {
   Copy,
   CopyCheck,
   ArrowLeft,
-  Settings as SettingsIcon,
+  Pencil,
 } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useUserProfile } from "@/app/hooks/useUserProfile";
-import { useConnectWithOtp } from "@dynamic-labs/sdk-react-core";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+import UpdateContactModal from "@/app/components/UpdateContactModal";
 import { getInitials } from "@/app/utils/helpers";
-import { parsePhoneNumber } from "@/app/utils/auth-utils";
 import Image from "next/image";
 
 const ProfilePage = () => {
   const colors = useThemeColors();
   const router = useRouter();
-  const { connectWithEmail, connectWithSms } = useConnectWithOtp();
   const {
     profile,
     isLoading: isProfileLoading,
     updateProfile,
-    syncContactInfo,
+    refreshProfile,
   } = useUserProfile();
 
   const [firstName, setFirstName] = useState("");
@@ -40,6 +38,10 @@ const ProfilePage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [contactModal, setContactModal] = useState<{
+    type: "email" | "phone";
+    currentValue?: string;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,37 +103,12 @@ const ProfilePage = () => {
     }
   };
 
-  const handleLinkContact = async (type: "email" | "phone") => {
-    try {
-      if (type === "email") {
-        const email = prompt("Enter your new email address:");
-        if (email) {
-          await connectWithEmail(email);
-          toast.info("Verification code sent to your email.");
-          // Note: Full linking flow happens via Dynamic SDK UI or OTP component
-          // After verification, the user can call syncContactInfo
-        }
-      } else {
-        const phone = prompt(
-          "Enter your new phone number (with country code):",
-        );
-        if (phone) {
-          const phoneData = parsePhoneNumber(phone);
-          await connectWithSms({
-            phone: phoneData.phone,
-            dialCode: phoneData.dialCode,
-            iso2: phoneData.iso2,
-          });
-          toast.info("Verification SMS sent to your phone.");
-        }
-      }
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : `Failed to start ${type} linking`;
-      toast.error(message);
-    } finally {
-      // Done linking
-    }
+  const handleLinkContact = (type: "email" | "phone") => {
+    setContactModal({
+      type,
+      currentValue:
+        (type === "email" ? profile?.email : profile?.phoneNumber) || undefined,
+    });
   };
 
   const copyToClipboard = (text: string, field: string) => {
@@ -165,7 +142,7 @@ const ProfilePage = () => {
     >
       {/* Header */}
       <div
-        className="sticky top-0 z-10 p-4 flex items-center justify-between border-b backdrop-blur-md"
+        className="sticky top-0 z-10 p-4 flex items-center border-b backdrop-blur-md"
         style={{
           backgroundColor: `${colors.surface}cc`,
           borderColor: colors.border,
@@ -177,21 +154,19 @@ const ProfilePage = () => {
         >
           <ArrowLeft size={24} style={{ color: colors.text }} />
         </button>
-        <h1 className="text-lg font-bold" style={{ color: colors.text }}>
+        <h1
+          className="flex-1 text-center text-lg font-bold"
+          style={{ color: colors.text }}
+        >
           My Profile
         </h1>
-        <button
-          onClick={() => router.push("/settings")}
-          className="p-2 rounded-full transition-colors hover:bg-black/5"
-        >
-          <SettingsIcon size={24} style={{ color: colors.text }} />
-        </button>
+        <div className="w-10" />
       </div>
 
       <div className="max-w-2xl mx-auto p-4 space-y-6 mt-4">
         {/* Profile Card */}
         <div
-          className="rounded-3xl p-8 border shadow-sm space-y-8"
+          className="rounded-3xl p-4 sm:p-8 border shadow-sm space-y-8"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.border,
@@ -340,36 +315,50 @@ const ProfilePage = () => {
               <label className="text-xs font-bold uppercase tracking-wider opacity-60">
                 First Name
               </label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                disabled={isUpdating}
-                className="w-full px-5 py-3.5 rounded-2xl border transition-all focus:ring-2 focus:ring-primary/20 outline-none"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.text,
-                }}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  disabled={isUpdating}
+                  className="w-full px-5 py-3.5 pr-12 rounded-2xl border transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                  style={{
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  }}
+                />
+                <Pencil
+                  size={16}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none"
+                  style={{ color: colors.text }}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider opacity-60">
                 Last Name
               </label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                disabled={isUpdating}
-                className="w-full px-5 py-3.5 rounded-2xl border transition-all focus:ring-2 focus:ring-primary/20 outline-none"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.text,
-                }}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  disabled={isUpdating}
+                  className="w-full px-5 py-3.5 pr-12 rounded-2xl border transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                  style={{
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  }}
+                />
+                <Pencil
+                  size={16}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none"
+                  style={{ color: colors.text }}
+                />
+              </div>
             </div>
           </div>
 
@@ -408,16 +397,15 @@ const ProfilePage = () => {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center justify-between gap-2 overflow-hidden">
-                  <p className="text-sm font-medium truncate opacity-70">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium opacity-70 break-all">
                     {profile?.email || "No email linked"}
                   </p>
                   <button
                     onClick={() => handleLinkContact("email")}
-                    className="text-xs font-bold underline transition-opacity hover:opacity-70"
-                    style={{ color: colors.primary }}
+                    className="p-1.5 rounded-xl transition-opacity hover:opacity-70"
                   >
-                    {profile?.email ? "Update" : "Link"}
+                    <Pencil size={16} style={{ color: colors.primary }} />
                   </button>
                 </div>
               </div>
@@ -447,31 +435,34 @@ const ProfilePage = () => {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center justify-between gap-2 overflow-hidden">
-                  <p className="text-sm font-medium truncate opacity-70">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium opacity-70 break-all">
                     {profile?.phoneNumber || "No phone linked"}
                   </p>
                   <button
                     onClick={() => handleLinkContact("phone")}
-                    className="text-xs font-bold underline transition-opacity hover:opacity-70"
-                    style={{ color: colors.primary }}
+                    className="p-1.5 rounded-xl transition-opacity hover:opacity-70"
                   >
-                    {profile?.phoneNumber ? "Update" : "Link"}
+                    <Pencil size={16} style={{ color: colors.primary }} />
                   </button>
                 </div>
               </div>
             </div>
-
-            <button
-              onClick={() => syncContactInfo()}
-              className="w-full py-3 rounded-2xl border text-xs font-bold transition-all hover:bg-black/5 active:scale-95"
-              style={{ borderColor: colors.border, color: colors.text }}
-            >
-              Sync Contacts from Linked Accounts
-            </button>
           </div>
         </div>
       </div>
+
+      {/* Update Contact Modal */}
+      {contactModal && (
+        <UpdateContactModal
+          type={contactModal.type}
+          currentValue={contactModal.currentValue}
+          onClose={() => setContactModal(null)}
+          onSuccess={() => {
+            refreshProfile();
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -92,20 +92,26 @@ export function getUserIdentifier(payload: DynamicJwtPayload): {
 
 /**
  * Extract verified phone from Dynamic JWT payload.
+ * High priority on the top-level phone_number from Dynamic.
  */
 export function getPhoneFromPayload(payload: DynamicJwtPayload): string | null {
+  if (payload.phone_number) return payload.phone_number;
+
   const smsCred = payload.verified_credentials?.find(
     (c) => c.format === "SMS" || c.wallet_name === "sms",
   );
-  return smsCred?.public_identifier ?? payload.phone_number ?? null;
+  return smsCred?.public_identifier ?? null;
 }
 
 /**
  * Extract verified email from Dynamic JWT payload.
+ * High priority on the top-level email field from Dynamic (the primary identity).
  */
 export function getEmailFromPayload(payload: DynamicJwtPayload): string | null {
+  if (payload.email) return payload.email;
+
   const emailCred = payload.verified_credentials?.find(
     (c) => c.format === "email" || c.wallet_name === "emailOnly",
   );
-  return emailCred?.public_identifier ?? payload.email ?? null;
+  return emailCred?.public_identifier ?? null;
 }

@@ -4,11 +4,15 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { User, Camera, Check, AlertCircle, UserRound } from "lucide-react";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import {
+  useDynamicContext,
+  useUserUpdateRequest,
+  useRefreshUser,
+} from "@dynamic-labs/sdk-react-core";
 import LoadingSpinner from "./LoadingSpinner";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
-import { getInitials, formatAddress } from "../utils/helpers";
+import { formatAddress } from "../utils/helpers";
 import Image from "next/image";
 
 interface ProfileCreationModalProps {
@@ -20,8 +24,9 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
 }) => {
   const colors = useThemeColors();
   const { user, primaryWallet } = useDynamicContext();
-  const { createProfile, checkUsernameAvailability, isLoading } =
-    useUserProfile();
+  const { updateUser } = useUserUpdateRequest();
+  const refreshUser = useRefreshUser();
+  const { createProfile, checkUsernameAvailability } = useUserProfile();
 
   const [userName, setUserName] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -120,12 +125,44 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
     }
 
     try {
-      // Create profile via API
+      // 1. Sync to Dynamic.xyz first (so their dashboard is correct)
+      // We use a nested try-catch so that Dynamic sync issues (like "disabled fields")
+      // don't block the entire profile creation process.
+      try {
+        // Attempt to sync username and names.
+        await updateUser({
+          username: userName.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        });
+      } catch (dynamicError: any) {
+        console.error(
+          "Dynamic sync failed (likely disabled fields):",
+          dynamicError,
+        );
+        // Fallback to names only if username update is rejected (422)
+        if (dynamicError.status === 422) {
+          try {
+            await updateUser({
+              firstName: firstName.trim(),
+              lastName: lastName.trim(),
+            });
+          } catch (nameError) {
+            console.error("Names-only sync also failed:", nameError);
+          }
+        }
+      }
+
+      // Force a refresh of the user object to update Dashboard display immediately
+      await refreshUser();
+
+      // 2. Create profile via our API
       await createProfile({
         username: userName.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         profilePhoto: previewImage, // Cloudinary handles base64 on server
+        walletAddress: primaryWallet?.address || null,
         referralCode: localStorage.getItem("referralCode") || undefined,
       });
 
@@ -136,7 +173,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
       });
 
       toast.success(`Welcome to Circlepot, ${firstName}!`, {
-        description: "Your on-chain profile is ready.",
+        description: "Your profile is ready.",
       });
 
       if (onProfileCreated) {
@@ -252,7 +289,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                   Wallet Address
                 </label>
                 <div
-                  className="px-4 py-3 rounded-2xl border text-xs font-mono truncate"
+                  className="px-4 py-3 rounded-2xl border text-xs font-mono break-all"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,
@@ -266,7 +303,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                   Verified Email
                 </label>
                 <div
-                  className="px-4 py-3 rounded-2xl border text-xs truncate"
+                  className="px-4 py-3 rounded-2xl border text-xs break-all"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,

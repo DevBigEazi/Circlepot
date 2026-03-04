@@ -146,7 +146,7 @@ const SettingsPage = () => {
 
         {/* Preferences Section */}
         <div
-          className="rounded-3xl p-8 border shadow-sm"
+          className="rounded-3xl px-4 py-8 sm:p-8 border shadow-sm"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.border,
@@ -298,7 +298,7 @@ const SettingsPage = () => {
 
         {/* Support Section */}
         <div
-          className="rounded-3xl p-8 border shadow-sm"
+          className="rounded-3xl px-4 py-8 sm:p-8 border shadow-sm"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.border,

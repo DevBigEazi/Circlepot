@@ -33,11 +33,19 @@ export async function POST(req: NextRequest) {
   try {
     // 1. Verify Dynamic JWT
     const payload = await verifyDynamicJwt(req);
-    const walletAddress = getWalletFromPayload(payload); // null for phone/email-only auth
-    const dynamicUserId = payload.sub;
+    const {
+      username,
+      firstName,
+      lastName,
+      profilePhoto,
+      referralCode,
+      walletAddress: bodyWalletAddress,
+    } = (await req.body) ? await req.json() : {};
 
-    const { username, firstName, lastName, profilePhoto, referralCode } =
-      (await req.body) ? await req.json() : {};
+    // 1. Resolve final wallet address (JWT is source of truth, body is fallback)
+    const jwtWalletAddress = getWalletFromPayload(payload);
+    const walletAddress = jwtWalletAddress || bodyWalletAddress;
+    const dynamicUserId = payload.sub;
 
     if (!username || username.length < 3) {
       return NextResponse.json(
@@ -56,18 +64,32 @@ export async function POST(req: NextRequest) {
     const db = await getDb();
     const profiles = db.collection<Profile>("profiles");
 
-    // 2. Check for existing profile
-    const existing = await profiles.findOne({
+    // 2. Check for collisions (Unique constraint enforcement)
+    // We check all fields that must be unique
+    const collisionQuery = {
       $or: [
         { dynamicUserId },
-        ...(walletAddress ? [{ walletAddress }] : []),
         { username: username.toLowerCase() },
+        ...(walletAddress
+          ? [{ walletAddress: walletAddress.toLowerCase() }]
+          : []),
       ],
-    });
+    };
+
+    const existing = await profiles.findOne(collisionQuery);
 
     if (existing) {
+      let conflictField = "Profile";
+      if (existing.username === username.toLowerCase())
+        conflictField = "Username";
+      if (
+        walletAddress &&
+        existing.walletAddress === walletAddress.toLowerCase()
+      )
+        conflictField = "Wallet address";
+
       return NextResponse.json(
-        { error: "Profile or username already exists" },
+        { error: `${conflictField} already exists or is in use` },
         { status: 409 },
       );
     }

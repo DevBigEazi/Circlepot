@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { useThemeColors } from "../hooks/useThemeColors";

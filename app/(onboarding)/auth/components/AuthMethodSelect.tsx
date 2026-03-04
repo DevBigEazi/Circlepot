@@ -87,6 +87,7 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
           "No complex wallet setup",
           "Recover with your email/phone",
           "Decentralized and non-custodial",
+          "Option to export private keys",
         ].map((benefit) => (
           <div
             key={benefit}

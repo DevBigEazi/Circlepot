@@ -1,19 +1,64 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useDynamicContext, getAuthToken } from "@dynamic-labs/sdk-react-core";
+import {
+  useDynamicContext,
+  getAuthToken,
+  useUserUpdateRequest,
+  useRefreshUser,
+} from "@dynamic-labs/sdk-react-core";
 import { ProfileResponse } from "@/app/types/profile";
 import { toast } from "sonner";
 
 export const useUserProfile = () => {
-  useDynamicContext();
+  const { user: dynamicUser } = useDynamicContext();
+  const { updateUser } = useUserUpdateRequest();
+  const refreshUser = useRefreshUser();
   const authToken = getAuthToken();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**
+   * Silently sync contact info from the JWT into MongoDB.
+   * Fire-and-forget — never blocks UI or shows loading state.
+   */
+  const silentSyncContacts = useCallback(
+    async (currentProfile: ProfileResponse) => {
+      if (!authToken) return;
+
+      try {
+        const response = await fetch("/api/profile/sync-contact", {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Only update state if values actually changed
+          if (
+            data.email !== currentProfile.email ||
+            data.phoneNumber !== currentProfile.phoneNumber
+          ) {
+            setProfile((prev) =>
+              prev
+                ? { ...prev, email: data.email, phoneNumber: data.phoneNumber }
+                : prev,
+            );
+          }
+        }
+      } catch {
+        // Silent — don't surface sync failures to the user
+      }
+    },
+    [authToken],
+  );
+
+  /**
    * Fetch the current user's profile from the API.
+   * After a successful fetch, silently syncs contact info in the background.
    */
   const fetchProfile = useCallback(async () => {
     if (!authToken) return;
@@ -31,6 +76,8 @@ export const useUserProfile = () => {
       if (response.ok) {
         const data = await response.json();
         setProfile(data);
+        // Fire-and-forget: sync contact info from JWT in the background
+        silentSyncContacts(data);
       } else if (response.status === 404) {
         setProfile(null);
       } else {
@@ -45,7 +92,25 @@ export const useUserProfile = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [authToken]);
+  }, [authToken, silentSyncContacts]);
+
+  /**
+   * REACTIVE SYNC: Watch for changes in the Dynamic User object.
+   * If Dynamic updates (e.g., via Widget or Modal), we sync to our DB.
+   */
+  useEffect(() => {
+    if (dynamicUser && profile && authToken) {
+      const needsSync =
+        (dynamicUser.email && dynamicUser.email !== profile.email) ||
+        (dynamicUser.phoneNumber &&
+          dynamicUser.phoneNumber !== profile.phoneNumber);
+
+      if (needsSync) {
+        console.log("Reactive sync triggered: Dynamic data changed");
+        silentSyncContacts(profile);
+      }
+    }
+  }, [dynamicUser, profile, authToken, silentSyncContacts]);
 
   /**
    * Initial fetch when auth token is available.
@@ -54,10 +119,6 @@ export const useUserProfile = () => {
     if (authToken && !profile && !isLoading) {
       fetchProfile();
     }
-    // NOTE: isLoading intentionally excluded — it's an internal fetch guard,
-    // not a trigger condition. Including it caused an infinite re-fetch loop
-    // on API errors (isLoading: true → false → re-runs effect → repeat).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, fetchProfile, profile]);
 
   /**
@@ -68,6 +129,7 @@ export const useUserProfile = () => {
     firstName: string;
     lastName: string;
     profilePhoto: string | null;
+    walletAddress?: string | null;
     referralCode?: string;
   }) => {
     if (!authToken) throw new Error("Not authenticated");
@@ -117,6 +179,16 @@ export const useUserProfile = () => {
     setError(null);
 
     try {
+      // 1. Sync name changes to Dynamic.xyz Dashboard
+      if (formData.firstName || formData.lastName) {
+        await updateUser({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        });
+        await refreshUser();
+      }
+
+      // 2. Update our MongoDB
       const response = await fetch("/api/profile/update", {
         method: "PATCH",
         headers: {
@@ -163,35 +235,6 @@ export const useUserProfile = () => {
     }
   };
 
-  /**
-   * Sync contact info from Dynamic after linking.
-   */
-  const syncContactInfo = async () => {
-    if (!authToken) return;
-
-    try {
-      const response = await fetch("/api/profile/sync-contact", {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (profile) {
-          setProfile({
-            ...profile,
-            email: data.email,
-            phoneNumber: data.phoneNumber,
-          });
-        }
-      }
-    } catch (err) {
-      console.error("Sync contact error:", err);
-    }
-  };
-
   return {
     profile,
     isLoading,
@@ -199,7 +242,6 @@ export const useUserProfile = () => {
     createProfile,
     updateProfile,
     checkUsernameAvailability,
-    syncContactInfo,
     refreshProfile: fetchProfile,
     hasProfile: !!profile,
   };
