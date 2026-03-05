@@ -9,25 +9,14 @@ import {
 import { uploadProfilePhoto } from "@/lib/cloudinary";
 import { Profile } from "@/app/types/profile";
 import { getRelayerWalletClient } from "@/lib/viem";
+import {
+  syncReferralOnChain,
+  REFERRAL_CONTRACT_ADDRESS,
+  REFERRAL_ABI,
+} from "@/lib/referral-utils";
 
 const ACCOUNT_ID_START = 1000000000;
 const ACCOUNT_ID_MAX = 9999999999;
-const REFERRAL_CONTRACT_ADDRESS = process.env
-  .NEXT_PUBLIC_REFERRAL_CONTRACT as `0x${string}`;
-
-// ABI snippet for ReferralRewards.recordReferral
-const REFERRAL_ABI = [
-  {
-    inputs: [
-      { name: "newUser", type: "address" },
-      { name: "referrer", type: "address" },
-    ],
-    name: "recordReferral",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
 
 export async function POST(req: NextRequest) {
   try {
@@ -153,6 +142,8 @@ export async function POST(req: NextRequest) {
       email: getEmailFromPayload(payload),
       phoneNumber: getPhoneFromPayload(payload),
       referredBy: referrerAddress,
+      onChainReferralStatus:
+        referrerAddress && walletAddress ? "failed" : "none",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -161,20 +152,9 @@ export async function POST(req: NextRequest) {
 
     // 7. Record Referral On-chain (if referrer exists AND user has a wallet)
     if (referrerAddress && walletAddress && REFERRAL_CONTRACT_ADDRESS) {
-      try {
-        const walletClient = getRelayerWalletClient();
-        await walletClient.writeContract({
-          address: REFERRAL_CONTRACT_ADDRESS,
-          abi: REFERRAL_ABI,
-          functionName: "recordReferral",
-          args: [
-            walletAddress as `0x${string}`,
-            referrerAddress as `0x${string}`,
-          ],
-        });
-      } catch (err) {
-        // Non-fatal for profile creation, but log it
-        console.error("Failed to record referral on-chain:", err);
+      const success = await syncReferralOnChain(newProfile);
+      if (success) {
+        newProfile.onChainReferralStatus = "success";
       }
     }
 

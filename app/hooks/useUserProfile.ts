@@ -15,7 +15,9 @@ export const useUserProfile = () => {
   const { updateUser } = useUserUpdateRequest();
   const refreshUser = useRefreshUser();
   const authToken = getAuthToken();
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [profile, setProfile] = useState<ProfileResponse | null | undefined>(
+    undefined,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,6 +91,9 @@ export const useUserProfile = () => {
         err instanceof Error ? err.message : "An unknown error occurred";
       setError(message);
       console.error("Fetch profile error:", err);
+      // Mark as null to stop the fetch loop.
+      // User can still manually call refreshProfile()
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }
@@ -116,10 +121,10 @@ export const useUserProfile = () => {
    * Initial fetch when auth token is available.
    */
   useEffect(() => {
-    if (authToken && !profile && !isLoading) {
+    if (authToken && profile === undefined && !isLoading) {
       fetchProfile();
     }
-  }, [authToken, fetchProfile, profile]);
+  }, [authToken, fetchProfile, profile, isLoading]);
 
   /**
    * Create a new profile.
@@ -243,6 +248,8 @@ export const useUserProfile = () => {
     updateProfile,
     checkUsernameAvailability,
     refreshProfile: fetchProfile,
-    hasProfile: !!profile,
+    hasProfile: profile !== null && profile !== undefined,
+    profileExists: profile !== null && profile !== undefined, // Explicitly if they have an account
+    profileNotFound: profile === null, // Explicitly if they need to sign up
   };
 };

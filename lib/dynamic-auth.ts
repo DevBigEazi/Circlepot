@@ -48,12 +48,36 @@ export async function verifyDynamicJwt(
 
   const token = authHeader.slice(7);
 
-  const { payload } = await jwtVerify(token, JWKS, {
-    issuer: DYNAMIC_ISSUER,
-    audience: APP_ORIGIN,
-  });
+  // Retry logic for transient network issues (e.g., fetching JWKS)
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const { payload } = await jwtVerify(token, JWKS, {
+        issuer: DYNAMIC_ISSUER,
+        audience: APP_ORIGIN,
+      });
+      return payload as unknown as DynamicJwtPayload;
+    } catch (err) {
+      lastError = err;
+      console.warn(`JWT verification attempt ${attempt + 1} failed:`, err);
+      // Only retry on potential network/fetch errors
+      if (
+        err instanceof TypeError ||
+        (err &&
+          typeof err === "object" &&
+          "code" in err &&
+          err.code === "UND_ERR_SOCKET")
+      ) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 500 * (attempt + 1)),
+        );
+        continue;
+      }
+      break; // Fatal error (e.g. invalid signature, expired), don't retry
+    }
+  }
 
-  return payload as unknown as DynamicJwtPayload;
+  throw lastError;
 }
 
 /**

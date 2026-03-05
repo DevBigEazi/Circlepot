@@ -9,6 +9,7 @@ export interface Profile {
   email: string | null;
   phoneNumber: string | null;
   referredBy: string | null;
+  onChainReferralStatus?: "success" | "failed" | "none";
   createdAt: Date;
   updatedAt: Date;
 }

@@ -61,7 +61,6 @@ export async function ensureIndexes() {
       { email: 1 },
       {
         unique: true,
-        sparse: true,
         partialFilterExpression: { email: { $exists: true, $ne: "" } },
       },
     ],
@@ -69,7 +68,6 @@ export async function ensureIndexes() {
       { phoneNumber: 1 },
       {
         unique: true,
-        sparse: true,
         partialFilterExpression: { phoneNumber: { $exists: true, $ne: "" } },
       },
     ],
