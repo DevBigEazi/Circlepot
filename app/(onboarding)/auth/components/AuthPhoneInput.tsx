@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import { Phone, ArrowLeft, Send } from "lucide-react";
+import { isValidPhone } from "@/app/utils/auth-utils";
 
 interface AuthPhoneInputProps {
   onNext: (phone: string) => void;
   onBack: () => void;
   initialValue?: string;
   isLoading?: boolean;
+  isOnline?: boolean;
 }
 
 export const AuthPhoneInput: React.FC<AuthPhoneInputProps> = ({
@@ -15,6 +17,7 @@ export const AuthPhoneInput: React.FC<AuthPhoneInputProps> = ({
   onBack,
   initialValue = "",
   isLoading = false,
+  isOnline = true,
 }) => {
   const [phone, setPhone] = useState(initialValue);
 
@@ -61,15 +64,20 @@ export const AuthPhoneInput: React.FC<AuthPhoneInputProps> = ({
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+1 234 567 8900"
               className="w-full pl-12 pr-4 py-4 border-2 border-border/80 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none bg-white text-foreground font-medium disabled:opacity-50"
-              disabled={isLoading}
+              disabled={isLoading || !isOnline}
               autoFocus
             />
           </div>
+          {!isOnline && (
+            <p className="text-[11px] text-red-500 font-bold ml-1">
+              Connect to internet to send SMS
+            </p>
+          )}
         </div>
 
         <button
           onClick={() => onNext(phone)}
-          disabled={isLoading || phone.length < 8}
+          disabled={isLoading || !isValidPhone(phone) || !isOnline}
           className="flex justify-center items-center rounded-2xl py-4 font-bold gap-3 transition-all bg-primary hover:bg-primary/95 text-white hover:shadow-xl disabled:opacity-50 cursor-pointer w-full group relative overflow-hidden"
         >
           {isLoading ? (

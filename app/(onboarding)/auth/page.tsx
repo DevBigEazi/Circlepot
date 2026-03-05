@@ -14,6 +14,12 @@ import { AuthMethodSelect } from "./components/AuthMethodSelect";
 import { AuthEmailInput } from "./components/AuthEmailInput";
 import { AuthPhoneInput } from "./components/AuthPhoneInput";
 import { AuthOTPVerify } from "./components/AuthOTPVerify";
+import {
+  isValidEmail,
+  isValidPhone,
+  parsePhoneNumber,
+  mapDynamicError,
+} from "@/app/utils/auth-utils";
 
 type AuthStep = "select" | "email_input" | "phone_input" | "otp";
 
@@ -37,6 +43,22 @@ export default function AuthPage() {
   } = useSocialAccounts();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+
+  // Monitor online status
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -49,14 +71,12 @@ export default function AuthPage() {
   useEffect(() => {
     if (socialError) {
       console.error("Dynamic Social Error:", socialError);
-      // Mapping common configuration errors to friendly messages
-      const errorMessage =
-        socialError.message?.includes("not enabled") ||
-        socialError.message?.includes("configuration")
-          ? "Google login is not yet configured in the dashboard. Please use Email login for now."
-          : socialError.message || "Social login failed. Please try again.";
 
-      toast.error(errorMessage);
+      const errorMessage = mapDynamicError(socialError);
+
+      if (errorMessage) {
+        toast.error(errorMessage);
+      }
       setIsLoading(false);
     }
   }, [socialError]);
@@ -64,18 +84,34 @@ export default function AuthPage() {
   // --- Handlers ---
 
   const handleGoogleLogin = async () => {
+    if (!isOnline) {
+      toast.error(
+        "You are offline. Please connect to the internet to sign in.",
+      );
+      return;
+    }
     try {
       setIsLoading(true);
       await signInWithSocialAccount(ProviderEnum.Google);
-      // Page will redirect via useEffect when login completes
     } catch (error) {
       console.error("Google login error:", error);
-      toast.error("Failed to login with Google. Please try again.");
+      const msg = mapDynamicError(error);
+      if (msg) toast.error(msg);
       setIsLoading(false);
     }
   };
 
   const handleEmailSubmit = async (emailInput: string) => {
+    if (!isOnline) {
+      toast.error("Offline. Cannot send verification code.");
+      return;
+    }
+
+    if (!isValidEmail(emailInput)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
     try {
       setIsLoading(true);
       setEmail(emailInput);
@@ -87,56 +123,62 @@ export default function AuthPage() {
       toast.success("Verification code sent to your email!");
     } catch (error) {
       console.error("Email OTP error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to send code. Check your email address.",
-      );
+      const msg = mapDynamicError(error);
+      if (msg) toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handlePhoneSubmit = async (phoneInput: string) => {
+    if (!isOnline) {
+      toast.error("Offline. Cannot send verification SMS.");
+      return;
+    }
+
+    if (!isValidPhone(phoneInput)) {
+      toast.error("Please enter a valid phone number.");
+      return;
+    }
+
     try {
       setIsLoading(true);
       setPhone(phoneInput);
       setActiveAddress(phoneInput);
 
-      // Simple parsing as initial step — real apps should use a proper lib or handle inputs separately
-      // but following the provided example structure
+      const { dialCode, phone, iso2 } = parsePhoneNumber(phoneInput);
+
       await connectWithSms({
-        phone: phoneInput.replace(/^\+?[1-9]\s?/, ""),
-        dialCode: phoneInput.match(/^\+?([1-9]\d{0,3})/)?.[1] || "1",
-        iso2: "US", // Default for now
+        phone,
+        dialCode,
+        iso2,
       });
 
       setStep("otp");
       toast.success("Verification code sent to your phone!");
     } catch (error) {
       console.error("Phone OTP error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to send SMS. Make sure to include country code.",
-      );
+      const msg = mapDynamicError(error);
+      if (msg) toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleVerifyOTP = async (otp: string) => {
+    if (!isOnline) {
+      toast.error("Offline. Cannot verify code.");
+      return;
+    }
+
     try {
       setIsLoading(true);
       await verifyOneTimePassword(otp);
       toast.success("Successfully verified!");
     } catch (error) {
       console.error("OTP verification error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Invalid or expired code. Please try again.",
-      );
+      const msg = mapDynamicError(error);
+      if (msg) toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -182,6 +224,7 @@ export default function AuthPage() {
                 onSelectPhone={() => setStep("phone_input")}
                 onGoogleLogin={handleGoogleLogin}
                 isLoading={isLoading || isSocialProcessing}
+                isOnline={isOnline}
               />
             )}
 
@@ -191,6 +234,7 @@ export default function AuthPage() {
                 onBack={handleBack}
                 initialValue={email}
                 isLoading={isLoading}
+                isOnline={isOnline}
               />
             )}
 
@@ -200,6 +244,7 @@ export default function AuthPage() {
                 onBack={handleBack}
                 initialValue={phone}
                 isLoading={isLoading}
+                isOnline={isOnline}
               />
             )}
 
@@ -210,6 +255,7 @@ export default function AuthPage() {
                 onBack={handleBack}
                 onResend={handleResendOTP}
                 isLoading={isLoading}
+                isOnline={isOnline}
               />
             )}
           </div>
@@ -220,7 +266,7 @@ export default function AuthPage() {
           By continuing, you agree to Circlepot&apos;s Terms of Service and
           Privacy Policy.
           <br />
-          Securely powered by Dynamic XYZ.
+          Securely powered by Dynamic XYZ & Avalanche.
         </p>
       </div>
     </div>

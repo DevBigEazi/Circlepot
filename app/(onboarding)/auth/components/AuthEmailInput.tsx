@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Mail, ArrowLeft, Send } from "lucide-react";
+import { Mail, ArrowLeft, Send, AlertCircle } from "lucide-react";
+import { isValidEmail, getDomainSuggestion } from "@/app/utils/auth-utils";
 
 interface AuthEmailInputProps {
   onNext: (email: string) => void;
   onBack: () => void;
   initialValue?: string;
   isLoading?: boolean;
+  isOnline?: boolean;
 }
 
 export const AuthEmailInput: React.FC<AuthEmailInputProps> = ({
@@ -15,8 +17,10 @@ export const AuthEmailInput: React.FC<AuthEmailInputProps> = ({
   onBack,
   initialValue = "",
   isLoading = false,
+  isOnline = true,
 }) => {
   const [email, setEmail] = useState(initialValue);
+  const suggestion = getDomainSuggestion(email);
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in">
@@ -61,15 +65,37 @@ export const AuthEmailInput: React.FC<AuthEmailInputProps> = ({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="w-full pl-12 pr-4 py-4 border-2 border-border/80 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none bg-white text-foreground font-medium disabled:opacity-50"
-              disabled={isLoading}
+              disabled={isLoading || !isOnline}
               autoFocus
             />
           </div>
+          {suggestion && (
+            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-2.5 rounded-xl border border-amber-200 animate-in fade-in slide-in-from-top-1">
+              <AlertCircle size={16} className="shrink-0" />
+              <p className="text-[12px] font-medium leading-tight">
+                Did you mean{" "}
+                <span
+                  className="font-bold underline cursor-pointer"
+                  onClick={() =>
+                    setEmail(email.split("@")[0] + "@" + suggestion)
+                  }
+                >
+                  {suggestion}
+                </span>
+                ?
+              </p>
+            </div>
+          )}
+          {!isOnline && (
+            <p className="text-[11px] text-red-500 font-bold ml-1">
+              Connect to internet to send code
+            </p>
+          )}
         </div>
 
         <button
           onClick={() => onNext(email)}
-          disabled={isLoading || !email.includes("@")}
+          disabled={isLoading || !isValidEmail(email) || !isOnline}
           className="flex justify-center items-center rounded-2xl py-4 font-bold gap-3 transition-all bg-primary hover:bg-primary/95 text-white hover:shadow-xl disabled:opacity-50 cursor-pointer w-full group relative overflow-hidden"
         >
           {isLoading ? (
