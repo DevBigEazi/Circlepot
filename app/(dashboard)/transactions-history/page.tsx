@@ -20,7 +20,7 @@ export default function TransactionsHistoryPage() {
         onBack={() => router.back()}
         colors={colors}
       />
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <p style={{ color: colors.text, opacity: 0.7 }}>
           View your transaction history.
         </p>

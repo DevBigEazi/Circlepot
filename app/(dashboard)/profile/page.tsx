@@ -148,7 +148,7 @@ const ProfilePage = () => {
         colors={colors}
       />
 
-      <div className="max-w-2xl mx-auto p-4 space-y-6 mt-4">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 space-y-6 mt-6">
         {/* Profile Card */}
         <div
           className="rounded-3xl p-4 sm:p-8 border shadow-sm space-y-8"
@@ -161,7 +161,7 @@ const ProfilePage = () => {
           <div className="flex flex-col items-center gap-4">
             <div className="relative group">
               <div
-                className="w-32 h-32 rounded-3xl overflow-hidden border-2 flex items-center justify-center bg-muted shadow-inner"
+                className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl overflow-hidden border-2 flex items-center justify-center bg-muted shadow-inner"
                 style={{ borderColor: colors.primary }}
               >
                 {previewImage ? (
@@ -228,8 +228,8 @@ const ProfilePage = () => {
           </div>
 
           {/* Account Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider opacity-60">
                 Username
               </label>
@@ -238,7 +238,7 @@ const ProfilePage = () => {
                   type="text"
                   value={profile?.username || ""}
                   disabled
-                  className="w-full px-5 py-3.5 pr-12 rounded-2xl border opacity-60 cursor-not-allowed font-medium"
+                  className="w-full px-4 py-3 sm:px-5 sm:py-3.5 pr-12 rounded-2xl border opacity-60 cursor-not-allowed font-medium text-sm sm:text-base"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,
@@ -270,7 +270,7 @@ const ProfilePage = () => {
                   type="text"
                   value={profile?.accountId || ""}
                   disabled
-                  className="w-full px-5 py-3.5 pr-12 rounded-2xl border opacity-60 cursor-not-allowed font-mono"
+                  className="w-full px-4 py-3 sm:px-5 sm:py-3.5 pr-12 rounded-2xl border opacity-60 cursor-not-allowed font-mono text-sm sm:text-base"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,

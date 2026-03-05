@@ -203,9 +203,9 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       <div className="w-full max-w-md z-10 transition-all duration-300">
-        <div className="p-4 sm:p-6">
+        <div className="p-3 sm:p-6">
           {/* 1. Header Area */}
           <AuthHeader
             title={step === "select" ? "Sign In" : ""}

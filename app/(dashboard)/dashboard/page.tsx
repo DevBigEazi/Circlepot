@@ -3,37 +3,42 @@
 import React from "react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useUserProfile } from "@/app/hooks/useUserProfile";
+import { useBalance } from "@/app/hooks/useBalance";
+import { useCreditScore } from "@/app/hooks/useCreditScore";
 import NavBar from "@/app/components/NavBar";
-import { History, Bell, Settings } from "lucide-react";
+import BalanceDisplay from "@/app/components/BalanceDisplay";
+import { History, Bell, Settings, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
   const colors = useThemeColors();
   const { profile } = useUserProfile();
+  const { formattedBalance, isLoading: isBalanceLoading } = useBalance();
+  const { data: creditScore, isLoading: isCreditLoading } = useCreditScore();
   const router = useRouter();
 
   const actions = (
-    <div className="flex gap-2">
+    <div className="flex gap-1 sm:gap-2">
       <button
         onClick={() => router.push("/transactions-history")}
-        className="p-2 rounded-xl transition hover:bg-black/5 dark:hover:bg-white/5"
+        className="p-1.5 sm:p-2 rounded-xl transition hover:opacity-80"
         style={{ color: colors.text }}
       >
-        <History size={18} />
+        <History className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" />
       </button>
       <button
         onClick={() => router.push("/notifications")}
-        className="p-2 rounded-xl relative transition hover:bg-black/5 dark:hover:bg-white/5"
+        className="p-1.5 sm:p-2 rounded-xl relative transition hover:opacity-80"
         style={{ color: colors.text }}
       >
-        <Bell size={18} />
+        <Bell className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" />
       </button>
       <button
         onClick={() => router.push("/settings")}
-        className="p-2 rounded-xl transition hover:bg-black/5 dark:hover:bg-white/5"
+        className="p-1.5 sm:p-2 rounded-xl transition hover:opacity-80"
         style={{ color: colors.text }}
       >
-        <Settings size={18} />
+        <Settings className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" />
       </button>
     </div>
   );
@@ -50,14 +55,19 @@ export default function Home() {
         profileImage={profile?.profilePhoto}
         actions={actions}
       />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-4" style={{ color: colors.text }}>
-          Welcome to Circlepot
-        </h1>
-        <p style={{ color: colors.text, opacity: 0.7 }}>
-          Your social savings journey starts here.
-        </p>
-      </div>
+
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+          {/* Left Column: Balance & Goals (2/5 width on lg) */}
+          <div className="lg:col-span-2 space-y-6">
+            <BalanceDisplay
+              balance={formattedBalance}
+              creditScore={creditScore}
+              isLoading={isBalanceLoading || isCreditLoading}
+            />
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
