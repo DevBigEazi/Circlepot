@@ -32,7 +32,7 @@ export default function SavingsPage() {
       />
 
       {/* Tab Switcher Area */}
-      <div className="max-w-4xl mx-auto px-4 mt-6">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 mt-6">
         <div
           className="flex p-1 rounded-2xl"
           style={{ backgroundColor: `${colors.surface}` }}
@@ -43,7 +43,7 @@ export default function SavingsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all duration-300"
+                className="flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base px-2"
                 style={
                   isActive
                     ? {
@@ -66,7 +66,7 @@ export default function SavingsPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-8">
         {activeTab === "personal" ? (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <h2 className="text-xl font-bold" style={{ color: colors.text }}>

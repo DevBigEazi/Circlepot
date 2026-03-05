@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Users, Gift, Copy, Check, Share2 } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useReferralData } from "@/app/hooks/useReferralData";
+import { useCurrency } from "./CurrencyProvider";
+import { useCurrencyConverter } from "@/app/hooks/useCurrencyConverter";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatUnits } from "viem";
@@ -14,6 +16,8 @@ interface ReferralSectionProps {
 
 const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
   const colors = useThemeColors();
+  const { selectedCurrency } = useCurrency();
+  const { convertToLocal, availableCurrencies } = useCurrencyConverter();
   const { data: referralData, isLoading: isLoadingData } = useReferralData();
   const [copied, setCopied] = useState(false);
 
@@ -112,7 +116,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
             {isLoadingSettings
               ? "Loading rewards..."
               : hasBonus
-                ? `Invite friends and earn $${bonusAmount} USDm`
+                ? `Invite friends and earn $${bonusAmount} USDT ${selectedCurrency !== "USD" ? `(≈ ${availableCurrencies[selectedCurrency]?.symbol || ""}${convertToLocal(Number(bonusAmount), selectedCurrency)} ${selectedCurrency})` : ""}`
                 : "Invite friends to join Circlepot"}
           </p>
         </div>
@@ -144,13 +148,47 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
             <p className="text-xl font-bold text-green-500">
               {isLoading
                 ? "..."
-                : `$${formatUnits(referralData?.totalEarned || BigInt(0), 18)}`}
+                : `$${Number(formatUnits(referralData?.totalEarned || BigInt(0), 18)).toFixed(2)}`}
             </p>
+            {referralData?.totalEarned &&
+              referralData.totalEarned > BigInt(0) &&
+              selectedCurrency !== "USD" && (
+                <p
+                  className="text-[10px] font-bold opacity-60"
+                  style={{ color: colors.text }}
+                >
+                  ≈ {availableCurrencies[selectedCurrency]?.symbol || ""}
+                  {convertToLocal(
+                    Number(formatUnits(referralData.totalEarned, 18)),
+                    selectedCurrency,
+                  )}{" "}
+                  {selectedCurrency}
+                </p>
+              )}
             {referralData?.pendingEarned &&
               referralData.pendingEarned > BigInt(0) && (
-                <p className="text-[10px] text-amber-500 font-bold mt-0.5">
-                  + ${formatUnits(referralData.pendingEarned, 18)} Pending
-                </p>
+                <div className="mt-0.5">
+                  <p className="text-[10px] text-amber-500 font-bold">
+                    + $
+                    {Number(
+                      formatUnits(referralData.pendingEarned, 18),
+                    ).toFixed(2)}{" "}
+                    Pending
+                  </p>
+                  {selectedCurrency !== "USD" && (
+                    <p
+                      className="text-[8px] font-bold opacity-40"
+                      style={{ color: colors.text }}
+                    >
+                      ≈ {availableCurrencies[selectedCurrency]?.symbol || ""}
+                      {convertToLocal(
+                        Number(formatUnits(referralData.pendingEarned, 18)),
+                        selectedCurrency,
+                      )}{" "}
+                      {selectedCurrency}
+                    </p>
+                  )}
+                </div>
               )}
           </div>
         </div>

@@ -31,14 +31,14 @@ const BottomNav: React.FC = () => {
         borderColor: colors.border,
       }}
     >
-      <div className="flex justify-around items-center max-w-7xl mx-auto px-2 py-3">
+      <div className="flex justify-around items-center max-w-7xl mx-auto px-1 sm:px-2 py-2 sm:py-3">
         {navItems.map((item) => {
           const active = isActive(item.route);
           return (
             <Link
               href={item.route}
               key={item.id}
-              className="flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-300 flex-1 active:scale-90"
+              className="flex flex-col items-center gap-0.5 sm:gap-1 p-1 sm:p-2 rounded-xl sm:rounded-2xl transition-all duration-300 flex-1 active:scale-90 min-w-0"
               style={
                 active
                   ? {
@@ -48,9 +48,12 @@ const BottomNav: React.FC = () => {
                   : { color: colors.text, opacity: 0.5 }
               }
             >
-              <item.icon size={22} strokeWidth={active ? 2.5 : 2} />
+              <item.icon
+                className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]"
+                strokeWidth={active ? 2.5 : 2}
+              />
               <span
-                className={`text-[10px] font-bold ${active ? "opacity-100" : "opacity-70"}`}
+                className={`text-[9px] sm:text-[10px] font-bold truncate w-full text-center ${active ? "opacity-100" : "opacity-70"}`}
               >
                 {item.label}
               </span>

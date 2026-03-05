@@ -20,8 +20,11 @@ export default function BrowsePage() {
         onBack={() => router.back()}
         colors={colors}
       />
-      <div className="p-4">
-        <p style={{ color: colors.text, opacity: 0.7 }}>
+      <div className="p-3 sm:p-4">
+        <p
+          className="text-sm sm:text-base opacity-70"
+          style={{ color: colors.text }}
+        >
           Browse circles and opportunities.
         </p>
       </div>
