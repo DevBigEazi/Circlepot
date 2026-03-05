@@ -135,20 +135,27 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
           firstName: firstName.trim(),
           lastName: lastName.trim(),
         });
-      } catch (dynamicError: any) {
-        console.error(
-          "Dynamic sync failed (likely disabled fields):",
-          dynamicError,
-        );
-        // Fallback to names only if username update is rejected (422)
-        if (dynamicError.status === 422) {
-          try {
-            await updateUser({
-              firstName: firstName.trim(),
-              lastName: lastName.trim(),
-            });
-          } catch (nameError) {
-            console.error("Names-only sync also failed:", nameError);
+      } catch (dynamicError: unknown) {
+        if (
+          dynamicError &&
+          typeof dynamicError === "object" &&
+          "status" in dynamicError
+        ) {
+          const status = (dynamicError as { status: number }).status;
+          console.error(
+            "Dynamic sync failed (likely disabled fields):",
+            dynamicError,
+          );
+          // Fallback to names only if username update is rejected (422)
+          if (status === 422) {
+            try {
+              await updateUser({
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+              });
+            } catch (nameError) {
+              console.error("Names-only sync also failed:", nameError);
+            }
           }
         }
       }
@@ -157,14 +164,20 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
       await refreshUser();
 
       // 2. Create profile via our API
+      const storedRef = localStorage.getItem("cp_referral_code");
       await createProfile({
         username: userName.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         profilePhoto: previewImage, // Cloudinary handles base64 on server
         walletAddress: primaryWallet?.address || null,
-        referralCode: localStorage.getItem("referralCode") || undefined,
+        referralCode: storedRef || undefined,
       });
+
+      // Clear referral on success
+      if (storedRef) {
+        localStorage.removeItem("cp_referral_code");
+      }
 
       confetti({
         particleCount: 100,

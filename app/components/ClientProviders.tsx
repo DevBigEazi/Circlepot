@@ -6,6 +6,8 @@ import { ThemeProvider } from "./ThemeProvider";
 import { CurrencyProvider } from "./CurrencyProvider";
 import { NotificationsProvider } from "./NotificationsProvider";
 import { Toaster } from "sonner";
+import ReferralCapturer from "./ReferralCapturer";
+import { Suspense } from "react";
 
 // Initialize QueryClient once per client lifecycle
 const queryClient = new QueryClient({
@@ -22,6 +24,9 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <CurrencyProvider>
           <NotificationsProvider>
+            <Suspense fallback={null}>
+              <ReferralCapturer />
+            </Suspense>
             {children}
             <Toaster position="top-center" />
           </NotificationsProvider>

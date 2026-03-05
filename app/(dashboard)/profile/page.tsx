@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import UpdateContactModal from "@/app/components/UpdateContactModal";
+import ReferralSection from "@/app/components/ReferralSection";
 import { getInitials } from "@/app/utils/helpers";
 import Image from "next/image";
 
@@ -448,6 +449,8 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
+
+            {profile && <ReferralSection username={profile.username} />}
           </div>
         </div>
       </div>

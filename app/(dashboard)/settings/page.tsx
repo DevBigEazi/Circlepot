@@ -12,6 +12,7 @@ import {
   Bell,
   LogOut,
   ArrowLeft,
+  Users,
 } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useUserProfile } from "@/app/hooks/useUserProfile";

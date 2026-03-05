@@ -16,7 +16,7 @@ export default function DashboardLayout({
   const { user, sdkHasLoaded } = useDynamicContext();
   const {
     isLoading: isProfileLoading,
-    hasProfile,
+    profile, // Need raw profile to distinguish null vs undefined
     refreshProfile,
   } = useUserProfile();
   const [isClient, setIsClient] = useState(false);
@@ -40,23 +40,27 @@ export default function DashboardLayout({
     }
   }, [isClient, sdkHasLoaded, user, router]);
 
+  const isDeterminingProfile = user && profile === undefined;
+
   // Handle loading states to prevent layout flashes
-  if (!isClient || !sdkHasLoaded || (user && isProfileLoading)) {
+  if (
+    !isClient ||
+    !sdkHasLoaded ||
+    (user && (isProfileLoading || isDeterminingProfile))
+  ) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" text={user ? "Loading..." : "Loading..."} />
+        <LoadingSpinner size="lg" text="Loading..." />
       </div>
     );
   }
 
   // If we have a user, check for profile
   if (user) {
-    if (!hasProfile && !isProfileLoading) {
+    if (!profile) {
       return (
         <section className="w-full h-screen overflow-hidden">
           <ProfileCreationModal onProfileCreated={refreshProfile} />
-          {/* We show children behind the modal if needed, or just the modal */}
-          {children}
         </section>
       );
     }
