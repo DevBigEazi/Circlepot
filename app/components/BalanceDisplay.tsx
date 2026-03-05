@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Wallet, Eye, EyeOff, Info, Star } from "lucide-react";
 import { CreditScore } from "../types/credit";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { useCurrency } from "./CurrencyProvider";
 import { useCurrencyConverter } from "../hooks/useCurrencyConverter";
+import Image from "next/image";
 
 interface BalanceDisplayProps {
   balance: string;
@@ -29,14 +30,12 @@ export default function BalanceDisplay({
   const colors = useThemeColors();
   const { selectedCurrency } = useCurrency();
   const { convertToLocal, availableCurrencies } = useCurrencyConverter();
-  const [showBalance, setShowBalance] = useState(true);
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  // Persistence
-  useEffect(() => {
+  const [showBalance, setShowBalance] = useState(() => {
+    if (typeof window === "undefined") return true;
     const saved = localStorage.getItem("showBalance");
-    if (saved !== null) setShowBalance(JSON.parse(saved));
-  }, []);
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const toggleVisibility = () => {
     const newVal = !showBalance;
@@ -211,10 +210,12 @@ export default function BalanceDisplay({
           className="px-2 py-1 rounded-xl text-[10px] sm:text-xs font-bold flex items-center gap-1 leading-none h-fit"
           style={{ backgroundColor: colors.background, color: colors.primary }}
         >
-          <img
+          <Image
             src="/assets/images/tether-usdt-logo.svg"
             alt="USDT"
-            className="w-3 h-3 rounded-full"
+            width={12}
+            height={12}
+            className="rounded-full"
           />
           USDT
         </div>

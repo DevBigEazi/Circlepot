@@ -34,7 +34,7 @@ export const useThemeColors = (): ThemeColors => {
     secondary: "#DE802B",
     accent: "#2E3338",
     background: "#F8F9FA",
-    surface: "#FFFFFF",
+    surface: "#F1F5F1",
     text: "#2E3338",
     textLight: "#6B7280",
     border: "#E5E7EB",
@@ -54,7 +54,7 @@ export const useThemeColors = (): ThemeColors => {
   };
 
   const darkColors: ThemeColors = {
-    primary: "#ACFF00", // Vibrant Circlepot Green (Dark Mode adjustment)
+    primary: "#5C6F2B", // Vibrant Circlepot Green
     secondary: "#DE802B", // Warm Gold
     accent: "#E5E7EB",
     background: "#0F0F11",

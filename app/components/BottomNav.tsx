@@ -9,6 +9,13 @@ const BottomNav: React.FC = () => {
   const colors = useThemeColors();
   const pathname = usePathname();
 
+  // Only show BottomNav on main tab pages
+  const showOnRoutes = ["/dashboard", "/browse", "/create", "/savings"];
+  const shouldShow =
+    showOnRoutes.includes(pathname) || pathname.startsWith("/dashboard/");
+
+  if (!shouldShow) return null;
+
   const navItems = [
     { id: "dashboard", icon: Home, label: "Home", route: "/dashboard" },
     { id: "browse", icon: Search, label: "Browse", route: "/browse" },
