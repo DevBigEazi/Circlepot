@@ -21,8 +21,12 @@ interface UserProfileContextType {
   profile: ProfileResponse | null | undefined;
   isLoading: boolean;
   error: string | null;
-  createProfile: (formData: any) => Promise<ProfileResponse>;
-  updateProfile: (formData: any) => Promise<ProfileResponse>;
+  createProfile: (
+    formData: Partial<ProfileResponse> & { referralCode?: string },
+  ) => Promise<ProfileResponse>;
+  updateProfile: (
+    formData: Partial<ProfileResponse>,
+  ) => Promise<ProfileResponse>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   refreshProfile: () => Promise<void>;
   hasProfile: boolean;
@@ -161,9 +165,13 @@ export function UserProfileProvider({
     profile?.phoneNumber,
     authToken,
     silentSyncContacts,
+    dynamicUser, // Added to satisfy exhausted-deps
+    profile, // Added to satisfy exhausted-deps
   ]);
 
-  const createProfile = async (formData: any) => {
+  const createProfile = async (
+    formData: Partial<ProfileResponse> & { referralCode?: string },
+  ) => {
     if (!authToken) throw new Error("Not authenticated");
     setIsLoading(true);
     try {
@@ -184,7 +192,7 @@ export function UserProfileProvider({
     }
   };
 
-  const updateProfile = async (formData: any) => {
+  const updateProfile = async (formData: Partial<ProfileResponse>) => {
     if (!authToken) throw new Error("Not authenticated");
     setIsLoading(true);
     try {
