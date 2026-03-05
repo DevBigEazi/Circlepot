@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "./ThemeProvider";
 import { CurrencyProvider } from "./CurrencyProvider";
 import { NotificationsProvider } from "./NotificationsProvider";
+import { UserProfileProvider } from "./UserProfileProvider";
 import { Toaster } from "sonner";
 import ReferralCapturer from "./ReferralCapturer";
 import { Suspense } from "react";
@@ -24,11 +25,13 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <CurrencyProvider>
           <NotificationsProvider>
-            <Suspense fallback={null}>
-              <ReferralCapturer />
-            </Suspense>
-            {children}
-            <Toaster position="top-center" />
+            <UserProfileProvider>
+              <Suspense fallback={null}>
+                <ReferralCapturer />
+              </Suspense>
+              {children}
+              <Toaster position="top-center" />
+            </UserProfileProvider>
           </NotificationsProvider>
         </CurrencyProvider>
       </ThemeProvider>

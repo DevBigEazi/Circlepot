@@ -66,16 +66,16 @@ const NavBar: React.FC<NavBarProps> = ({
         className="sticky top-0 z-10 w-full"
         style={{ backgroundColor: colors.background }}
       >
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-2.5 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="p-2 rounded-xl transition hover:opacity-80"
+                  className="p-1.5 rounded-xl transition hover:opacity-80"
                   style={{ color: colors.text }}
                 >
-                  <ArrowLeft size={20} />
+                  <ArrowLeft size={18} />
                 </button>
               )}
               {title && (
@@ -140,16 +140,16 @@ const NavBar: React.FC<NavBarProps> = ({
           borderColor: colors.border,
         }}
       >
-        <div className="max-w-4xl mx-auto px-4 py-3">
+        <div className="max-w-4xl mx-auto px-2.5 sm:px-4 py-2.5 sm:py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 overflow-hidden">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl transition hover:bg-black/5 dark:hover:bg-white/5"
+                  className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl transition hover:bg-black/5 dark:hover:bg-white/5"
                   style={{ color: colors.text }}
                 >
-                  <ArrowLeft size={24} />
+                  <ArrowLeft size={18} />
                 </button>
               )}
               {title && (
@@ -192,19 +192,19 @@ const NavBar: React.FC<NavBarProps> = ({
         borderColor: colors.border,
       }}
     >
-      <nav className="max-w-7xl mx-auto px-4 h-16">
+      <nav className="max-w-7xl mx-auto px-2.5 sm:px-4 h-16">
         <div className="flex items-center justify-between h-full">
-          <div className="flex items-center">
+          <div className="flex items-center min-w-0">
             {onBack && (
               <button
                 onClick={onBack}
-                className="p-2 mr-2 rounded-xl transition hover:bg-black/5 dark:hover:bg-white/5"
+                className="p-1.5 mr-1.5 rounded-xl transition hover:bg-black/5 dark:hover:bg-white/5"
               >
-                <ArrowLeft size={20} style={{ color: colors.text }} />
+                <ArrowLeft size={18} style={{ color: colors.text }} />
               </button>
             )}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm flex items-center justify-center relative bg-gray-100 dark:bg-gray-800">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm flex items-center justify-center relative shrink-0 bg-gray-100 dark:bg-gray-800">
                 {profileImage ? (
                   <Image
                     src={profileImage}
@@ -218,23 +218,23 @@ const NavBar: React.FC<NavBarProps> = ({
                   </div>
                 )}
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col overflow-hidden min-w-0">
                 <div
-                  className="text-sm font-bold leading-none"
+                  className="text-sm font-bold leading-none truncate"
                   style={{ color: colors.text }}
                 >
                   Hi, {firstName}
                 </div>
                 <div
-                  className="text-[10px] sm:text-xs mt-1 font-medium"
-                  style={{ color: colors.text, opacity: 0.6 }}
+                  className="text-[10px] sm:text-xs mt-1 font-medium truncate opacity-60"
+                  style={{ color: colors.text }}
                 >
                   Let&apos;s make today count! 💫
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex gap-2">{actions}</div>
+          <div className="flex gap-1.5 sm:gap-2 shrink-0">{actions}</div>
         </div>
       </nav>
     </header>
