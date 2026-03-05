@@ -1,13 +1,13 @@
 "use client";
 
-import React from "react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useUserProfile } from "@/app/hooks/useUserProfile";
 import { useBalance } from "@/app/hooks/useBalance";
 import { useCreditScore } from "@/app/hooks/useCreditScore";
 import NavBar from "@/app/components/NavBar";
 import BalanceDisplay from "@/app/components/BalanceDisplay";
-import { History, Bell, Settings, Plus } from "lucide-react";
+import { RecentTransactions } from "@/app/components/RecentTransactions";
+import { Bell, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -20,25 +20,18 @@ export default function Home() {
   const actions = (
     <div className="flex gap-1 sm:gap-2">
       <button
-        onClick={() => router.push("/transactions-history")}
-        className="p-1.5 sm:p-2 rounded-xl transition hover:opacity-80"
-        style={{ color: colors.text }}
-      >
-        <History className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" />
-      </button>
-      <button
         onClick={() => router.push("/notifications")}
-        className="p-1.5 sm:p-2 rounded-xl relative transition hover:opacity-80"
-        style={{ color: colors.text }}
+        className="p-1.5 sm:p-2 rounded-xl relative transition hover:opacity-80 border"
+        style={{ color: colors.text, borderColor: colors.border }}
       >
-        <Bell className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" />
+        <Bell size={16} />
       </button>
       <button
         onClick={() => router.push("/settings")}
-        className="p-1.5 sm:p-2 rounded-xl transition hover:opacity-80"
-        style={{ color: colors.text }}
+        className="p-1.5 sm:p-2 rounded-xl transition hover:opacity-80 border"
+        style={{ color: colors.text, borderColor: colors.border }}
       >
-        <Settings className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" />
+        <Settings size={16} />
       </button>
     </div>
   );
@@ -56,16 +49,17 @@ export default function Home() {
         actions={actions}
       />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
-          {/* Left Column: Balance & Goals (2/5 width on lg) */}
-          <div className="lg:col-span-2 space-y-6">
-            <BalanceDisplay
-              balance={formattedBalance}
-              creditScore={creditScore}
-              isLoading={isBalanceLoading || isCreditLoading}
-            />
-          </div>
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24">
+        <div className="flex flex-col gap-8">
+          {/* Main Balance Section */}
+          <BalanceDisplay
+            balance={formattedBalance}
+            creditScore={creditScore}
+            isLoading={isBalanceLoading || isCreditLoading}
+          />
+
+          {/* Activity Feed Section */}
+          <RecentTransactions limit={5} />
         </div>
       </main>
     </div>
