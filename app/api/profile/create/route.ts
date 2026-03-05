@@ -8,11 +8,9 @@ import {
 } from "@/lib/dynamic-auth";
 import { uploadProfilePhoto } from "@/lib/cloudinary";
 import { Profile } from "@/app/types/profile";
-import { getRelayerWalletClient } from "@/lib/viem";
 import {
   syncReferralOnChain,
   REFERRAL_CONTRACT_ADDRESS,
-  REFERRAL_ABI,
 } from "@/lib/referral-utils";
 
 const ACCOUNT_ID_START = 1000000000;

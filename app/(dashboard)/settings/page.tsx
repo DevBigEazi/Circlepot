@@ -11,8 +11,6 @@ import {
   ShieldCheck,
   Bell,
   LogOut,
-  ArrowLeft,
-  Users,
 } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useUserProfile } from "@/app/hooks/useUserProfile";
@@ -24,6 +22,7 @@ import { toast } from "sonner";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import LogoutModal from "@/app/components/LogoutModal";
 import { getInitials } from "@/app/utils/helpers";
+import NavBar from "@/app/components/NavBar";
 
 const SettingsPage = () => {
   const colors = useThemeColors();
@@ -74,25 +73,12 @@ const SettingsPage = () => {
       className="min-h-screen pb-20"
       style={{ backgroundColor: colors.background }}
     >
-      {/* Header */}
-      <div
-        className="sticky top-0 z-10 p-4 flex items-center justify-between border-b backdrop-blur-md"
-        style={{
-          backgroundColor: `${colors.surface}cc`,
-          borderColor: colors.border,
-        }}
-      >
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full transition-colors hover:bg-black/5"
-        >
-          <ArrowLeft size={24} style={{ color: colors.text }} />
-        </button>
-        <h1 className="text-lg font-bold" style={{ color: colors.text }}>
-          Settings
-        </h1>
-        <div className="w-10" /> {/* Spacer */}
-      </div>
+      <NavBar
+        variant="minimal"
+        title="Settings"
+        onBack={() => router.back()}
+        colors={colors}
+      />
 
       <div className="max-w-2xl mx-auto p-4 space-y-4 mt-4">
         {/* Profile Card Navigation */}

@@ -10,7 +10,6 @@ import {
   Shield,
   Copy,
   CopyCheck,
-  ArrowLeft,
   Pencil,
 } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
@@ -22,6 +21,7 @@ import UpdateContactModal from "@/app/components/UpdateContactModal";
 import ReferralSection from "@/app/components/ReferralSection";
 import { getInitials } from "@/app/utils/helpers";
 import Image from "next/image";
+import NavBar from "@/app/components/NavBar";
 
 const ProfilePage = () => {
   const colors = useThemeColors();
@@ -141,28 +141,12 @@ const ProfilePage = () => {
       className="min-h-screen pb-20"
       style={{ backgroundColor: colors.background }}
     >
-      {/* Header */}
-      <div
-        className="sticky top-0 z-10 p-4 flex items-center border-b backdrop-blur-md"
-        style={{
-          backgroundColor: `${colors.surface}cc`,
-          borderColor: colors.border,
-        }}
-      >
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full transition-colors hover:bg-black/5"
-        >
-          <ArrowLeft size={24} style={{ color: colors.text }} />
-        </button>
-        <h1
-          className="flex-1 text-center text-lg font-bold"
-          style={{ color: colors.text }}
-        >
-          My Profile
-        </h1>
-        <div className="w-10" />
-      </div>
+      <NavBar
+        variant="minimal"
+        title="My Profile"
+        onBack={() => router.back()}
+        colors={colors}
+      />
 
       <div className="max-w-2xl mx-auto p-4 space-y-6 mt-4">
         {/* Profile Card */}
