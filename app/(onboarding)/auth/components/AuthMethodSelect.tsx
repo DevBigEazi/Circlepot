@@ -71,7 +71,7 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
       </button>
 
       <button
-        onClick={() => {}} // onSelectPhone
+        onClick={onSelectPhone}
         disabled={isLoading || !isOnline}
         className="flex justify-center items-center rounded-2xl py-3.5 font-bold gap-3 transition-all border-2 border-border/80 bg-accent-bg hover:bg-accent-bg/80 hover:border-primary text-foreground hover:shadow-lg disabled:opacity-50 cursor-pointer w-full group"
       >

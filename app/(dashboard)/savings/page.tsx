@@ -49,7 +49,7 @@ export default function SavingsPage() {
                     ? {
                         backgroundColor: colors.background,
                         color: colors.primary,
-                        shadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                       }
                     : { color: colors.text, opacity: 0.5 }
                 }

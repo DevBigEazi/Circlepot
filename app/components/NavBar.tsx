@@ -229,7 +229,7 @@ const NavBar: React.FC<NavBarProps> = ({
                   className="text-[10px] sm:text-xs mt-1 font-medium"
                   style={{ color: colors.text, opacity: 0.6 }}
                 >
-                  Let's make today count! 💫
+                  Let&apos;s make today count! 💫
                 </div>
               </div>
             </div>

@@ -10,7 +10,6 @@ import {
   Shield,
   Copy,
   CopyCheck,
-  ArrowLeft,
   Pencil,
 } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
