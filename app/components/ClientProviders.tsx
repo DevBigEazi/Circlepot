@@ -6,6 +6,7 @@ import { ThemeProvider } from "./ThemeProvider";
 import { CurrencyProvider } from "./CurrencyProvider";
 import { NotificationsProvider } from "./NotificationsProvider";
 import { UserProfileProvider } from "./UserProfileProvider";
+import { SavingsProvider } from "./SavingsProvider";
 import { Toaster } from "sonner";
 import ReferralCapturer from "./ReferralCapturer";
 import { Suspense } from "react";
@@ -26,11 +27,13 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
         <CurrencyProvider>
           <NotificationsProvider>
             <UserProfileProvider>
-              <Suspense fallback={null}>
-                <ReferralCapturer />
-              </Suspense>
-              {children}
-              <Toaster position="top-center" />
+              <SavingsProvider>
+                <Suspense fallback={null}>
+                  <ReferralCapturer />
+                </Suspense>
+                {children}
+                <Toaster position="top-center" />
+              </SavingsProvider>
             </UserProfileProvider>
           </NotificationsProvider>
         </CurrencyProvider>
