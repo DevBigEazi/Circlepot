@@ -196,8 +196,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               </div>
             )}
 
-            {/* Penalty — shown for early withdrawals */}
-            {transaction.type === "goal_withdrawal" &&
+            {/* Note — shown for early withdrawals and completions */}
+            {(transaction.type === "goal_withdrawal" ||
+              transaction.type === "goal_completion") &&
               transaction.metadata?.note && (
                 <div className="space-y-1">
                   <span
