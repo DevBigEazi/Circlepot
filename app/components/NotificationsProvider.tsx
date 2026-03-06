@@ -9,7 +9,7 @@ import React, {
   useCallback,
 } from "react";
 import { toast } from "sonner";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { useAccountAddress } from "../hooks/useAccountAddress";
 import type {
   Notification,
   NotificationPreferences,
@@ -98,9 +98,8 @@ const getTimeAgo = (timestamp: number): string => {
 export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  // Replaced useActiveAccount with Dynamic XYZ
-  const { primaryWallet } = useDynamicContext();
-  const address = primaryWallet?.address;
+  const { address, isInitializing: isAccountInitializing } =
+    useAccountAddress();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [preferences, setPreferences] = useState<NotificationPreferences>(
@@ -137,15 +136,12 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
               return {
                 ...n,
                 type,
-                // timeAgo will be calculated dynamically, so we keep it for backward compatibility
-                // but it will be recalculated on render
                 timeAgo: getTimeAgo(n.timestamp),
               };
             },
           );
           setNotifications(migratedNotifications);
         } catch {
-          // console.error("Failed to load notifications:", error);
           setNotifications([]);
         }
       }
@@ -168,14 +164,14 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
 
   // Check push subscription status on mount and account change
   useEffect(() => {
-    if (address && isPushSupported) {
+    if (address && isPushSupported && !isAccountInitializing) {
       getPushSubscriptionStatus().then(({ isSubscribed }) => {
         setIsSubscribed(isSubscribed);
       });
     }
-  }, [address, isPushSupported]);
+  }, [address, isPushSupported, isAccountInitializing]);
 
-  // Update timeAgo for all notifications periodically (every 30 seconds)
+  // Update timeAgo for all notifications periodically
   useEffect(() => {
     const interval = setInterval(() => {
       setNotifications((prev) =>
@@ -184,7 +180,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
           timeAgo: getTimeAgo(n.timestamp),
         })),
       );
-    }, 30000); // Update every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
@@ -198,7 +194,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
           serializeNotifications(notifications),
         );
       } catch {
-        //console.error("Failed to save notifications:", error);
+        // Silently fail if local storage is full
       }
     }
   }, [notifications]);
@@ -220,10 +216,9 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      // Check if this notification type is enabled
       const prefKey = getPrefKeyFromType(notification.type);
       if (prefKey && !preferences[prefKey]) {
-        return; // User has disabled this notification type
+        return;
       }
 
       const timestamp = Date.now();
@@ -267,7 +262,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const togglePushNotifications = useCallback(async () => {
-    if (!address) {
+    if (!address || isAccountInitializing) {
       return;
     }
 
@@ -275,7 +270,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
       return;
     }
 
-    // Normalize address to lowercase for consistency with Subgraph
+    // Normalize address to lowercase for consistency
     const normalizedAddress = address.toLowerCase();
 
     try {
@@ -298,7 +293,6 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
           setIsSubscribed(true);
           setPreferences((prev) => ({ ...prev, pushEnabled: true }));
 
-          // Show message from backend if available
           const res = result as { backendResponse?: { message?: string } };
           if (res.backendResponse?.message) {
             toast.success(res.backendResponse.message);
@@ -311,7 +305,13 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
       const err = error as Error;
       toast.error(err.message || "Failed to handle push notifications");
     }
-  }, [address, isSubscribed, isPushSupported, preferences]);
+  }, [
+    address,
+    isSubscribed,
+    isPushSupported,
+    preferences,
+    isAccountInitializing,
+  ]);
 
   const updatePreferences = useCallback(
     async (newPreferences: Partial<NotificationPreferences>) => {
@@ -319,7 +319,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
       setPreferences(updatedPreferences);
 
       // Update backend if subscribed
-      if (address && isSubscribed) {
+      if (address && isSubscribed && !isAccountInitializing) {
         try {
           const result = await updateNotificationPreferences(
             address.toLowerCase(),
@@ -335,7 +335,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
         }
       }
     },
-    [address, isSubscribed, preferences],
+    [address, isSubscribed, preferences, isAccountInitializing],
   );
 
   return (
