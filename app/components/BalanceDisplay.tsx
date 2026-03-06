@@ -16,6 +16,8 @@ interface BalanceDisplayProps {
   circleContributions?: number;
   personalSavingsCommitted?: number;
   isLoading?: boolean;
+  onAddClick?: () => void;
+  onWithdrawClick?: () => void;
 }
 
 export default function BalanceDisplay({
@@ -26,6 +28,8 @@ export default function BalanceDisplay({
   circleContributions = 0,
   personalSavingsCommitted = 0,
   isLoading = false,
+  onAddClick,
+  onWithdrawClick,
 }: BalanceDisplayProps) {
   const colors = useThemeColors();
   const { selectedCurrency } = useCurrency();
@@ -223,12 +227,14 @@ export default function BalanceDisplay({
 
       <div className="flex gap-2 sm:gap-3">
         <button
+          onClick={onAddClick}
           className="flex-1 py-3 px-3 rounded-xl text-sm font-bold text-white transition-all transform active:scale-95 shadow-md hover:opacity-90"
           style={{ background: colors.primary }}
         >
           Add Funds
         </button>
         <button
+          onClick={onWithdrawClick}
           className="flex-1 py-3 px-3 rounded-xl text-sm font-bold transition-all transform active:scale-95 border hover:bg-black/5"
           style={{
             backgroundColor: colors.background,
