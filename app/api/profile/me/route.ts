@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
-import { verifyDynamicJwt, getUserIdentifier } from "@/lib/dynamic-auth";
+import {
+  verifyDynamicJwt,
+  getUserIdentifier,
+  getWalletFromPayload,
+} from "@/lib/dynamic-auth";
 import { Profile } from "@/app/types/profile";
 import { syncReferralOnChain } from "@/lib/referral-utils";
+import { ObjectId } from "mongodb";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,12 +15,24 @@ export async function GET(req: NextRequest) {
     const { field, value } = getUserIdentifier(payload);
 
     const db = await getDb();
-    const profile = await db
-      .collection<Profile>("profiles")
-      .findOne({ [field]: value });
+    const profiles = db.collection<Profile>("profiles");
+    const profile = await profiles.findOne({ [field]: value });
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    // IDENTITY SYNC: Ensure the database has the prioritized Smart Account address
+    const jwtWallet = getWalletFromPayload(payload);
+    if (jwtWallet && profile.walletAddress !== jwtWallet) {
+      console.log(
+        `[Identity Sync] Updating user ${profile.username} address: ${profile.walletAddress} -> ${jwtWallet}`,
+      );
+      await profiles.updateOne(
+        { _id: profile._id as ObjectId }, // Replaced 'any' with ObjectId
+        { $set: { walletAddress: jwtWallet, updatedAt: new Date() } },
+      );
+      profile.walletAddress = jwtWallet;
     }
 
     // AUTO-RETRY: If the referral was never successfully recorded on-chain, try now.

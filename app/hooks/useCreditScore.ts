@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { CreditScore, ScoreCategory } from "../types/credit";
+import { useAccountAddress } from "./useAccountAddress";
 
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
 
@@ -55,9 +55,13 @@ const getCategoryColor = (category: number): string => {
   }
 };
 
+/**
+ * Hook to fetch credit score/reputation from the subgraph.
+ * Refactored to use useAccountAddress for prioritized SA identity.
+ */
 export const useCreditScore = () => {
-  const { primaryWallet } = useDynamicContext();
-  const address = primaryWallet?.address?.toLowerCase();
+  const { address: rawAddress, isInitializing } = useAccountAddress();
+  const address = rawAddress?.toLowerCase();
 
   return useQuery({
     queryKey: ["creditScore", address],
@@ -112,7 +116,7 @@ export const useCreditScore = () => {
         totalLatePayments: 0,
       };
     },
-    enabled: !!address && !!SUBGRAPH_URL,
+    enabled: !!address && !!SUBGRAPH_URL && !isInitializing,
     staleTime: 60000,
   });
 };

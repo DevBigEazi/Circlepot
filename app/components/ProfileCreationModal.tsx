@@ -9,6 +9,7 @@ import {
   useUserUpdateRequest,
   useRefreshUser,
 } from "@dynamic-labs/sdk-react-core";
+import { useAccountAddress } from "../hooks/useAccountAddress";
 import LoadingSpinner from "./LoadingSpinner";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -23,7 +24,9 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
   onProfileCreated,
 }) => {
   const colors = useThemeColors();
-  const { user, primaryWallet } = useDynamicContext();
+  const { user } = useDynamicContext();
+  const { address: accountAddress, isInitializing: isAccountInitializing } =
+    useAccountAddress();
   const { updateUser } = useUserUpdateRequest();
   const refreshUser = useRefreshUser();
   const { createProfile, checkUsernameAvailability } = useUserProfile();
@@ -170,7 +173,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         profilePhoto: previewImage, // Cloudinary handles base64 on server
-        walletAddress: primaryWallet?.address || null,
+        walletAddress: accountAddress || null,
         referralCode: storedRef || undefined,
       });
 
@@ -212,7 +215,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
     firstName.trim().length > 0 &&
     lastName.trim().length > 0;
 
-  const isProcessing = isSubmitting;
+  const isProcessing = isSubmitting || isAccountInitializing;
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -308,7 +311,14 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                     borderColor: colors.border,
                   }}
                 >
-                  {formatAddress(primaryWallet?.address)}
+                  {isAccountInitializing ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                      <span>Discovering Account...</span>
+                    </div>
+                  ) : (
+                    formatAddress(accountAddress)
+                  )}
                 </div>
               </div>
               <div className="space-y-1">
