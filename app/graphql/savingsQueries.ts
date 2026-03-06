@@ -2,36 +2,20 @@ export const GET_USER_SAVINGS_SUMMARY = `
   query GetUserSavingsSummary($address: ID!) {
     user(id: $address) {
       id
-      personalGoals(orderBy: createdAt, orderDirection: desc) {
+      personalGoals: activePersonalGoals(orderBy: createdAt, orderDirection: desc) {
         id
-        name
-        targetAmount
+        goalId
+        goalName
+        goalAmount
         currentAmount
         contributionAmount
         frequency
         deadline
         createdAt
+        updatedAt
         isActive
         isYieldEnabled
-        contributionCount
         token
-      }
-      circles(orderBy: joinedAt, orderDirection: desc) {
-        id
-        joinedAt
-        circle {
-          id
-          name
-          description
-          targetAmount
-          contributionAmount
-          frequency
-          totalRounds
-          currentRound
-          startDate
-          token
-          isActive
-        }
       }
     }
   }
@@ -41,16 +25,17 @@ export const GET_GOAL_DETAILS = `
   query GetGoalDetails($id: ID!) {
     personalGoal(id: $id) {
       id
-      name
-      targetAmount
+      goalId
+      goalName
+      goalAmount
       currentAmount
       contributionAmount
       frequency
       deadline
       createdAt
+      updatedAt
       isActive
       isYieldEnabled
-      contributionCount
       token
       contributions(orderBy: timestamp, orderDirection: desc) {
         id

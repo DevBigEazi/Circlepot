@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import { GET_USER_SAVINGS_SUMMARY } from "../graphql/savingsQueries";
@@ -8,6 +8,7 @@ import {
   PersonalGoal,
   UserCircle,
   SubgraphSavingsResponse,
+  transformPersonalGoal,
 } from "../types/savings";
 import { useAccountAddress } from "../hooks/useAccountAddress";
 
@@ -45,7 +46,7 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
   );
 
   const value: SavingsContextType = {
-    personalGoals: data?.user?.personalGoals || [],
+    personalGoals: (data?.user?.personalGoals || []).map(transformPersonalGoal),
     circles: data?.user?.circles || [],
     isLoading: isLoading || isInitializing,
     refetch,

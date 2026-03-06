@@ -62,6 +62,33 @@ export const PERSONAL_SAVINGS_ABI = [
     type: "function",
   },
   {
+    inputs: [
+      { name: "goalId", type: "uint256" },
+      { name: "amount", type: "uint256" },
+    ],
+    name: "contributeToGoal",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "goalId", type: "uint256" },
+      { name: "amount", type: "uint256" },
+    ],
+    name: "withdrawFromGoal",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "goalId", type: "uint256" }],
+    name: "completeGoal",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [{ name: "token", type: "address" }],
     name: "tokenVaults",
     outputs: [{ name: "", type: "address" }],
