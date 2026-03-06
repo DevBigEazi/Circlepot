@@ -122,8 +122,11 @@ export const useSavingsActivity = () => {
           const txHash = w.transaction.transactionHash;
           seenHashes.add(txHash);
 
-          const isCompletion = penalty === 0n;
-          const penaltyFormatted = formatUnits(penalty, 6);
+          const totalBase = BigInt(w.amount) + penalty;
+          const penaltyBps =
+            totalBase > 0n ? (penalty * 10000n) / totalBase : 0n;
+          const isCompletion = penaltyBps <= 15n; // 10 bps is 0.1%
+          const feeOrPenaltyFormatted = formatUnits(penalty, 6);
 
           transactions.push({
             id: `gw-${w.id}`,
@@ -140,8 +143,8 @@ export const useSavingsActivity = () => {
             metadata: {
               goalName,
               note: isCompletion
-                ? "Goal completed successfully"
-                : `Early withdrawal (penalty: $${penaltyFormatted})`,
+                ? `Completion fee: $${feeOrPenaltyFormatted}`
+                : `Early withdrawal (penalty: $${feeOrPenaltyFormatted})`,
             },
           });
         });

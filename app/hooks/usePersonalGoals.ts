@@ -6,7 +6,6 @@ import { publicClient } from "@/lib/viem";
 import { PERSONAL_SAVINGS_ABI, TOKEN_ABI } from "../constants/abis";
 import { parseUnits, getAddress, BaseError } from "viem";
 import { useState } from "react";
-import { toast } from "sonner";
 
 const PERSONAL_SAVING_CONTRACT = process.env
   .NEXT_PUBLIC_PERSONAL_SAVING_CONTRACT as `0x${string}`;
@@ -25,6 +24,64 @@ export interface CreateGoalParams {
 export const usePersonalGoals = () => {
   const { primaryWallet } = useDynamicContext();
   const [isCreating, setIsCreating] = useState(false);
+  const [isContributing, setIsContributing] = useState(false);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+
+  /**
+   * Universal helper to resolve the Smart Account Client for a transaction.
+   */
+  const getSmartAccountClient = async () => {
+    if (!primaryWallet) throw new Error("Wallet not connected");
+
+    const { connector } = primaryWallet;
+    await connector.getNetwork();
+
+    if (isZeroDevConnector(connector)) {
+      const provider = await (
+        connector as unknown as {
+          getAccountAbstractionProvider: (config: {
+            withSponsorship: boolean;
+          }) => Promise<{
+            writeContract: (args: unknown) => Promise<`0x${string}`>;
+            account: { address: string };
+          }>;
+        }
+      ).getAccountAbstractionProvider({
+        withSponsorship: true,
+      });
+      return {
+        walletClient: provider,
+        targetAddress: getAddress(provider.account?.address || ""),
+      };
+    } else {
+      const client = await (
+        primaryWallet as unknown as {
+          getWalletClient: () => Promise<{
+            writeContract: (args: unknown) => Promise<`0x${string}`>;
+            account?: { address: string };
+          }>;
+        }
+      ).getWalletClient();
+      return {
+        walletClient: client,
+        targetAddress: getAddress(primaryWallet.address),
+      };
+    }
+  };
+
+  /**
+   * Helper to normalize transaction errors.
+   */
+  const normalizeError = (err: unknown): Error => {
+    if (err instanceof BaseError) {
+      return new Error(
+        `Transaction failed: ${err.shortMessage || err.message}`,
+      );
+    } else if (err instanceof Error) {
+      return err;
+    }
+    return new Error("An unknown transaction error occurred");
+  };
 
   /**
    * Checks if the contract has a vault assigned for the given token.
@@ -46,79 +103,12 @@ export const usePersonalGoals = () => {
 
   /**
    * Creates a personal savings goal.
-   * Uses the Smart Account provided by Dynamic + ZeroDev for gasless transactions.
    */
   const createPersonalGoal = async (params: CreateGoalParams) => {
-    if (!primaryWallet) throw new Error("Wallet not connected");
-
     setIsCreating(true);
     try {
-      const { connector } = primaryWallet;
-
-      console.log("--- AA INITIALIZATION ---");
-      console.log("Primary Connector:", connector?.name);
-
-      // 1. Ensure the kernel client is ready (per doc: wait for network)
-      await connector.getNetwork();
-
-      let executionClient: {
-        writeContract: (args: unknown) => Promise<`0x${string}`>;
-        account?: { address: string };
-      };
-      let targetAddress: `0x${string}`;
-
-      if (isZeroDevConnector(connector)) {
-        console.log("✅ ZeroDev Connector found. Getting AA Provider...");
-        // 2. Get the Account Abstraction Provider with sponsorship enabled
-        const provider = await (
-          connector as unknown as {
-            getAccountAbstractionProvider: (config: {
-              withSponsorship: boolean;
-            }) => Promise<{
-              writeContract: (args: unknown) => Promise<`0x${string}`>;
-              account: { address: string };
-            }>;
-          }
-        ).getAccountAbstractionProvider({
-          withSponsorship: true,
-        });
-        executionClient = provider;
-        targetAddress = getAddress(provider.account?.address || "");
-        console.log("✅ Smart Account (SA) Address detected:", targetAddress);
-      } else {
-        console.warn("⚠️ Not a ZeroDev connector. Falling back to default.");
-        const client = await (
-          primaryWallet as unknown as {
-            getWalletClient: () => Promise<{
-              writeContract: (args: unknown) => Promise<`0x${string}`>;
-              account?: { address: string };
-            }>;
-          }
-        ).getWalletClient();
-        executionClient = client;
-        targetAddress = getAddress(primaryWallet.address);
-      }
-
-      const eoaddress = getAddress(primaryWallet.address);
-
-      console.log("--- ARCHITECTURE DISCOVERY ---");
-      console.log("Signer (EOA):", eoaddress);
-      console.log("Executer (Target):", targetAddress);
-
-      if (targetAddress.toLowerCase() === eoaddress.toLowerCase()) {
-        console.warn(
-          "⚠️ WARNING: Addresses are identical. Sponsorship may not work on Fuji unless configured for EIP-7702 (which is not available on Fuji yet).",
-        );
-      }
-
+      const { walletClient, targetAddress } = await getSmartAccountClient();
       const address = targetAddress;
-      const walletClient = executionClient;
-
-      console.log("--- START CREATE GOAL ---");
-      console.log("Interacting with contracts from:", address);
-      console.log("Personal Savings Contract:", PERSONAL_SAVING_CONTRACT);
-      console.log("USDT Token Contract:", USDT_CONTRACT);
-      console.log("Goal Params:", params);
 
       const targetWei = parseUnits(params.targetAmount, 6);
       const contributionWei = parseUnits(params.contributionAmount, 6);
@@ -131,10 +121,9 @@ export const usePersonalGoals = () => {
         args: [address],
       })) as bigint;
 
-      console.log("USDT Balance:", balance.toString());
       if (balance < contributionWei) {
         throw new Error(
-          `Insufficient USDT. balance: ${balance.toString()}, need: ${contributionWei.toString()}`,
+          `Insufficient USDT. balance: ${(Number(balance) / 1e6).toFixed(2)}, need: ${params.contributionAmount}`,
         );
       }
 
@@ -146,10 +135,7 @@ export const usePersonalGoals = () => {
         args: [address, PERSONAL_SAVING_CONTRACT],
       })) as bigint;
 
-      console.log("Current Allowance:", allowance.toString());
-
-      // 2. Prepare Data
-      const goalArgs = [
+      const createGoalArgs = [
         {
           name: params.name,
           targetAmount: targetWei,
@@ -162,25 +148,9 @@ export const usePersonalGoals = () => {
         },
       ] as const;
 
-      // Type-safe tuple for Viem
-      const createGoalArgs = goalArgs as readonly [
-        {
-          name: string;
-          targetAmount: bigint;
-          contributionAmount: bigint;
-          frequency: number;
-          deadline: bigint;
-          enableYield: boolean;
-          token: `0x${string}`;
-          yieldAPY: bigint;
-        },
-      ];
-
       if (allowance < contributionWei) {
-        toast.info("Approving USDT transfer...", { duration: 3000 });
         const approveAmount = contributionWei * 2n;
 
-        console.log("SENDING APPROVE TRANSACTION...");
         const approveHash = await walletClient.writeContract({
           account: walletClient.account,
           address: USDT_CONTRACT,
@@ -189,58 +159,14 @@ export const usePersonalGoals = () => {
           args: [PERSONAL_SAVING_CONTRACT, approveAmount],
         });
 
-        console.log("Approve TX Hash:", approveHash);
-        try {
-          await publicClient.waitForTransactionReceipt({
-            hash: approveHash,
-            timeout: 120_000,
-            pollingInterval: 1_000,
-          });
-          toast.success("USDT Approved");
-        } catch (waitErr) {
-          console.warn(
-            "Wait for approval receipt timed out or failed, checking allowance manually...",
-            waitErr,
-          );
-          const newAllowance = (await publicClient.readContract({
-            address: USDT_CONTRACT,
-            abi: TOKEN_ABI,
-            functionName: "allowance",
-            args: [address, PERSONAL_SAVING_CONTRACT],
-          })) as bigint;
-
-          if (newAllowance >= contributionWei) {
-            console.log(
-              "Allowance matches requirement despite timeout. Proceeding...",
-            );
-            toast.success("Approval confirmed manually");
-          } else {
-            throw waitErr;
-          }
-        }
+        await publicClient.waitForTransactionReceipt({
+          hash: approveHash,
+          timeout: 120_000,
+          pollingInterval: 1_000,
+        });
       }
 
       // 3. Create Goal
-      toast.info("Creating your goal...", { duration: 3000 });
-      console.log("SIMULATING CREATE GOAL with address:", address);
-
-      try {
-        await publicClient.simulateContract({
-          address: PERSONAL_SAVING_CONTRACT,
-          abi: PERSONAL_SAVINGS_ABI,
-          functionName: "createPersonalGoal",
-          args: createGoalArgs,
-          account: address,
-        });
-        console.log("CREATE GOAL SIMULATION SUCCESSFUL");
-      } catch (simErr) {
-        console.error("CREATE GOAL SIMULATION FAILED:", simErr);
-        throw new Error(
-          "Local simulation failed for Create Goal. This usually means the contract would revert on-chain.",
-        );
-      }
-
-      console.log("SENDING CREATE GOAL TRANSACTION...");
       const hash = await walletClient.writeContract({
         account: walletClient.account,
         address: PERSONAL_SAVING_CONTRACT,
@@ -249,60 +175,178 @@ export const usePersonalGoals = () => {
         args: createGoalArgs,
       });
 
-      console.log("Goal TX Hash:", hash);
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+        timeout: 120_000,
+        pollingInterval: 1_000,
+      });
+
+      if (receipt.status === "reverted") {
+        throw new Error("Transaction was mined but reverted.");
+      }
+
+      return receipt;
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  /**
+   * Contributes to an existing personal savings goal.
+   */
+  const contributeToGoal = async (goalId: string, amount: string) => {
+    setIsContributing(true);
+    try {
+      const { walletClient, targetAddress } = await getSmartAccountClient();
+      const address = targetAddress;
+      const contributionWei = parseUnits(amount, 6);
+
+      // 1. Check Balance
+      const balance = (await publicClient.readContract({
+        address: USDT_CONTRACT,
+        abi: TOKEN_ABI,
+        functionName: "balanceOf",
+        args: [address],
+      })) as bigint;
+
+      if (balance < contributionWei) {
+        throw new Error(
+          `Insufficient USDT. balance: ${(Number(balance) / 1e6).toFixed(2)}, need: ${amount}`,
+        );
+      }
+
+      // 2. Check & Approve Allowance
+      const allowance = (await publicClient.readContract({
+        address: USDT_CONTRACT,
+        abi: TOKEN_ABI,
+        functionName: "allowance",
+        args: [address, PERSONAL_SAVING_CONTRACT],
+      })) as bigint;
+
+      if (allowance < contributionWei) {
+        const approveAmount = contributionWei * 2n;
+
+        const approveHash = await walletClient.writeContract({
+          account: walletClient.account,
+          address: USDT_CONTRACT,
+          abi: TOKEN_ABI,
+          functionName: "approve",
+          args: [PERSONAL_SAVING_CONTRACT, approveAmount],
+        });
+
+        await publicClient.waitForTransactionReceipt({
+          hash: approveHash,
+          timeout: 120_000,
+          pollingInterval: 1_000,
+        });
+      }
+
+      // 3. Contribute to Goal
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: PERSONAL_SAVING_CONTRACT,
+        abi: PERSONAL_SAVINGS_ABI,
+        functionName: "contributeToGoal",
+        args: [BigInt(goalId), contributionWei],
+      });
 
       const receipt = await publicClient.waitForTransactionReceipt({
         hash,
         timeout: 120_000,
         pollingInterval: 1_000,
       });
-      console.log("Transaction Receipt Received. Status:", receipt.status);
 
       if (receipt.status === "reverted") {
-        throw new Error(
-          "Transaction was mined but reverted. This usually means a contract requirement failed (e.g. USDT balance or allowance mismatch).",
-        );
+        throw new Error("Transaction was mined but reverted.");
       }
 
-      setIsCreating(false);
       return receipt;
     } catch (err) {
-      setIsCreating(false);
-      console.error("=== TRANSACTION ERROR ===");
+      throw normalizeError(err);
+    } finally {
+      setIsContributing(false);
+    }
+  };
 
-      if (err instanceof BaseError) {
-        console.log(
-          "Full Error Object (JSON):",
-          JSON.stringify(
-            err,
-            (key, value) =>
-              typeof value === "bigint" ? value.toString() : value,
-            2,
-          ),
-        );
-        console.error("Error Message:", err.message);
-        console.error("Short Message:", err.shortMessage);
+  /**
+   * Withdraws from an existing personal savings goal (Early Withdrawal).
+   */
+  const withdrawFromGoal = async (goalId: string, amount: string) => {
+    setIsWithdrawing(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+      const withdrawalWei = parseUnits(amount, 6);
 
-        const errorData = (err as { data?: unknown }).data;
-        if (errorData) {
-          console.error("Error Data Content:", errorData);
-        }
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: PERSONAL_SAVING_CONTRACT,
+        abi: PERSONAL_SAVINGS_ABI,
+        functionName: "withdrawFromGoal",
+        args: [BigInt(goalId), withdrawalWei],
+      });
 
-        toast.error(`Transaction failed: ${err.shortMessage || err.message}`);
-      } else if (err instanceof Error) {
-        console.error("Standard Error:", err.message);
-        toast.error(`Transaction failed: ${err.message}`);
-      } else {
-        console.error("Unknown Error Type:", err);
-        toast.error("An unknown transaction error occurred");
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+        timeout: 120_000,
+        pollingInterval: 1_000,
+      });
+
+      if (receipt.status === "reverted") {
+        throw new Error("Transaction was mined but reverted.");
       }
-      throw err;
+
+      return receipt;
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
+  /**
+   * Completes a goal, withdrawing everything natively.
+   */
+  const completeGoal = async (goalId: string) => {
+    setIsWithdrawing(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: PERSONAL_SAVING_CONTRACT,
+        abi: PERSONAL_SAVINGS_ABI,
+        functionName: "completeGoal",
+        args: [BigInt(goalId)],
+      });
+
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+        timeout: 120_000,
+        pollingInterval: 1_000,
+      });
+
+      if (receipt.status === "reverted") {
+        throw new Error("Transaction was mined but reverted.");
+      }
+
+      return receipt;
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsWithdrawing(false);
     }
   };
 
   return {
     createPersonalGoal,
+    contributeToGoal,
+    withdrawFromGoal,
+    completeGoal,
     checkVaultAddress,
     isCreating,
+    isContributing,
+    isWithdrawing,
   };
 };
