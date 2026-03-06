@@ -87,7 +87,26 @@ export async function verifyDynamicJwt(
 export function getWalletFromPayload(
   payload: DynamicJwtPayload,
 ): string | null {
-  const evmCred = payload.verified_credentials?.find(
+  if (!payload.verified_credentials) return null;
+
+  // 1. Prioritize any Smart Wallet / Account Abstraction credentials
+  const smartCred = payload.verified_credentials.find(
+    (c) =>
+      c.chain === "EVM" &&
+      c.address &&
+      (c.wallet_provider === "zerodev" ||
+        c.wallet_name?.toLowerCase().includes("smart") ||
+        c.wallet_name?.toLowerCase().includes("kernel") ||
+        c.id?.includes("smart") ||
+        c.id?.includes("aa")),
+  );
+
+  if (smartCred?.address) {
+    return smartCred.address.toLowerCase();
+  }
+
+  // 2. Fallback to any EVM address (likely the Signer/EOA)
+  const evmCred = payload.verified_credentials.find(
     (c) => c.chain === "EVM" && c.address,
   );
   return evmCred?.address?.toLowerCase() ?? null;
@@ -102,16 +121,18 @@ export function getUserIdentifier(payload: DynamicJwtPayload): {
   field: "walletAddress" | "dynamicUserId";
   value: string;
 } {
+  // Use the sub (Dynamic User ID) as the primary identifier for DB lookups
+  // This is the most stable identifier across multiple linked wallets (EOA vs Smart Account)
+  if (payload.sub) {
+    return { field: "dynamicUserId", value: payload.sub };
+  }
+
   const wallet = getWalletFromPayload(payload);
   if (wallet) {
     return { field: "walletAddress", value: wallet };
   }
-  if (!payload.sub) {
-    throw new Error(
-      "No wallet address or user ID found in Dynamic credentials",
-    );
-  }
-  return { field: "dynamicUserId", value: payload.sub };
+
+  throw new Error("No user ID or wallet address found in Dynamic credentials");
 }
 
 /**
