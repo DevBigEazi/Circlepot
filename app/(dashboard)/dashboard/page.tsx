@@ -9,13 +9,26 @@ import BalanceDisplay from "@/app/components/BalanceDisplay";
 import { RecentTransactions } from "@/app/components/RecentTransactions";
 import { Bell, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSavings } from "@/app/components/SavingsProvider";
+import { useMemo } from "react";
+import { formatUnits } from "viem";
 
 export default function Home() {
   const colors = useThemeColors();
   const { profile } = useUserProfile();
   const { formattedBalance, isLoading: isBalanceLoading } = useBalance();
   const { data: creditScore, isLoading: isCreditLoading } = useCreditScore();
+  const { personalGoals, isLoading: isSavingsLoading } = useSavings();
   const router = useRouter();
+
+  const personalSavingsCommitted = useMemo(() => {
+    const active = personalGoals.filter((g) => g.isActive);
+    return active.reduce(
+      (acc, goal) =>
+        acc + Number(formatUnits(BigInt(goal.currentAmount || "0"), 6)),
+      0,
+    );
+  }, [personalGoals]);
 
   const actions = (
     <div className="flex gap-1 sm:gap-2">
@@ -55,7 +68,8 @@ export default function Home() {
           <BalanceDisplay
             balance={formattedBalance}
             creditScore={creditScore}
-            isLoading={isBalanceLoading || isCreditLoading}
+            personalSavingsCommitted={personalSavingsCommitted}
+            isLoading={isBalanceLoading || isCreditLoading || isSavingsLoading}
           />
 
           {/* Activity Feed Section */}
