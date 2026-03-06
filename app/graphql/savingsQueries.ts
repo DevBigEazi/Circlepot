@@ -119,3 +119,64 @@ export const GET_CIRCLE_DETAILS = `
     }
   }
 `;
+
+export const GET_PERSONAL_SAVINGS_ACTIVITY = `
+  query GetPersonalSavingsActivity($address: Bytes!) {
+    goalContributions(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      amount
+      goalId
+      token
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    goalWithdrawns(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      goalId
+      amount
+      penalty
+      isActive
+      token
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    goalCompleteds(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      goalId
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    personalGoals(
+      where: { user: $address }
+    ) {
+      id
+      goalId
+      goalName
+      goalAmount
+    }
+  }
+`;
