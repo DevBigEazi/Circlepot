@@ -5,13 +5,86 @@ import { Transaction } from "../types/transaction";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { useCurrency } from "./CurrencyProvider";
 import { useCurrencyConverter } from "../hooks/useCurrencyConverter";
-import { X, ExternalLink, Send, Download, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  ExternalLink,
+  Send,
+  Download,
+  CheckCircle2,
+  Target,
+  Wallet,
+} from "lucide-react";
 import { format } from "date-fns";
 
 interface TransactionDetailModalProps {
   transaction: Transaction | null;
   onClose: () => void;
 }
+
+// ---------- Helpers ----------
+
+function getModalIcon(type: Transaction["type"], isIncoming: boolean) {
+  switch (type) {
+    case "goal_contribution":
+      return <Target size={32} />;
+    case "goal_withdrawal":
+      return <Wallet size={32} />;
+    case "goal_completion":
+      return <CheckCircle2 size={32} />;
+    default:
+      return isIncoming ? <Download size={32} /> : <Send size={32} />;
+  }
+}
+
+function getModalIconClasses(type: Transaction["type"], isIncoming: boolean) {
+  switch (type) {
+    case "goal_contribution":
+      return "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400";
+    case "goal_withdrawal":
+      return "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400";
+    case "goal_completion":
+      return "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400";
+    default:
+      return isIncoming
+        ? "bg-green-100 text-green-600"
+        : "bg-red-100 text-red-600";
+  }
+}
+
+function getSummaryText(type: Transaction["type"], isIncoming: boolean) {
+  switch (type) {
+    case "goal_contribution":
+      return "You've saved";
+    case "goal_withdrawal":
+      return "You've withdrawn";
+    case "goal_completion":
+      return "You've completed a goal";
+    default:
+      return isIncoming ? "You've received" : "You've sent";
+  }
+}
+
+function getAmountSign(type: Transaction["type"], isIncoming: boolean) {
+  switch (type) {
+    case "goal_contribution":
+      return "-";
+    case "goal_withdrawal":
+    case "goal_completion":
+      return "+";
+    default:
+      return isIncoming ? "+" : "-";
+  }
+}
+
+function isSavingsType(type: Transaction["type"]) {
+  return (
+    type === "goal_contribution" ||
+    type === "goal_withdrawal" ||
+    type === "goal_completion"
+  );
+}
+
+// ---------- Component ----------
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   transaction,
@@ -29,6 +102,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   );
 
   const isInternal = transaction.displayName?.startsWith("@");
+  const goalName =
+    transaction.metadata?.goalName || transaction.displayName || "";
+  const isSavings = isSavingsType(transaction.type);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -44,7 +120,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-2">
           <h2 className="text-xl font-bold" style={{ color: colors.text }}>
-            Transaction Details
+            {isSavings ? "Savings Details" : "Transaction Details"}
           </h2>
           <button
             onClick={onClose}
@@ -59,32 +135,24 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           {/* Status Icon & Summary */}
           <div className="flex flex-col items-center justify-center pt-2">
             <div
-              className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                transaction.isIncoming
-                  ? "bg-green-100 text-green-600"
-                  : "bg-red-100 text-red-600"
-              }`}
+              className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${getModalIconClasses(transaction.type, transaction.isIncoming)}`}
             >
-              {transaction.isIncoming ? (
-                <Download size={32} />
-              ) : (
-                <Send size={32} />
-              )}
+              {getModalIcon(transaction.type, transaction.isIncoming)}
             </div>
 
-            {/* "You've received / You've sent" */}
+            {/* Summary text */}
             <span
               className="text-base font-bold mb-1"
               style={{ color: colors.textLight }}
             >
-              {transaction.isIncoming ? "You've received" : "You've sent"}
+              {getSummaryText(transaction.type, transaction.isIncoming)}
             </span>
 
             <span
               className="text-3xl font-black"
               style={{ color: colors.text }}
             >
-              {transaction.isIncoming ? "+" : "-"}$
+              {getAmountSign(transaction.type, transaction.isIncoming)}$
               {Number(transaction.amount).toFixed(2)}
             </span>
 
@@ -110,8 +178,42 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
           {/* Details Section */}
           <div className="space-y-4 pt-2">
-            {/* Show counterparty only for internal transfers */}
-            {isInternal && (
+            {/* Goal Name — shown for savings */}
+            {isSavings && goalName && (
+              <div className="space-y-1">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest opacity-40"
+                  style={{ color: colors.text }}
+                >
+                  Goal
+                </span>
+                <p
+                  className="text-sm font-bold"
+                  style={{ color: colors.primary }}
+                >
+                  {goalName}
+                </p>
+              </div>
+            )}
+
+            {/* Penalty — shown for early withdrawals */}
+            {transaction.type === "goal_withdrawal" &&
+              transaction.metadata?.note && (
+                <div className="space-y-1">
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest opacity-40"
+                    style={{ color: colors.text }}
+                  >
+                    Note
+                  </span>
+                  <p className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                    {transaction.metadata.note}
+                  </p>
+                </div>
+              )}
+
+            {/* Counterparty — shown for internal send/receive */}
+            {!isSavings && isInternal && (
               <div className="space-y-1">
                 <span
                   className="text-[10px] font-bold uppercase tracking-widest opacity-40"

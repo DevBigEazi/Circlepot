@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { GET_USER_REFERRALS } from "../graphql/referralQueries";
 import { Profile } from "../types/profile";
+import { useAccountAddress } from "./useAccountAddress";
 
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
 
@@ -33,9 +33,13 @@ export interface ReferralData {
   rewards: SubgraphReferralReward[];
 }
 
+/**
+ * Hook to retrieve referral details from the subgraph.
+ * Refactored to leverage useAccountAddress for prioritized SA identity.
+ */
 export const useReferralData = () => {
-  const { primaryWallet } = useDynamicContext();
-  const address = primaryWallet?.address?.toLowerCase();
+  const { address: rawAddress, isInitializing } = useAccountAddress();
+  const address = rawAddress?.toLowerCase();
 
   return useQuery({
     queryKey: ["referralData", address],
@@ -100,6 +104,6 @@ export const useReferralData = () => {
         rewards: user.referralRewards,
       };
     },
-    enabled: !!address && !!SUBGRAPH_URL,
+    enabled: !!address && !!SUBGRAPH_URL && !isInitializing,
   });
 };

@@ -3,10 +3,7 @@ import { Schibsted_Grotesk, Martian_Mono } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import InstallPrompt from "./components/InstallPrompt";
-import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
-
-import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
-import { ZeroDevSmartWalletConnectors } from "@dynamic-labs/ethereum-aa";
+import DynamicProvider from "./components/DynamicProvider";
 import { ClientProviders } from "./components/ClientProviders";
 
 const schibstedGrotesk = Schibsted_Grotesk({
@@ -82,21 +79,13 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${schibstedGrotesk.className} ${schibstedGrotesk.variable} ${martianMono.className} ${martianMono.variable} antialiased`}
       >
-        <DynamicContextProvider
-          settings={{
-            environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID || "",
-            walletConnectors: [
-              EthereumWalletConnectors,
-              ZeroDevSmartWalletConnectors,
-            ],
-          }}
-        >
+        <DynamicProvider>
           <ClientProviders>
             <ServiceWorkerRegistrar />
             {children}
             <InstallPrompt />
           </ClientProviders>
-        </DynamicContextProvider>
+        </DynamicProvider>
       </body>
     </html>
   );

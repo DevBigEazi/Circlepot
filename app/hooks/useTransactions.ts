@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { formatUnits, getAddress } from "viem";
 import { Transaction } from "../types/transaction";
 import { Profile } from "../types/profile";
+import { useAccountAddress } from "./useAccountAddress";
 
 const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_USDT_CONTRACT as `0x${string}`;
 const REFERRAL_CONTRACT = process.env
@@ -29,18 +29,15 @@ interface RoutescanTransfer {
 }
 
 /**
- * Hook to manage USDT transaction history with username mapping.
- * Filters out internal circlepot contract transfers.
+ * Hook to fetch transaction history for the current user.
+ * Consolidated to use useAccountAddress for prioritized Smart Account identity.
  */
 export const useTransactions = (limit?: number) => {
-  const { primaryWallet } = useDynamicContext();
-  const address = primaryWallet?.address
-    ? getAddress(primaryWallet.address)
-    : undefined;
+  const { address, isInitializing } = useAccountAddress();
 
   const {
     data: transactions = [],
-    isLoading,
+    isLoading: isQueryLoading,
     refetch,
   } = useQuery({
     queryKey: ["transactions", address, limit],
@@ -48,9 +45,7 @@ export const useTransactions = (limit?: number) => {
       if (!address || !TOKEN_ADDRESS) return [];
 
       try {
-        // Use Routescan API (Etherscan-compatible) for Fuji testnet
-        // This avoids the 2048-block RPC limit and works on testnet (Glacier is mainnet-only)
-        const pageSize = limit ? Math.min(limit + 10, 100) : 100; // fetch extra to account for filtered system txs
+        const pageSize = limit ? Math.min(limit + 10, 100) : 100;
         const apiUrl = `https://api.routescan.io/v2/network/testnet/evm/43113/etherscan/api?module=account&action=tokentx&contractaddress=${TOKEN_ADDRESS}&address=${address}&sort=desc&page=1&offset=${pageSize}`;
 
         const response = await fetch(apiUrl);
@@ -61,7 +56,6 @@ export const useTransactions = (limit?: number) => {
 
         const transfers = data.result;
 
-        // Filter system contracts
         const systemContracts = [
           REFERRAL_CONTRACT?.toLowerCase(),
           PERSONAL_SAVING_CONTRACT?.toLowerCase(),
@@ -76,14 +70,12 @@ export const useTransactions = (limit?: number) => {
           );
         });
 
-        // Apply limit after filtering
         const finalTransfers = limit
           ? filteredTransfers.slice(0, limit)
           : filteredTransfers;
 
         if (finalTransfers.length === 0) return [];
 
-        // Fetch profiles for all other addresses
         const userAddr = address.toLowerCase();
         const uniqueOtherAddresses = Array.from(
           new Set(
@@ -111,11 +103,10 @@ export const useTransactions = (limit?: number) => {
           }
         }
 
-        // Map Routescan (Etherscan) format to our Transaction objects
         return finalTransfers.map((tx: RoutescanTransfer, index: number) => {
           const from = tx.from ? getAddress(tx.from) : "";
           const to = tx.to ? getAddress(tx.to) : "";
-          const isIncoming = to === address;
+          const isIncoming = to.toLowerCase() === address.toLowerCase();
           const otherAddress = isIncoming ? from : to;
           const profile = otherAddress
             ? profilesMap[otherAddress.toLowerCase()]
@@ -146,14 +137,15 @@ export const useTransactions = (limit?: number) => {
         return [];
       }
     },
-    enabled: !!address && !!TOKEN_ADDRESS,
+    enabled: !!address && !!TOKEN_ADDRESS && !isInitializing,
     refetchInterval: 60000,
   });
 
   return {
     transactions,
-    isLoading,
+    isLoading: isQueryLoading || isInitializing,
     refetch,
     totalCount: transactions.length,
+    address,
   };
 };
