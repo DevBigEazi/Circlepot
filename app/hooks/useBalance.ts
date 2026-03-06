@@ -1,20 +1,19 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { formatUnits } from "viem";
 import { publicClient } from "@/lib/viem";
 import { TOKEN_ABI } from "../constants/abis";
-import { formatUnits } from "viem";
+import { useAccountAddress } from "./useAccountAddress";
 
-const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_USDT_CONTRACT as `0x${string}`;
+const TOKEN_ADDRESS = "0xe033DDef5ef67Cbc7CeC24fe5C58eC06E9BfFD67"; // USDT on Fuji
 
 export const useBalance = () => {
-  const { primaryWallet } = useDynamicContext();
-  const address = primaryWallet?.address as `0x${string}` | undefined;
+  const { address, isInitializing } = useAccountAddress();
 
   const {
     data: balance,
-    isLoading,
+    isLoading: isBalanceLoading,
     refetch,
   } = useQuery({
     queryKey: ["balance", address],
@@ -25,19 +24,20 @@ export const useBalance = () => {
         address: TOKEN_ADDRESS,
         abi: TOKEN_ABI,
         functionName: "balanceOf",
-        args: [address],
+        args: [address as `0x${string}`],
       });
 
       return data as bigint;
     },
-    enabled: !!address && !!TOKEN_ADDRESS,
+    enabled: !!address && !!TOKEN_ADDRESS && !isInitializing,
     refetchInterval: 30000,
   });
 
   return {
     balance: balance ?? BigInt(0),
-    isLoading,
+    isLoading: isBalanceLoading || isInitializing,
     refetch,
     formattedBalance: balance ? formatUnits(balance, 6) : "0.00",
+    address,
   };
 };

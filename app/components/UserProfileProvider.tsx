@@ -14,6 +14,7 @@ import {
   useUserUpdateRequest,
   useRefreshUser,
 } from "@dynamic-labs/sdk-react-core";
+import { useAccountAddress } from "@/app/hooks/useAccountAddress";
 import { ProfileResponse } from "@/app/types/profile";
 import { toast } from "sonner";
 
@@ -44,6 +45,7 @@ export function UserProfileProvider({
   children: React.ReactNode;
 }) {
   const { user: dynamicUser } = useDynamicContext();
+  const { isInitializing: isAccountInitializing } = useAccountAddress();
   const { updateUser } = useUserUpdateRequest();
   const refreshUser = useRefreshUser();
   const authToken = getAuthToken();
@@ -102,7 +104,7 @@ export function UserProfileProvider({
   );
 
   const fetchProfile = useCallback(async () => {
-    if (!authToken || fetchInProgress.current) return;
+    if (!authToken || fetchInProgress.current || isAccountInitializing) return;
 
     fetchInProgress.current = true;
     setIsLoading(true);
@@ -134,13 +136,18 @@ export function UserProfileProvider({
       setIsLoading(false);
       fetchInProgress.current = false;
     }
-  }, [authToken, silentSyncContacts]);
+  }, [authToken, silentSyncContacts, isAccountInitializing]);
 
   useEffect(() => {
-    if (authToken && profile === undefined && !isLoading) {
+    if (
+      authToken &&
+      profile === undefined &&
+      !isLoading &&
+      !isAccountInitializing
+    ) {
       fetchProfile();
     }
-  }, [authToken, profile, isLoading, fetchProfile]);
+  }, [authToken, profile, isLoading, fetchProfile, isAccountInitializing]);
 
   // Reactive sync when dynamic user data changes
   useEffect(() => {
