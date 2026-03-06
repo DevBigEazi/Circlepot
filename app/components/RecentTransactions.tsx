@@ -2,7 +2,7 @@
 
 import { useState, Fragment } from "react";
 import { Transaction } from "../types/transaction";
-import { useTransactions } from "../hooks/useTransactions";
+import { useActivityFeed } from "../hooks/useActivityFeed";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { TransactionItem } from "./TransactionItem";
 import { TransactionDetailModal } from "./TransactionDetailModal";
@@ -18,7 +18,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
 }) => {
   const colors = useThemeColors();
   const router = useRouter();
-  const { transactions, isLoading } = useTransactions(limit);
+  const { transactions, isLoading } = useActivityFeed(limit);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   return (

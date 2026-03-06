@@ -4,7 +4,7 @@ import { useState, Fragment } from "react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import NavBar from "@/app/components/NavBar";
 import { useRouter } from "next/navigation";
-import { useTransactions } from "@/app/hooks/useTransactions";
+import { useActivityFeed } from "@/app/hooks/useActivityFeed";
 import { TransactionItem } from "@/app/components/TransactionItem";
 import { TransactionDetailModal } from "@/app/components/TransactionDetailModal";
 import { Transaction } from "@/app/types/transaction";
@@ -13,7 +13,7 @@ import { History, Loader2 } from "lucide-react";
 export default function TransactionsHistoryPage() {
   const colors = useThemeColors();
   const router = useRouter();
-  const { transactions, isLoading } = useTransactions();
+  const { transactions, isLoading } = useActivityFeed();
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   return (
