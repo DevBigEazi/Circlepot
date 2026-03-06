@@ -347,13 +347,6 @@ export default function SavingsPage() {
                     Start your savings journey by setting a milestone and saving
                     towards it.
                   </p>
-                  <button
-                    onClick={() => router.push("/savings/create")}
-                    className="py-4 px-10 rounded-2xl font-black uppercase tracking-wider text-white transition-all active:scale-95 shadow-2xl shadow-primary/30"
-                    style={{ backgroundColor: colors.primary }}
-                  >
-                    Get Started
-                  </button>
                 </div>
               )}
             </div>
