@@ -306,7 +306,6 @@ export default function SavingsPage() {
                       <PersonalGoalCard
                         key={goal.id}
                         goal={goal}
-                        onClick={() => router.push(`/savings/goal/${goal.id}`)}
                         onContribute={(e) => {
                           e.stopPropagation();
                           setActiveModal({ type: "contribute", goal });
