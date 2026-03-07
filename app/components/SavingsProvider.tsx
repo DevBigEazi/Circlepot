@@ -17,6 +17,8 @@ const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL || "";
 interface SavingsContextType {
   personalGoals: PersonalGoal[];
   circles: UserCircle[];
+  totalGoalsCompleted: number;
+  totalCirclesCompleted: number;
   isLoading: boolean;
   refetch: () => void;
   error: Error | null;
@@ -48,6 +50,8 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
   const value: SavingsContextType = {
     personalGoals: (data?.user?.personalGoals || []).map(transformPersonalGoal),
     circles: data?.user?.circles || [],
+    totalGoalsCompleted: Number(data?.user?.totalGoalsCompleted) || 0,
+    totalCirclesCompleted: Number(data?.user?.totalCirclesCompleted) || 0,
     isLoading: isLoading || isInitializing,
     refetch,
     error: error as Error | null,

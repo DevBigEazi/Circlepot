@@ -13,7 +13,6 @@ import { useAccountAddress } from "../hooks/useAccountAddress";
 import LoadingSpinner from "./LoadingSpinner";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
-import { formatAddress } from "../utils/helpers";
 import Image from "next/image";
 
 interface ProfileCreationModalProps {
@@ -40,6 +39,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
     null,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasFailed, setHasFailed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -196,6 +196,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
         onProfileCreated();
       }
     } catch (err) {
+      setHasFailed(true);
       const message =
         err instanceof Error ? err.message : "Failed to create profile";
       toast.error(message);
@@ -299,41 +300,18 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
 
           <div className="space-y-4">
             {/* Identity Info (ReadOnly) */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider opacity-60">
-                  Wallet Address
-                </label>
-                <div
-                  className="px-4 py-3 rounded-2xl border text-xs font-mono break-all"
-                  style={{
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                  }}
-                >
-                  {isAccountInitializing ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                      <span>Discovering Account...</span>
-                    </div>
-                  ) : (
-                    formatAddress(accountAddress)
-                  )}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider opacity-60">
-                  Verified Email
-                </label>
-                <div
-                  className="px-4 py-3 rounded-2xl border text-xs break-all"
-                  style={{
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                  }}
-                >
-                  {user?.email || "No email"}
-                </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold uppercase tracking-wider opacity-60">
+                Verified Email
+              </label>
+              <div
+                className="px-4 py-3 rounded-2xl border text-xs break-all"
+                style={{
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                }}
+              >
+                {user?.email || "No email"}
               </div>
             </div>
 
@@ -436,7 +414,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
             ) : (
               <>
                 <Check size={20} />
-                Complete Setup
+                {hasFailed ? "Retry Setup" : "Complete Setup"}
               </>
             )}
           </button>

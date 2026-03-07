@@ -82,6 +82,9 @@ export interface UserCircle {
 
 export interface SubgraphSavingsResponse {
   user: {
+    id: string;
+    totalGoalsCompleted: string;
+    totalCirclesCompleted: string;
     personalGoals: RawPersonalGoal[];
     circles: UserCircle[];
   } | null;
