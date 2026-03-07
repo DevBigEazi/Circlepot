@@ -206,4 +206,52 @@ export const CIRCLE_SAVINGS_ABI = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [{ name: "_circleId", type: "uint256" }],
+    name: "joinCircle",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "_circleId", type: "uint256" }],
+    name: "makeContribution",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "_circleId", type: "uint256" }],
+    name: "WithdrawCollateral",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "", type: "uint256" },
+      { name: "", type: "address" },
+    ],
+    name: "circleInvitations",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "", type: "uint256" },
+      { name: "", type: "address" },
+    ],
+    name: "circleMembers",
+    outputs: [
+      { name: "position", type: "uint256" },
+      { name: "totalContributed", type: "uint256" },
+      { name: "hasReceivedPayout", type: "bool" },
+      { name: "isActive", type: "bool" },
+      { name: "collateralLocked", type: "uint256" },
+      { name: "joinedAt", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;

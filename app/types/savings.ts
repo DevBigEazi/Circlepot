@@ -54,24 +54,68 @@ export const transformPersonalGoal = (data: RawPersonalGoal): PersonalGoal => ({
 
 export interface CircleMember {
   id: string;
-  user: { id: string };
+  user: {
+    id: string;
+    username?: string;
+    fullName?: string;
+  };
   joinedAt: string;
   position: number;
 }
 
-export interface Circle {
+export interface RawCircle {
   id: string;
+  circleId: string;
   circleName: string;
   circleDescription: string;
-  goalAmount: string;
   contributionAmount: string;
   collateralAmount: string;
   frequency: number;
-  totalRounds: number;
-  currentRound: number;
-  startDate: string;
+  maxMembers: string;
+  currentMembers: string;
+  currentRound: string;
+  visibility: number;
+  state: number;
+  createdAt: string;
+  startedAt: string;
+  updatedAt: string;
   token: string;
-  isActive: boolean;
+  creator: {
+    id: string;
+  };
+  members?: {
+    id: string;
+    user: { id: string };
+    joinedAt: string;
+    position: number;
+  }[];
+}
+
+export interface CircleCreator {
+  id: string;
+  username?: string;
+  fullName?: string;
+  avatarUrl?: string; // From MongoDB profile
+}
+
+export interface Circle {
+  id: string;
+  circleId: string;
+  creator: CircleCreator;
+  circleName: string;
+  circleDescription: string;
+  contributionAmount: string;
+  collateralAmount: string;
+  frequency: number; // 0: Daily, 1: Weekly, 2: Monthly
+  maxMembers: string;
+  currentMembers: string;
+  currentRound: string;
+  visibility: number; // 0: Private, 1: Public
+  state: number; // 1: CREATED, 2: VOTING, 3: ACTIVE, 4: COMPLETED, 5: DEAD
+  createdAt: string;
+  startedAt: string;
+  updatedAt: string;
+  token: string;
 }
 
 export interface UserCircle {
