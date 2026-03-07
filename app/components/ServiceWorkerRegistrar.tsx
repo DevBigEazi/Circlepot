@@ -7,11 +7,11 @@ export default function ServiceWorkerRegistrar() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js", { scope: "/", updateViaCache: "none" })
-        .then((registration) => {
+        .then(() => {
           // console.log("SW Registered with scope:", registration.scope);
         })
         .catch((error) => {
-          // console.error("SW Registration failed:", error);
+          console.error("SW Registration failed:", error);
         });
     }
   }, []);
