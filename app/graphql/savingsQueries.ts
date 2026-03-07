@@ -306,3 +306,74 @@ export const GET_USER_CIRCLE_ACTIVITY = `
     }
   }
 `;
+
+export const GET_ALL_CIRCLES = `
+  query GetAllCircles {
+    circles(orderBy: updatedAt, orderDirection: desc, first: 100) {
+      id
+      circleId
+      circleName
+      circleDescription
+      contributionAmount
+      collateralAmount
+      frequency
+      maxMembers
+      currentMembers
+      currentRound
+      visibility
+      state
+      createdAt
+      startedAt
+      updatedAt
+      token
+      creator {
+        id
+      }
+    }
+  }
+`;
+
+export const GET_SINGLE_CIRCLE = `
+  query GetSingleCircle($id: ID!) {
+    circle(id: $id) {
+      id
+      circleId
+      circleName
+      circleDescription
+      contributionAmount
+      collateralAmount
+      frequency
+      maxMembers
+      currentMembers
+      currentRound
+      visibility
+      state
+      createdAt
+      startedAt
+      updatedAt
+      token
+      creator {
+        id
+      }
+      members: members {
+        id
+        user {
+          id
+        }
+        joinedAt
+        position
+      }
+    }
+  }
+`;
+
+export const CHECK_USER_STATUS = `
+  query CheckUserStatus($circleId: BigInt!, $userAddress: Bytes!) {
+    circleJoineds(where: { circleId: $circleId, user: $userAddress }) {
+      id
+    }
+    memberInviteds(where: { circleId: $circleId, invitee: $userAddress }) {
+      id
+    }
+  }
+`;
