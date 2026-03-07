@@ -398,7 +398,7 @@ export default function CreateCirclePage() {
                   className="w-full py-3 sm:py-4 text-sm sm:text-base font-bold rounded-xl transition shadow-lg text-white"
                   style={{ background: colors.primary }}
                 >
-                  Continue to Rules
+                  Continue
                 </button>
               </div>
             </div>
@@ -503,7 +503,7 @@ export default function CreateCirclePage() {
                   className="w-full sm:flex-2 py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base font-bold rounded-xl transition shadow-lg text-white"
                   style={{ background: colors.primary }}
                 >
-                  Continue to Finalize
+                  Continue
                 </button>
               </div>
             </div>
