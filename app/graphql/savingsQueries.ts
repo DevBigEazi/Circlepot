@@ -2,6 +2,8 @@ export const GET_USER_SAVINGS_SUMMARY = `
   query GetUserSavingsSummary($address: ID!) {
     user(id: $address) {
       id
+      totalGoalsCompleted
+      totalCirclesCompleted
       personalGoals: activePersonalGoals(orderBy: createdAt, orderDirection: desc) {
         id
         goalId

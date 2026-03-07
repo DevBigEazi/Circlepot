@@ -38,7 +38,13 @@ export default function SavingsPage() {
     goal: null,
   });
 
-  const { personalGoals, circles, isLoading } = useSavings();
+  const {
+    personalGoals,
+    circles,
+    totalGoalsCompleted,
+    totalCirclesCompleted,
+    isLoading,
+  } = useSavings();
   const {
     contributeToGoal,
     withdrawFromGoal,
@@ -137,11 +143,6 @@ export default function SavingsPage() {
         acc + Number(formatUnits(BigInt(goal.currentAmount || "0"), 6)),
       0,
     );
-    const completed = personalGoals.filter((g: PersonalGoal) => {
-      const cur = Number(formatUnits(BigInt(g.currentAmount || "0"), 6));
-      const tar = Number(formatUnits(BigInt(g.goalAmount || "0"), 6));
-      return cur >= tar;
-    }).length;
 
     return [
       {
@@ -158,12 +159,12 @@ export default function SavingsPage() {
       },
       {
         label: "Completed",
-        value: completed.toString(),
+        value: totalGoalsCompleted.toString(),
         icon: <CheckCircle2 size={16} />,
         color: "#10b981",
       },
     ];
-  }, [personalGoals, colors]);
+  }, [personalGoals, totalGoalsCompleted, colors]);
 
   // Group Metrics (Placeholders for now)
   const groupMetrics = useMemo(() => {
@@ -182,12 +183,12 @@ export default function SavingsPage() {
       },
       {
         label: "Total Payouts",
-        value: "0",
+        value: totalCirclesCompleted.toString(),
         icon: <UserPlus size={16} />,
         color: "#10b981",
       },
     ];
-  }, [circles, colors]);
+  }, [circles, totalCirclesCompleted, colors]);
 
   return (
     <div

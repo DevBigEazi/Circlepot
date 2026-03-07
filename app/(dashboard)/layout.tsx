@@ -7,6 +7,7 @@ import { useUserProfile } from "../hooks/useUserProfile";
 import ProfileCreationModal from "../components/ProfileCreationModal";
 import LoadingSpinner from "../components/LoadingSpinner";
 import BottomNav from "../components/BottomNav";
+import { useAccountAddress } from "../hooks/useAccountAddress";
 
 export default function DashboardLayout({
   children,
@@ -20,6 +21,7 @@ export default function DashboardLayout({
     profile, // Need raw profile to distinguish null vs undefined
     refreshProfile,
   } = useUserProfile();
+  const { isInitializing: isAccountInitializing } = useAccountAddress();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -47,11 +49,12 @@ export default function DashboardLayout({
   if (
     !isClient ||
     !sdkHasLoaded ||
-    (user && (isProfileLoading || isDeterminingProfile))
+    (user &&
+      (isProfileLoading || isDeterminingProfile || isAccountInitializing))
   ) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading..." />
+        <LoadingSpinner size="lg" text="Preparing your account..." />
       </div>
     );
   }
