@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       .find({
         walletAddress: { $in: normalizedAddresses },
       })
+      .collation({ locale: "en", strength: 2 })
       .toArray();
 
     return NextResponse.json(result);

@@ -9,7 +9,7 @@ import { useCurrencyConverter } from "@/app/hooks/useCurrencyConverter";
 import NavBar from "@/app/components/NavBar";
 import Image from "next/image";
 
-const LocalMethodsPage: React.FC = () => {
+const WithdrawLocalPage: React.FC = () => {
   const router = useRouter();
   const colors = useThemeColors();
   const { selectedCurrency } = useCurrency();
@@ -22,8 +22,8 @@ const LocalMethodsPage: React.FC = () => {
       <NavBar
         variant="minimal"
         onBack={() => router.back()}
-        title="Local Methods"
-        subtitle="Choose your preferred local payment provider"
+        title="Withdraw to Bank"
+        subtitle="Withdraw to local bank or mobile money"
         titleIcon={
           <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm flex items-center justify-center">
             {currencyInfo?.flag ? (
@@ -50,8 +50,8 @@ const LocalMethodsPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="space-y-6">
             <p className="text-sm px-1" style={{ color: colors.textLight }}>
-              We&apos;re currently expanding our local payment options to
-              provide you with more ways to top up your balance.
+              We&apos;re currently expanding our local withdrawal options to
+              provide you with more ways to access your funds.
             </p>
 
             <div
@@ -61,7 +61,10 @@ const LocalMethodsPage: React.FC = () => {
                 backgroundColor: colors.surface,
               }}
             >
-              <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden border-2 border-gray-100">
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden border-2 border-gray-100"
+                style={{ backgroundColor: colors.background }}
+              >
                 {currencyInfo?.flag ? (
                   <Image
                     src={currencyInfo.flag}
@@ -86,7 +89,8 @@ const LocalMethodsPage: React.FC = () => {
                   className="max-w-xs mx-auto text-sm"
                   style={{ color: colors.textLight }}
                 >
-                  We&apos;re working hard to integrate local payment methods for{" "}
+                  We&apos;re working hard to integrate local withdrawal methods
+                  for{" "}
                   <span className="font-bold" style={{ color: colors.primary }}>
                     {currencyInfo?.name || selectedCurrency}
                   </span>
@@ -101,4 +105,4 @@ const LocalMethodsPage: React.FC = () => {
   );
 };
 
-export default LocalMethodsPage;
+export default WithdrawLocalPage;

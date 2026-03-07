@@ -43,14 +43,6 @@ export default function DynamicProvider({
               address: string;
               connector?: { name?: string };
             }) => {
-              console.log(
-                "🚀 Transaction requested for wallet:",
-                wallet.address,
-              );
-              console.log(
-                "Is Smart Wallet:",
-                wallet.connector?.name?.toLowerCase().includes("smart"),
-              );
               return true;
             },
             onSimulationRequested: () => true,
