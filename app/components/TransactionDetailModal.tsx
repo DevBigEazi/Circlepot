@@ -213,23 +213,36 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 </div>
               )}
 
-            {/* Counterparty — shown for internal send/receive */}
-            {!isSavings && isInternal && (
-              <div className="space-y-1">
-                <span
-                  className="text-[10px] font-bold uppercase tracking-widest opacity-40"
-                  style={{ color: colors.text }}
-                >
-                  {transaction.isIncoming ? "From" : "To"}
-                </span>
-                <p
-                  className="text-sm font-bold"
-                  style={{ color: colors.primary }}
-                >
-                  {transaction.displayName}
-                </p>
-              </div>
-            )}
+            {/* Counterparty — shown only for internal profile transfers */}
+            {!isSavings &&
+              (transaction.isIncoming
+                ? transaction.fromName || isInternal
+                : transaction.toName || isInternal) && (
+                <div className="space-y-1">
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest opacity-40"
+                    style={{ color: colors.text }}
+                  >
+                    {transaction.isIncoming ? "From" : "To"}
+                  </span>
+                  <p
+                    className="text-sm font-bold truncate"
+                    style={{ color: colors.primary }}
+                  >
+                    {transaction.isIncoming
+                      ? transaction.fromName || transaction.displayName
+                      : transaction.toName || transaction.displayName}
+                  </p>
+                  {(transaction.fromName || transaction.toName) && (
+                    <p
+                      className="text-[10px] opacity-60 font-medium"
+                      style={{ color: colors.text }}
+                    >
+                      {transaction.displayName}
+                    </p>
+                  )}
+                </div>
+              )}
 
             <div className="space-y-1">
               <span

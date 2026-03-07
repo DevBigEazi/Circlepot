@@ -39,18 +39,7 @@ export default function DynamicProvider({
             defaultToSmartAccount: true,
             shouldShowSmartWalletOnly: true, // Force UI to only use Smart Wallet
             targets: ["43113"], // Apply this to Avalanche Fuji
-            onTransactionRequested: (wallet: {
-              address: string;
-              connector?: { name?: string };
-            }) => {
-              console.log(
-                "🚀 Transaction requested for wallet:",
-                wallet.address,
-              );
-              console.log(
-                "Is Smart Wallet:",
-                wallet.connector?.name?.toLowerCase().includes("smart"),
-              );
+            onTransactionRequested: () => {
               return true;
             },
             onSimulationRequested: () => true,

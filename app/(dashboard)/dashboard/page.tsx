@@ -7,6 +7,7 @@ import { useCreditScore } from "@/app/hooks/useCreditScore";
 import NavBar from "@/app/components/NavBar";
 import BalanceDisplay from "@/app/components/BalanceDisplay";
 import AddFundsModal from "@/app/components/modals/AddFundsModal";
+import WithdrawModal from "@/app/components/modals/WithdrawModal";
 import { RecentTransactions } from "@/app/components/RecentTransactions";
 import { Bell, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,6 +22,7 @@ export default function Home() {
   const { data: creditScore, isLoading: isCreditLoading } = useCreditScore();
   const { personalGoals, isLoading: isSavingsLoading } = useSavings();
   const [showAddFundsModal, setShowAddFundsModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const router = useRouter();
 
   const personalSavingsCommitted = useMemo(() => {
@@ -73,6 +75,7 @@ export default function Home() {
             personalSavingsCommitted={personalSavingsCommitted}
             isLoading={isBalanceLoading || isCreditLoading || isSavingsLoading}
             onAddClick={() => setShowAddFundsModal(true)}
+            onWithdrawClick={() => setShowWithdrawModal(true)}
           />
 
           {/* Activity Feed Section */}
@@ -83,6 +86,11 @@ export default function Home() {
       <AddFundsModal
         isOpen={showAddFundsModal}
         onClose={() => setShowAddFundsModal(false)}
+      />
+
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
       />
     </div>
   );

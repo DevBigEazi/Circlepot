@@ -25,9 +25,6 @@ export async function GET(req: NextRequest) {
     // IDENTITY SYNC: Ensure the database has the prioritized Smart Account address
     const jwtWallet = getWalletFromPayload(payload);
     if (jwtWallet && profile.walletAddress !== jwtWallet) {
-      console.log(
-        `[Identity Sync] Updating user ${profile.username} address: ${profile.walletAddress} -> ${jwtWallet}`,
-      );
       await profiles.updateOne(
         { _id: profile._id as ObjectId }, // Replaced 'any' with ObjectId
         { $set: { walletAddress: jwtWallet, updatedAt: new Date() } },

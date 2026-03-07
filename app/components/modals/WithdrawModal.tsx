@@ -1,19 +1,19 @@
 "use client";
 
 import React from "react";
-import { X, CreditCard, Wallet, ArrowRight } from "lucide-react";
+import { X, ArrowRight, Wallet, CreditCard } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useRouter } from "next/navigation";
 import { useCurrency } from "@/app/components/CurrencyProvider";
 import { useCurrencyConverter } from "@/app/hooks/useCurrencyConverter";
 import Image from "next/image";
 
-interface AddFundsModalProps {
+interface WithdrawModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
+const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose }) => {
   const colors = useThemeColors();
   const router = useRouter();
   const { selectedCurrency } = useCurrency();
@@ -24,17 +24,17 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
   const currencyInfo = availableCurrencies[selectedCurrency];
 
   const handleInternalClick = () => {
-    router.push("/profile");
+    router.push("/withdraw/internal");
     onClose();
   };
 
   const handleLocalClick = () => {
-    router.push("/local-methods");
+    router.push("/withdraw/local");
     onClose();
   };
 
   const handleExternalClick = () => {
-    router.push("/external-wallets");
+    router.push("/withdraw/external");
     onClose();
   };
 
@@ -46,7 +46,7 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold" style={{ color: colors.text }}>
-            Add Funds
+            Withdraw Funds
           </h2>
           <button
             onClick={onClose}
@@ -59,7 +59,7 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
 
         <div className="space-y-4">
           <p className="text-sm px-1" style={{ color: colors.textLight }}>
-            Choose how you&apos;d like to top up your balance.
+            Choose how you&apos;d like to withdraw your funds.
           </p>
 
           <button
@@ -84,11 +84,10 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="flex-1">
               <h3 className="font-bold" style={{ color: colors.text }}>
-                Add Internally
+                Internal Transfer
               </h3>
               <p className="text-xs mt-0.5" style={{ color: colors.textLight }}>
-                Use ID, username or email. Find yours in{" "}
-                <span className="underline font-medium">Profile</span>
+                Send to Circlepot users
               </p>
             </div>
             <ArrowRight
@@ -122,10 +121,10 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="flex-1">
               <h3 className="font-bold" style={{ color: colors.text }}>
-                Local Methods
+                Local Offramp
               </h3>
               <p className="text-xs mt-0.5" style={{ color: colors.textLight }}>
-                Use your preferred local payment methods
+                Withdraw to bank or mobile money
               </p>
             </div>
             <ArrowRight
@@ -154,7 +153,7 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
                 Wallet or Exchanges
               </h3>
               <p className="text-xs mt-0.5" style={{ color: colors.textLight }}>
-                Direct USDT deposits from external wallets
+                Transfer to external wallet
               </p>
             </div>
             <ArrowRight
@@ -169,4 +168,4 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose }) => {
   );
 };
 
-export default AddFundsModal;
+export default WithdrawModal;

@@ -13,6 +13,8 @@ const PERSONAL_SAVING_CONTRACT = process.env
   .NEXT_PUBLIC_PERSONAL_SAVING_CONTRACT as `0x${string}`;
 const CIRCLE_SAVING_CONTRACT = process.env
   .NEXT_PUBLIC_CIRCLE_SAVING_CONTRACT as `0x${string}`;
+const PLATFORM_FEE_RECIPIENT = process.env
+  .NEXT_PUBLIC_PLATFORM_FEE_RECIPIENT as `0x${string}`;
 
 /**
  * Shape of a single ERC-20 transfer from the Routescan (Etherscan-compatible) API.
@@ -60,6 +62,7 @@ export const useTransactions = (limit?: number) => {
           REFERRAL_CONTRACT?.toLowerCase(),
           PERSONAL_SAVING_CONTRACT?.toLowerCase(),
           CIRCLE_SAVING_CONTRACT?.toLowerCase(),
+          PLATFORM_FEE_RECIPIENT?.toLowerCase(),
         ].filter(Boolean);
 
         const filteredTransfers = transfers.filter((tx: RoutescanTransfer) => {
@@ -77,13 +80,15 @@ export const useTransactions = (limit?: number) => {
         if (finalTransfers.length === 0) return [];
 
         const userAddr = address.toLowerCase();
+        // Resolve current user profile too for details modal
         const uniqueOtherAddresses = Array.from(
-          new Set(
-            finalTransfers.map((tx: RoutescanTransfer) => {
-              const fromAddr = tx.from?.toLowerCase();
-              return fromAddr === userAddr ? tx.to : tx.from;
-            }),
-          ),
+          new Set([
+            ...finalTransfers.flatMap((tx: RoutescanTransfer) => [
+              tx.from?.toLowerCase(),
+              tx.to?.toLowerCase(),
+            ]),
+            address.toLowerCase(),
+          ]),
         ).filter((addr): addr is string => !!addr);
 
         const profilesMap: Record<string, Profile> = {};
@@ -103,35 +108,49 @@ export const useTransactions = (limit?: number) => {
           }
         }
 
-        return finalTransfers.map((tx: RoutescanTransfer, index: number) => {
-          const from = tx.from ? getAddress(tx.from) : "";
-          const to = tx.to ? getAddress(tx.to) : "";
-          const isIncoming = to.toLowerCase() === address.toLowerCase();
-          const otherAddress = isIncoming ? from : to;
-          const profile = otherAddress
-            ? profilesMap[otherAddress.toLowerCase()]
-            : undefined;
-          const decimals = parseInt(tx.tokenDecimal || "6", 10);
+        const mapped = finalTransfers.map(
+          (tx: RoutescanTransfer, index: number) => {
+            const from = tx.from ? getAddress(tx.from) : "";
+            const to = tx.to ? getAddress(tx.to) : "";
+            const isIncoming = to.toLowerCase() === userAddr;
+            const otherAddress = isIncoming ? from : to;
+            const otherProfile = otherAddress
+              ? profilesMap[otherAddress.toLowerCase()]
+              : undefined;
 
-          return {
-            id: `${tx.hash}-${index}`,
-            type: isIncoming ? "receive" : "send",
-            amount: formatUnits(BigInt(tx.value || "0"), decimals),
-            currency: tx.tokenSymbol || "USDT",
-            timestamp: parseInt(tx.timeStamp, 10),
-            status: "success",
-            hash: tx.hash,
-            from,
-            to,
-            displayName: profile
-              ? `@${profile.username}`
-              : otherAddress
-                ? `${otherAddress.slice(0, 6)}...${otherAddress.slice(-4)}`
-                : "Unknown",
-            displayPhoto: profile?.profilePhoto || undefined,
-            isIncoming,
-          } as Transaction;
-        });
+            const decimals = parseInt(tx.tokenDecimal || "6", 10);
+
+            // For detail modal names
+            const fromProfile = profilesMap[from.toLowerCase()];
+            const toProfile = profilesMap[to.toLowerCase()];
+
+            return {
+              id: `${tx.hash}-${index}`,
+              type: isIncoming ? "receive" : "send",
+              amount: formatUnits(BigInt(tx.value || "0"), decimals),
+              currency: tx.tokenSymbol || "USDT",
+              timestamp: parseInt(tx.timeStamp, 10),
+              status: "success",
+              hash: tx.hash,
+              from,
+              to,
+              displayName: otherProfile
+                ? `@${otherProfile.username}`
+                : otherAddress
+                  ? `${otherAddress.slice(0, 6)}...${otherAddress.slice(-4)}`
+                  : "Unknown",
+              displayPhoto: otherProfile?.profilePhoto || undefined,
+              fromName: fromProfile
+                ? `${fromProfile.firstName} ${fromProfile.lastName}`.trim()
+                : undefined,
+              toName: toProfile
+                ? `${toProfile.firstName} ${toProfile.lastName}`.trim()
+                : undefined,
+              isIncoming,
+            } as Transaction;
+          },
+        );
+        return mapped;
       } catch (err) {
         console.error("Error fetching transactions:", err);
         return [];
