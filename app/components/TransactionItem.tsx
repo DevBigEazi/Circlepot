@@ -195,6 +195,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
               src={transaction.displayPhoto}
               alt={transaction.displayName || ""}
               fill
+              sizes="44px"
               className="object-cover"
             />
           ) : (
