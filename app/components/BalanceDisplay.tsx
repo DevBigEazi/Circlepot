@@ -219,7 +219,8 @@ export default function BalanceDisplay({
             alt="USDT"
             width={12}
             height={12}
-            className="rounded-full"
+            className="rounded-full shrink-0"
+            style={{ width: "12px", height: "12px" }}
           />
           USDT
         </div>

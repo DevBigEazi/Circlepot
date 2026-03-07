@@ -210,6 +210,7 @@ const NavBar: React.FC<NavBarProps> = ({
                     src={profileImage}
                     alt={userName}
                     fill
+                    sizes="(max-width: 640px) 36px, 40px"
                     className="object-cover"
                   />
                 ) : (
