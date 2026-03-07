@@ -1,0 +1,44 @@
+[
+  {
+    "filePath": "/Users/macuser/Desktop/workspace/circlepot/nextjsavax/app/hooks/useActivityFeed.ts",
+    "messages": [
+      {
+        "ruleId": "react-hooks/preserve-manual-memoization",
+        "severity": 2,
+        "message": "Compilation Skipped: Existing memoization could not be preserved\n\nReact Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `circleTxs`, but the source dependencies were [transferTxs, savingsTxs, limit]. Inferred different dependency than source.\n\n/Users/macuser/Desktop/workspace/circlepot/nextjsavax/app/hooks/useActivityFeed.ts:36:47\n  34 |   } = useCircleActivity();\n  35 |\n> 36 |   const transactions = useMemo<Transaction[]>(() => {\n     |                                               ^^^^^^^\n> 37 |     const merged = [...transferTxs, ...savingsTxs, ...circleTxs];\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 38 |\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 39 |     // Sort by timestamp descending (most recent first)\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 40 |     merged.sort((a, b) => b.timestamp - a.timestamp);\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 41 |\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 42 |     return limit ? merged.slice(0, limit) : merged;\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 43 |   }, [transferTxs, savingsTxs, limit]);\n     | ^^^^ Could not preserve existing manual memoization\n  44 |\n  45 |   const refetch = () => {\n  46 |     refetchTransfers();",
+        "line": 36,
+        "column": 47,
+        "nodeType": null,
+        "endLine": 43,
+        "endColumn": 4
+      },
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useMemo has a missing dependency: 'circleTxs'. Either include it or remove the dependency array.",
+        "line": 43,
+        "column": 6,
+        "nodeType": "ArrayExpression",
+        "endLine": 43,
+        "endColumn": 38,
+        "suggestions": [
+          {
+            "desc": "Update the dependencies array to be: [transferTxs, savingsTxs, circleTxs, limit]",
+            "fix": {
+              "range": [1281, 1313],
+              "text": "[transferTxs, savingsTxs, circleTxs, limit]"
+            }
+          }
+        ]
+      }
+    ],
+    "suppressedMessages": [],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "source": "\"use client\";\n\nimport { useMemo } from \"react\";\nimport { useTransactions } from \"./useTransactions\";\nimport { useSavingsActivity } from \"./useSavingsActivity\";\nimport { useCircleActivity } from \"./useCircleActivity\";\nimport { Transaction } from \"../types/transaction\";\n\n/**\n * Unified activity feed that merges:\n * - Send / Receive USDT transfers (from Routescan API)\n * - Personal savings events (from subgraph)\n *\n * Returns a single sorted Transaction[] ready for rendering.\n */\nexport const useActivityFeed = (limit?: number) => {\n  const {\n    transactions: transferTxs,\n    isLoading: isTransfersLoading,\n    refetch: refetchTransfers,\n    address,\n  } = useTransactions(); // fetch all, we'll slice after merging\n\n  const {\n    savingsTransactions: savingsTxs,\n    isLoading: isSavingsLoading,\n    refetch: refetchSavings,\n  } = useSavingsActivity();\n\n  const {\n    circleTransactions: circleTxs,\n    isLoading: isCircleLoading,\n    refetch: refetchCircle,\n  } = useCircleActivity();\n\n  const transactions = useMemo<Transaction[]>(() => {\n    const merged = [...transferTxs, ...savingsTxs, ...circleTxs];\n\n    // Sort by timestamp descending (most recent first)\n    merged.sort((a, b) => b.timestamp - a.timestamp);\n\n    return limit ? merged.slice(0, limit) : merged;\n  }, [transferTxs, savingsTxs, limit]);\n\n  const refetch = () => {\n    refetchTransfers();\n    refetchSavings();\n    refetchCircle();\n  };\n\n  return {\n    transactions,\n    isLoading: isTransfersLoading || isSavingsLoading || isCircleLoading,\n    refetch,\n    totalCount: transactions.length,\n    address,\n  };\n};\n",
+    "usedDeprecatedRules": []
+  }
+]

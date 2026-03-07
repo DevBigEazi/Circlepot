@@ -167,3 +167,142 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
     }
   }
 `;
+
+export const GET_USER_CIRCLE_ACTIVITY = `
+  query GetUserCircleActivity($address: Bytes!) {
+    circleJoineds(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      circleState
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    contributionMades(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      amount
+      token
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    lateContributionMades(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      amount
+      fee
+      token
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    payoutDistributeds(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      payoutAmount
+      token
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    collateralReturneds(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      amount
+      token
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    collateralWithdrawns(
+      where: { user: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      amount
+      token
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    memberForfeiteds(
+      where: { forfeiter: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      deductionAmount
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    deadCircleFeeDeducteds(
+      where: { creator: $address }
+      orderBy: transaction__blockTimestamp
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      circleId
+      deadFee
+      transaction {
+        blockTimestamp
+        transactionHash
+      }
+    }
+
+    circles(first: 1000) {
+      circleId
+      circleName
+      collateralAmount
+      creator {
+        id
+      }
+    }
+  }
+`;
