@@ -13,7 +13,6 @@ export default function ReferralCapturer() {
     const ref = searchParams.get("ref");
     if (ref) {
       localStorage.setItem(REFERRAL_KEY, ref.trim());
-      console.log(`Captured referral code: ${ref}`);
 
       // We don't clean the URL here because useSearchParams is reactive,
       // and cleaning the URL might trigger unwanted side effects in some setups.

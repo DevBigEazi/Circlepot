@@ -21,6 +21,8 @@ export interface Transaction {
   displayName?: string; // Username if found, else shortened address
   displayPhoto?: string;
   isIncoming: boolean;
+  fromName?: string;
+  toName?: string;
   metadata?: {
     circleName?: string;
     goalName?: string;

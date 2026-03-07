@@ -6,11 +6,13 @@ import { useBalance } from "@/app/hooks/useBalance";
 import { useCreditScore } from "@/app/hooks/useCreditScore";
 import NavBar from "@/app/components/NavBar";
 import BalanceDisplay from "@/app/components/BalanceDisplay";
+import AddFundsModal from "@/app/components/modals/AddFundsModal";
+import WithdrawModal from "@/app/components/modals/WithdrawModal";
 import { RecentTransactions } from "@/app/components/RecentTransactions";
 import { Bell, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSavings } from "@/app/components/SavingsProvider";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { formatUnits } from "viem";
 
 export default function Home() {
@@ -19,6 +21,8 @@ export default function Home() {
   const { formattedBalance, isLoading: isBalanceLoading } = useBalance();
   const { data: creditScore, isLoading: isCreditLoading } = useCreditScore();
   const { personalGoals, isLoading: isSavingsLoading } = useSavings();
+  const [showAddFundsModal, setShowAddFundsModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const router = useRouter();
 
   const personalSavingsCommitted = useMemo(() => {
@@ -70,12 +74,24 @@ export default function Home() {
             creditScore={creditScore}
             personalSavingsCommitted={personalSavingsCommitted}
             isLoading={isBalanceLoading || isCreditLoading || isSavingsLoading}
+            onAddClick={() => setShowAddFundsModal(true)}
+            onWithdrawClick={() => setShowWithdrawModal(true)}
           />
 
           {/* Activity Feed Section */}
           <RecentTransactions limit={5} />
         </div>
       </main>
+
+      <AddFundsModal
+        isOpen={showAddFundsModal}
+        onClose={() => setShowAddFundsModal(false)}
+      />
+
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+      />
     </div>
   );
 }
