@@ -13,6 +13,10 @@ import {
   CheckCircle2,
   Target,
   Wallet,
+  Users,
+  Trophy,
+  ShieldCheck,
+  TrendingUp,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -31,6 +35,16 @@ function getModalIcon(type: Transaction["type"], isIncoming: boolean) {
       return <Wallet size={32} />;
     case "goal_completion":
       return <CheckCircle2 size={32} />;
+    case "circle_joined":
+      return <Users size={32} />;
+    case "circle_created":
+      return <Users size={32} />;
+    case "circle_contribution":
+      return <TrendingUp size={32} />;
+    case "circle_payout":
+      return <Trophy size={32} />;
+    case "circle_collateral_return":
+      return <ShieldCheck size={32} />;
     default:
       return isIncoming ? <Download size={32} /> : <Send size={32} />;
   }
@@ -44,6 +58,16 @@ function getModalIconClasses(type: Transaction["type"], isIncoming: boolean) {
       return "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400";
     case "goal_completion":
       return "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400";
+    case "circle_joined":
+      return "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400";
+    case "circle_created":
+      return "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400";
+    case "circle_contribution":
+      return "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400";
+    case "circle_payout":
+      return "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-400";
+    case "circle_collateral_return":
+      return "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400";
     default:
       return isIncoming
         ? "bg-green-100 text-green-600"
@@ -59,6 +83,16 @@ function getSummaryText(type: Transaction["type"], isIncoming: boolean) {
       return "You've withdrawn";
     case "goal_completion":
       return "You've completed a goal";
+    case "circle_joined":
+      return "You've joined a circle";
+    case "circle_created":
+      return "You've created a circle";
+    case "circle_contribution":
+      return "You've contributed";
+    case "circle_payout":
+      return "You've won the pot";
+    case "circle_collateral_return":
+      return "Deposit returned";
     default:
       return isIncoming ? "You've received" : "You've sent";
   }
@@ -67,9 +101,14 @@ function getSummaryText(type: Transaction["type"], isIncoming: boolean) {
 function getAmountSign(type: Transaction["type"], isIncoming: boolean) {
   switch (type) {
     case "goal_contribution":
+    case "circle_joined":
+    case "circle_created":
+    case "circle_contribution":
       return "-";
     case "goal_withdrawal":
     case "goal_completion":
+    case "circle_payout":
+    case "circle_collateral_return":
       return "+";
     default:
       return isIncoming ? "+" : "-";
@@ -80,7 +119,12 @@ function isSavingsType(type: Transaction["type"]) {
   return (
     type === "goal_contribution" ||
     type === "goal_withdrawal" ||
-    type === "goal_completion"
+    type === "goal_completion" ||
+    type === "circle_joined" ||
+    type === "circle_created" ||
+    type === "circle_contribution" ||
+    type === "circle_payout" ||
+    type === "circle_collateral_return"
   );
 }
 
@@ -102,9 +146,17 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   );
 
   const isInternal = transaction.displayName?.startsWith("@");
-  const goalName =
-    transaction.metadata?.goalName || transaction.displayName || "";
+
+  const goalName = transaction.metadata?.goalName;
+  const circleName = transaction.metadata?.circleName;
+
   const isSavings = isSavingsType(transaction.type);
+  const isCircle =
+    transaction.type === "circle_joined" ||
+    transaction.type === "circle_created" ||
+    transaction.type === "circle_contribution" ||
+    transaction.type === "circle_payout" ||
+    transaction.type === "circle_collateral_return";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -178,40 +230,38 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
           {/* Details Section */}
           <div className="space-y-4 pt-2">
-            {/* Goal Name — shown for savings */}
-            {isSavings && goalName && (
+            {/* Goal/Circle Name — shown for savings */}
+            {isSavings && (goalName || circleName) && (
               <div className="space-y-1">
                 <span
                   className="text-[10px] font-bold uppercase tracking-widest opacity-40"
                   style={{ color: colors.text }}
                 >
-                  Goal
+                  {isCircle ? "Circle" : "Goal"}
                 </span>
                 <p
                   className="text-sm font-bold"
                   style={{ color: colors.primary }}
                 >
-                  {goalName}
+                  {isCircle ? circleName : goalName}
                 </p>
               </div>
             )}
 
-            {/* Note — shown for early withdrawals and completions */}
-            {(transaction.type === "goal_withdrawal" ||
-              transaction.type === "goal_completion") &&
-              transaction.metadata?.note && (
-                <div className="space-y-1">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-widest opacity-40"
-                    style={{ color: colors.text }}
-                  >
-                    Note
-                  </span>
-                  <p className="text-sm font-bold text-amber-600 dark:text-amber-400">
-                    {transaction.metadata.note}
-                  </p>
-                </div>
-              )}
+            {/* Note — shown for various events like fees or early withdrawals */}
+            {transaction.metadata?.note && (
+              <div className="space-y-1">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest opacity-40"
+                  style={{ color: colors.text }}
+                >
+                  Note
+                </span>
+                <p className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                  {transaction.metadata.note}
+                </p>
+              </div>
+            )}
 
             {/* Counterparty — shown only for internal profile transfers */}
             {!isSavings &&

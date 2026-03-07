@@ -151,3 +151,59 @@ export const ERC4626_ABI = [
     type: "function",
   },
 ] as const;
+
+export const CIRCLE_SAVINGS_ABI = [
+  {
+    inputs: [
+      {
+        components: [
+          { name: "title", type: "string" },
+          { name: "description", type: "string" },
+          { name: "contributionAmount", type: "uint256" },
+          { name: "frequency", type: "uint8" },
+          { name: "maxMembers", type: "uint256" },
+          { name: "visibility", type: "uint8" },
+          { name: "token", type: "address" },
+        ],
+        name: "params",
+        type: "tuple",
+      },
+    ],
+    name: "createCircle",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "circleId", type: "uint256" }],
+    name: "circleConfigs",
+    outputs: [
+      { name: "circleId", type: "uint256" },
+      { name: "title", type: "string" },
+      { name: "description", type: "string" },
+      { name: "creator", type: "address" },
+      { name: "contributionAmount", type: "uint256" },
+      { name: "frequency", type: "uint8" },
+      { name: "maxMembers", type: "uint256" },
+      { name: "visibility", type: "uint8" },
+      { name: "createdAt", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "circleId", type: "uint256" }],
+    name: "circleStatus",
+    outputs: [
+      { name: "state", type: "uint8" },
+      { name: "currentMembers", type: "uint256" },
+      { name: "currentRound", type: "uint256" },
+      { name: "totalRounds", type: "uint256" },
+      { name: "startedAt", type: "uint256" },
+      { name: "totalPot", type: "uint256" },
+      { name: "contributionsThisRound", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;

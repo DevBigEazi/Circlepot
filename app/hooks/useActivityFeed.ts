@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useTransactions } from "./useTransactions";
 import { useSavingsActivity } from "./useSavingsActivity";
+import { useCircleActivity } from "./useCircleActivity";
 import { Transaction } from "../types/transaction";
 
 /**
@@ -26,23 +27,30 @@ export const useActivityFeed = (limit?: number) => {
     refetch: refetchSavings,
   } = useSavingsActivity();
 
+  const {
+    circleTransactions: circleTxs,
+    isLoading: isCircleLoading,
+    refetch: refetchCircle,
+  } = useCircleActivity();
+
   const transactions = useMemo<Transaction[]>(() => {
-    const merged = [...transferTxs, ...savingsTxs];
+    const merged = [...transferTxs, ...savingsTxs, ...circleTxs];
 
     // Sort by timestamp descending (most recent first)
     merged.sort((a, b) => b.timestamp - a.timestamp);
 
     return limit ? merged.slice(0, limit) : merged;
-  }, [transferTxs, savingsTxs, limit]);
+  }, [transferTxs, savingsTxs, circleTxs, limit]);
 
   const refetch = () => {
     refetchTransfers();
     refetchSavings();
+    refetchCircle();
   };
 
   return {
     transactions,
-    isLoading: isTransfersLoading || isSavingsLoading,
+    isLoading: isTransfersLoading || isSavingsLoading || isCircleLoading,
     refetch,
     totalCount: transactions.length,
     address,

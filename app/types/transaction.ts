@@ -1,8 +1,11 @@
 export type TransactionType =
   | "send"
   | "receive"
+  | "circle_joined"
+  | "circle_created"
   | "circle_contribution"
   | "circle_payout"
+  | "circle_collateral_return"
   | "goal_contribution"
   | "goal_withdrawal"
   | "goal_completion"
