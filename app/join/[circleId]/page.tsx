@@ -54,7 +54,7 @@ export default function JoinCirclePage() {
 
       setStatus((prev) => ({ ...prev, loading: true }));
       try {
-        const result = await checkUserStatusSubgraph(circle.id, address);
+        const result = await checkUserStatusSubgraph(circle.circleId, address);
 
         setStatus({
           isMember: result.isMember,
@@ -72,7 +72,7 @@ export default function JoinCirclePage() {
   const handleJoin = async () => {
     if (!circle || !address) {
       if (!address) {
-        toast.error("Please connect your wallet first");
+        toast.error("Please sign in to your account first");
         return;
       }
       return;
@@ -185,24 +185,24 @@ export default function JoinCirclePage() {
         colors={colors}
       />
 
-      <main className="max-w-2xl mx-auto px-4 mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <main className="max-w-2xl mx-auto px-2 sm:px-4 mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Hero Header */}
         <div className="text-center space-y-4">
           <div
-            className="w-20 h-20 rounded-4xl mx-auto flex items-center justify-center shadow-2xl"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl sm:rounded-4xl mx-auto flex items-center justify-center shadow-2xl"
             style={{ backgroundColor: colors.primary }}
           >
-            <Users className="text-white" size={32} />
+            <Users className="text-white" size={28} />
           </div>
           <div className="space-y-1">
             <h1
-              className="text-3xl font-black tracking-tight"
+              className="text-2xl sm:text-3xl font-black tracking-tight"
               style={{ color: colors.text }}
             >
               {circle.circleName}
             </h1>
             <div className="flex items-center justify-center pt-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">
                 Organized by{" "}
                 <span className="text-primary opacity-100">
                   {circle.creator.username || "Anonymous"}
@@ -213,38 +213,46 @@ export default function JoinCirclePage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           <div
-            className="p-6 rounded-4xl border-2 space-y-1 text-center"
+            className="p-4 sm:p-6 rounded-3xl sm:rounded-4xl border-2 space-y-1 text-center"
             style={{
               backgroundColor: colors.surface,
               borderColor: colors.border,
             }}
           >
-            <p className="text-[10px] font-black uppercase tracking-wider opacity-40">
+            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider opacity-40">
               Contribution
             </p>
-            <p className="text-2xl font-black" style={{ color: colors.text }}>
+            <p
+              className="text-xl sm:text-2xl font-black"
+              style={{ color: colors.text }}
+            >
               ${contribution}
             </p>
-            <p className="text-[10px] font-bold opacity-40">
+            <p className="text-[8px] sm:text-[10px] font-bold opacity-40">
               Every {getFrequencyLabel(Number(circle.frequency)).toLowerCase()}
             </p>
           </div>
           <div
-            className="p-6 rounded-4xl border-2 space-y-1 text-center"
+            className="p-4 sm:p-6 rounded-3xl sm:rounded-4xl border-2 space-y-1 text-center"
             style={{
               backgroundColor: colors.surface,
               borderColor: colors.border,
             }}
           >
-            <p className="text-[10px] font-black uppercase tracking-wider opacity-40">
+            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider opacity-40">
               Collateral
             </p>
-            <p className="text-2xl font-black" style={{ color: colors.text }}>
+            <p
+              className="text-xl sm:text-2xl font-black"
+              style={{ color: colors.text }}
+            >
               ${collateral}
             </p>
-            <p className="text-[10px] font-bold opacity-40">Security Deposit</p>
+            <p className="text-[8px] sm:text-[10px] font-bold opacity-40">
+              Security Deposit
+            </p>
           </div>
         </div>
 
@@ -264,10 +272,10 @@ export default function JoinCirclePage() {
             <div className="grid grid-cols-1 gap-4">
               <div className="flex items-center gap-4">
                 <div
-                  className="w-10 h-10 rounded-2xl bg-opacity-50 flex items-center justify-center"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-opacity-50 flex items-center justify-center shrink-0"
                   style={{ backgroundColor: colors.background }}
                 >
-                  <Clock size={20} className="opacity-40" />
+                  <Clock size={16} className="opacity-40 sm:w-5 sm:h-5" />
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-widest opacity-40">
@@ -281,10 +289,10 @@ export default function JoinCirclePage() {
 
               <div className="flex items-center gap-4">
                 <div
-                  className="w-10 h-10 rounded-2xl bg-opacity-50 flex items-center justify-center"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-opacity-50 flex items-center justify-center shrink-0"
                   style={{ backgroundColor: colors.background }}
                 >
-                  <Users size={20} className="opacity-40" />
+                  <Users size={16} className="opacity-40 sm:w-5 sm:h-5" />
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-widest opacity-40">
@@ -298,7 +306,7 @@ export default function JoinCirclePage() {
 
               <div className="flex items-center gap-4">
                 <div
-                  className="w-10 h-10 rounded-2xl bg-opacity-50 flex items-center justify-center font-black"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-opacity-50 flex items-center justify-center font-black shrink-0"
                   style={{ backgroundColor: colors.background }}
                 >
                   {Number(circle.visibility) === 1 ? (
@@ -373,17 +381,21 @@ export default function JoinCirclePage() {
         <div className="pt-4">
           {!address ? (
             <div
-              className="p-6 rounded-4xl border-2 border-dashed bg-primary/5 text-center flex flex-col gap-4"
+              className="p-5 sm:p-6 rounded-3xl sm:rounded-4xl border-2 border-dashed bg-primary/5 text-center flex flex-col gap-4"
               style={{ borderColor: "hsla(var(--primary) / 0.3)" }}
             >
-              <p className="text-sm font-bold opacity-60">
-                Connect your wallet to join this circle
+              <p className="text-xs sm:text-sm font-bold opacity-60">
+                Sign in to your account to participate
               </p>
               <button
-                onClick={() => router.push("/")}
-                className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20"
+                onClick={() =>
+                  router.push(
+                    `/auth?redirect=${encodeURIComponent(window.location.pathname)}`,
+                  )
+                }
+                className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-xl shadow-primary/20 transition-transform active:scale-95"
               >
-                Log In to Participate
+                Sign In to Join
               </button>
             </div>
           ) : !isJoinable ? (
