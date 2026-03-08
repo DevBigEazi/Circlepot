@@ -175,7 +175,7 @@ export default function JoinCirclePage() {
 
   return (
     <div
-      className="min-h-screen pb-24"
+      className="min-h-screen pb-12"
       style={{ backgroundColor: colors.background }}
     >
       <NavBar

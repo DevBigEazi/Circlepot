@@ -48,7 +48,7 @@ const ExternalWalletsPage: React.FC = () => {
       />
 
       <div
-        className="min-h-screen pb-20 mt-4"
+        className="min-h-screen pb-12 mt-4"
         style={{ backgroundColor: colors.background }}
       >
         <div className="max-w-4xl mx-auto px-4 py-4">

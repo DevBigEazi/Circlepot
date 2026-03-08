@@ -128,7 +128,7 @@ export default function CreateCirclePage() {
 
   return (
     <div
-      className="min-h-screen pb-20"
+      className="min-h-screen pb-12"
       style={{ backgroundColor: colors.background }}
     >
       <NavBar

@@ -71,7 +71,7 @@ export default function DashboardLayout({
     }
 
     return (
-      <section className="w-full flex flex-col min-h-screen pb-20">
+      <section className="w-full flex flex-col min-h-screen pb-12">
         <div className="flex-1">{children}</div>
         <BottomNav />
       </section>

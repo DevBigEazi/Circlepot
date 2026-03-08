@@ -351,11 +351,53 @@ export const useCircleSavings = () => {
   /**
    * Contributes to the current round of a circle.
    */
-  const contribute = async (circleId: string) => {
+  const contribute = async (circleId: string, contributionAmount: string) => {
     setIsContributing(true);
     try {
-      const { walletClient } = await getSmartAccountClient();
+      const { walletClient, targetAddress } = await getSmartAccountClient();
+      const address = targetAddress;
 
+      const amountWei = BigInt(contributionAmount);
+
+      // 1. Check Balance
+      const balance = (await publicClient.readContract({
+        address: USDT_CONTRACT,
+        abi: TOKEN_ABI,
+        functionName: "balanceOf",
+        args: [address],
+      })) as bigint;
+
+      if (balance < amountWei) {
+        throw new Error(
+          `Insufficient USDT. balance: ${(Number(balance) / 1e6).toFixed(2)}, need: ${(Number(amountWei) / 1e6).toFixed(2)}`,
+        );
+      }
+
+      // 2. Check & Approve Allowance
+      const allowance = (await publicClient.readContract({
+        address: USDT_CONTRACT,
+        abi: TOKEN_ABI,
+        functionName: "allowance",
+        args: [address, CIRCLE_SAVING_CONTRACT],
+      })) as bigint;
+
+      if (allowance < amountWei) {
+        const approveHash = await walletClient.writeContract({
+          account: walletClient.account,
+          address: USDT_CONTRACT,
+          abi: TOKEN_ABI,
+          functionName: "approve",
+          args: [CIRCLE_SAVING_CONTRACT, amountWei],
+        });
+
+        await publicClient.waitForTransactionReceipt({
+          hash: approveHash,
+          timeout: 120_000,
+          pollingInterval: 1_000,
+        });
+      }
+
+      // 3. Contribute
       const hash = await walletClient.writeContract({
         account: walletClient.account,
         address: CIRCLE_SAVING_CONTRACT,

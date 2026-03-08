@@ -68,9 +68,9 @@ export const CircleStatistics: React.FC<CircleStatisticsProps> = ({
               {card.icon}
             </div>
             {Number(totalPenalties) > 0 && card.label === "Circle Savings" && (
-              <div className="flex items-center gap-0.5 text-[8px] sm:text-[9px] font-bold text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">
+              <div className="flex items-center gap-0.5 text-[8px] sm:text-[9px] font-black underline decoration-red-500/30 text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">
                 <AlertCircle size={10} />
-                -${totalPenalties}
+                -${Number(totalPenalties).toLocaleString()}
               </div>
             )}
           </div>

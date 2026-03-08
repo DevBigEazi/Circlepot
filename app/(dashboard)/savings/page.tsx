@@ -164,7 +164,11 @@ export default function SavingsPage() {
           setActiveModal({ type: "late-contribute", circle: data, goal: null });
         } else {
           await handleTransactionSync(
-            () => contributeToCircle(data.rawCircle.circleId),
+            () =>
+              contributeToCircle(
+                data.rawCircle.circleId,
+                data.rawCircle.contributionAmount,
+              ),
             {
               loadingMsg: "Sending contribution...",
               successMsg: "Contribution successful!",
@@ -248,7 +252,7 @@ export default function SavingsPage() {
     return [
       {
         label: "Total Saved",
-        value: `$${personal.toLocaleString()}`,
+        value: `$${personal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         icon: <TrendingUp size={16} />,
         color: colors.primary,
       },
@@ -278,7 +282,7 @@ export default function SavingsPage() {
 
   return (
     <div
-      className="min-h-screen pb-24"
+      className="min-h-screen pb-12"
       style={{ backgroundColor: colors.background }}
     >
       <NavBar
@@ -592,7 +596,11 @@ export default function SavingsPage() {
           }
           onConfirm={async () => {
             await handleTransactionSync(
-              () => contributeToCircle(activeModal.circle!.rawCircle.circleId),
+              () =>
+                contributeToCircle(
+                  activeModal.circle!.rawCircle.circleId,
+                  activeModal.circle!.rawCircle.contributionAmount,
+                ),
               {
                 loadingMsg: "Sending contribution...",
                 successMsg: "Contribution successful!",

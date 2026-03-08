@@ -123,7 +123,7 @@ const WithdrawExternalPage: React.FC = () => {
       />
 
       <div
-        className="min-h-screen pb-20 pt-4"
+        className="min-h-screen pb-12 pt-4"
         style={{ backgroundColor: colors.background }}
       >
         <div className="max-w-xl mx-auto px-4 space-y-6">
@@ -183,7 +183,10 @@ const WithdrawExternalPage: React.FC = () => {
                   className="text-3xl font-bold"
                   style={{ color: colors.text }}
                 >
-                  {formattedBalance}
+                  {Number(formattedBalance).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </h2>
                 <span
                   className="text-lg font-medium"

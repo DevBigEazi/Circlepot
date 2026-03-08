@@ -133,7 +133,7 @@ export default function CreatePersonalGoalPage() {
         colors={colors}
       />
 
-      <main className="max-w-2xl mx-auto px-4 py-8 pb-24">
+      <main className="max-w-2xl mx-auto px-4 py-8 pb-12">
         {/* Step Indicator */}
         <div className="flex items-center justify-center gap-4 mb-10">
           {[1, 2].map((s) => (

@@ -137,7 +137,7 @@ const WithdrawInternalPage: React.FC = () => {
         titleIcon={<User size={18} className="text-white" />}
         colors={colors}
       />
-      <div className="flex-1 pb-20 pt-4 px-4 overflow-y-auto">
+      <div className="flex-1 pb-12 pt-4 px-4 overflow-y-auto">
         <div className="max-w-xl mx-auto space-y-6">
           {/* Instruction Card */}
           <div
@@ -193,7 +193,10 @@ const WithdrawInternalPage: React.FC = () => {
                     className="text-3xl font-black"
                     style={{ color: colors.text }}
                   >
-                    {formattedBalance}
+                    {Number(formattedBalance).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </h2>
                   <span className="text-sm font-bold opacity-60">USDT</span>
                 </div>

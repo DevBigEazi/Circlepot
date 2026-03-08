@@ -121,7 +121,11 @@ export default function BalanceDisplay({
                         className="font-medium"
                         style={{ color: colors.text }}
                       >
-                        ${Number(balance).toFixed(2)}
+                        $
+                        {Number(balance).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
@@ -132,7 +136,11 @@ export default function BalanceDisplay({
                         className="font-medium"
                         style={{ color: colors.text }}
                       >
-                        ${circleContributions.toFixed(2)}
+                        $
+                        {circleContributions.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
@@ -143,7 +151,11 @@ export default function BalanceDisplay({
                         className="font-medium"
                         style={{ color: colors.text }}
                       >
-                        ${circleCollateral.toFixed(2)}
+                        $
+                        {circleCollateral.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
@@ -154,7 +166,11 @@ export default function BalanceDisplay({
                         className="font-medium"
                         style={{ color: colors.text }}
                       >
-                        ${personalSavingsCommitted.toFixed(2)}
+                        $
+                        {personalSavingsCommitted.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                     <div
@@ -163,7 +179,11 @@ export default function BalanceDisplay({
                     >
                       <span style={{ color: colors.text }}>Total:</span>
                       <span style={{ color: colors.primary }}>
-                        ${totalDisplayBalance.toFixed(2)}
+                        $
+                        {totalDisplayBalance.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                   </div>
@@ -185,7 +205,7 @@ export default function BalanceDisplay({
               style={{ color: colors.text }}
             >
               {showBalance
-                ? `$${totalDisplayBalance.toFixed(2)} USDT`
+                ? `$${totalDisplayBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`
                 : "••••••"}
             </h1>
             <button

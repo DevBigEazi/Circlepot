@@ -20,10 +20,10 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-end sm:items-center justify-center p-4">
       <div
-        className="w-full max-w-sm rounded-3xl p-8 border shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
+        className="w-full max-w-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 border shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-4 sm:mb-6">
           <div
             className="p-3 rounded-2xl"
             style={{ backgroundColor: "#FEE2E2" }}
@@ -41,7 +41,10 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
         <h3 className="text-xl font-bold mb-2" style={{ color: colors.text }}>
           Sign Out?
         </h3>
-        <p className="opacity-70 text-sm mb-8" style={{ color: colors.text }}>
+        <p
+          className="opacity-70 text-xs sm:text-sm mb-6 sm:mb-8"
+          style={{ color: colors.text }}
+        >
           Are you sure you want to sign out of your account? You&apos;ll need to
           verify your email or phone to sign back in.
         </p>
@@ -50,7 +53,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="w-full py-4 rounded-2xl font-bold text-white transition-all active:scale-95 disabled:opacity-50"
+            className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-white transition-all active:scale-95 disabled:opacity-50 text-sm sm:text-base"
             style={{ backgroundColor: "#DC2626" }}
           >
             {isLoading ? "Signing out..." : "Yes, Sign Out"}
@@ -58,7 +61,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="w-full py-4 rounded-2xl font-bold border transition-colors hover:bg-black/5 disabled:opacity-50"
+            className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold border transition-colors hover:bg-black/5 disabled:opacity-50 text-sm sm:text-base"
             style={{ borderColor: colors.border, color: colors.text }}
           >
             Cancel

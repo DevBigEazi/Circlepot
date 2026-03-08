@@ -154,7 +154,7 @@ export default function BrowsePage() {
 
   return (
     <div
-      className="min-h-screen pb-24"
+      className="min-h-screen pb-12"
       style={{ backgroundColor: colors.background }}
     >
       <NavBar
@@ -350,7 +350,7 @@ export default function BrowsePage() {
               </p>
             </div>
           ) : filteredCircles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
               {filteredCircles.map((circle) => (
                 <div
                   key={circle.id}
@@ -398,10 +398,15 @@ export default function BrowsePage() {
                       </span>
                       <span className="text-base font-black">
                         $
-                        {formatUnits(
-                          BigInt(circle.contributionAmount || "0"),
-                          6,
-                        )}
+                        {Number(
+                          formatUnits(
+                            BigInt(circle.contributionAmount || "0"),
+                            6,
+                          ),
+                        ).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                     <div
