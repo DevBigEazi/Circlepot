@@ -2,7 +2,7 @@
 
 import { useTheme } from "../components/ThemeProvider";
 
-interface ThemeColors {
+export interface ThemeColors {
   primary: string;
   secondary: string;
   accent: string;
