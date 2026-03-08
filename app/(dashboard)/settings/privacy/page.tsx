@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  LogOut,
-  ShieldCheck,
-  Lock,
-  Eye,
-  ChevronRight,
-  ShieldAlert,
-} from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useRouter } from "next/navigation";
@@ -30,21 +23,6 @@ const PrivacySecurityPage = () => {
       toast.error("Failed to sign out");
     }
   };
-
-  const securityOptions = [
-    {
-      icon: <Lock size={18} />,
-      title: "Biometric Authentication",
-      description: "Enable Face ID or Fingerprint for quick access",
-      enabled: true,
-    },
-    {
-      icon: <Eye size={18} />,
-      title: "Privacy Mode",
-      description: "Hide your balance from the main dashboard",
-      enabled: false,
-    },
-  ];
 
   return (
     <div

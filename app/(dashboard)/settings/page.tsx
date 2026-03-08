@@ -15,7 +15,6 @@ import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useUserProfile } from "@/app/hooks/useUserProfile";
 import { useCurrency } from "@/app/components/CurrencyProvider";
 import { useCurrencyConverter } from "@/app/hooks/useCurrencyConverter";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ThemeToggle from "@/app/components/ThemeToggle";

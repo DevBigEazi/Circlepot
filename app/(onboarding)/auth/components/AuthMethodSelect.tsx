@@ -2,11 +2,10 @@
 
 import React from "react";
 import Image from "next/image";
-import { Mail, Phone, CheckCircle2 } from "lucide-react";
+import { Mail, CheckCircle2 } from "lucide-react";
 
 interface AuthMethodSelectProps {
   onSelectEmail: () => void;
-  onSelectPhone: () => void;
   onGoogleLogin: () => void;
   isLoading?: boolean;
   isOnline?: boolean;
@@ -14,7 +13,6 @@ interface AuthMethodSelectProps {
 
 export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
   onSelectEmail,
-  onSelectPhone,
   onGoogleLogin,
   isLoading = false,
   isOnline = true,
@@ -70,6 +68,7 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
         <span>Continue with Email</span>
       </button>
 
+      {/* 
       <button
         onClick={onSelectPhone}
         disabled={isLoading || !isOnline}
@@ -81,6 +80,7 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
         />
         <span>Continue with Phone</span>
       </button>
+      */}
       {/* Benefits List */}
       <div className="mt-4 sm:mt-6 grid grid-cols-1 gap-2 sm:gap-3">
         {[

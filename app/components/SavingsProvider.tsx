@@ -59,6 +59,7 @@ type GraphContribution = {
   circleId: string;
   user: GraphUser;
   round: string;
+  amount?: string;
 };
 type GraphPayout = {
   circleId: string;
@@ -235,6 +236,14 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
               pm.user.id.toLowerCase() === addr,
           );
 
+          const totalContributed = allContributions
+            .filter(
+              (cm) =>
+                cm.circleId.toString() === c.circleId.toString() &&
+                cm.user.id.toLowerCase() === addr,
+            )
+            .reduce((acc, cm) => acc + BigInt(cm.amount || 0), 0n);
+
           return {
             id: addr,
             user: jm.user,
@@ -252,7 +261,7 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
                 f.circleId.toString() === c.circleId.toString() &&
                 f.forfeitedUser?.id?.toLowerCase() === addr,
             ),
-            totalContributed: "0",
+            totalContributed: totalContributed.toString(),
             collateralLocked: c.collateralAmount,
           };
         });

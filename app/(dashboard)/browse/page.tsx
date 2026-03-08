@@ -398,10 +398,15 @@ export default function BrowsePage() {
                       </span>
                       <span className="text-base font-black">
                         $
-                        {formatUnits(
-                          BigInt(circle.contributionAmount || "0"),
-                          6,
-                        )}
+                        {Number(
+                          formatUnits(
+                            BigInt(circle.contributionAmount || "0"),
+                            6,
+                          ),
+                        ).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                     <div

@@ -252,7 +252,7 @@ export default function SavingsPage() {
     return [
       {
         label: "Total Saved",
-        value: `$${personal.toLocaleString()}`,
+        value: `$${personal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         icon: <TrendingUp size={16} />,
         color: colors.primary,
       },

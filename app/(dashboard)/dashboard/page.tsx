@@ -20,7 +20,7 @@ export default function Home() {
   const { profile } = useUserProfile();
   const { formattedBalance, isLoading: isBalanceLoading } = useBalance();
   const { data: creditScore, isLoading: isCreditLoading } = useCreditScore();
-  const { personalGoals, isLoading: isSavingsLoading } = useSavings();
+  const { personalGoals, circles, isLoading: isSavingsLoading } = useSavings();
   const [showAddFundsModal, setShowAddFundsModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const router = useRouter();
@@ -33,6 +33,18 @@ export default function Home() {
       0,
     );
   }, [personalGoals]);
+
+  const circleMetrics = useMemo(() => {
+    let contributions = 0;
+    let collateral = 0;
+
+    circles.forEach((circle) => {
+      contributions += Number(circle.userTotalContributed || 0);
+      collateral += Number(circle.collateralLocked || 0);
+    });
+
+    return { contributions, collateral };
+  }, [circles]);
 
   const actions = (
     <div className="flex gap-1 sm:gap-2">
@@ -72,6 +84,8 @@ export default function Home() {
           <BalanceDisplay
             balance={formattedBalance}
             creditScore={creditScore}
+            circleContributions={circleMetrics.contributions}
+            circleCollateral={circleMetrics.collateral}
             personalSavingsCommitted={personalSavingsCommitted}
             isLoading={isBalanceLoading || isCreditLoading || isSavingsLoading}
             onAddClick={() => setShowAddFundsModal(true)}

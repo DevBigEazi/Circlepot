@@ -223,7 +223,6 @@ function AuthPageContent() {
             {step === "select" && (
               <AuthMethodSelect
                 onSelectEmail={() => setStep("email_input")}
-                onSelectPhone={() => setStep("phone_input")}
                 onGoogleLogin={handleGoogleLogin}
                 isLoading={isLoading || isSocialProcessing}
                 isOnline={isOnline}

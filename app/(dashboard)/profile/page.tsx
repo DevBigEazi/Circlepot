@@ -425,12 +425,24 @@ const ProfilePage = () => {
                   <p className="text-sm font-medium opacity-70 break-all">
                     {profile?.phoneNumber || "No phone linked"}
                   </p>
-                  <button
+                  {/* <button
                     onClick={() => handleLinkContact("phone")}
                     className="p-1.5 rounded-xl transition-opacity hover:opacity-70"
                   >
                     <Pencil size={16} style={{ color: colors.primary }} />
-                  </button>
+                  </button> */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-[9px] font-black px-2 py-1 rounded-lg border-2"
+                      style={{
+                        borderColor: colors.border,
+                        color: colors.textLight,
+                        opacity: 0.5,
+                      }}
+                    >
+                      COMING SOON
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

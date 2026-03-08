@@ -94,8 +94,18 @@ export const JoinCircleModal: React.FC<JoinCircleModalProps> = ({
     isPrivate && status.isInvited === false && !status.loading;
   const showMemberError = status.isMember === true && !status.loading;
 
-  const contribution = formatUnits(BigInt(circle.contributionAmount || "0"), 6);
-  const collateral = formatUnits(BigInt(circle.collateralAmount || "0"), 6);
+  const contribution = Number(
+    formatUnits(BigInt(circle.contributionAmount || "0"), 6),
+  ).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const collateral = Number(
+    formatUnits(BigInt(circle.collateralAmount || "0"), 6),
+  ).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   const getFrequencyLabel = (freq: number) => {
     switch (freq) {

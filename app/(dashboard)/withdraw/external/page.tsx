@@ -183,7 +183,10 @@ const WithdrawExternalPage: React.FC = () => {
                   className="text-3xl font-bold"
                   style={{ color: colors.text }}
                 >
-                  {formattedBalance}
+                  {Number(formattedBalance).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </h2>
                 <span
                   className="text-lg font-medium"

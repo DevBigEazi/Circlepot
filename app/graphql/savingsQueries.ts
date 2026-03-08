@@ -99,6 +99,7 @@ export const GET_CIRCLES_BY_IDS = `
         id
       }
       round
+      amount
     }
     payoutDistributeds(where: { circleId_in: $ids }) {
       circleId
