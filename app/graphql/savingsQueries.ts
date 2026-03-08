@@ -148,8 +148,8 @@ export const GET_GOAL_DETAILS = `
 `;
 
 export const GET_CIRCLE_DETAILS = `
-  query GetCircleDetails($id: ID!) {
-    circle(id: $id) {
+  query GetCircleDetails($circleId: BigInt!) {
+    circles(where: { circleId: $circleId }) {
       id
       circleId
       circleName

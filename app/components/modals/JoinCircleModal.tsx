@@ -58,7 +58,7 @@ export const JoinCircleModal: React.FC<JoinCircleModalProps> = ({
 
       setStatus((prev) => ({ ...prev, loading: true }));
       try {
-        const result = await checkUserStatusSubgraph(circle.id, address);
+        const result = await checkUserStatusSubgraph(circle.circleId, address);
 
         setStatus({
           isMember: result.isMember,
@@ -71,7 +71,13 @@ export const JoinCircleModal: React.FC<JoinCircleModalProps> = ({
       }
     };
     checkStatus();
-  }, [isOpen, circle.id, circle.visibility, address, checkUserStatusSubgraph]);
+  }, [
+    isOpen,
+    circle.circleId,
+    circle.visibility,
+    address,
+    checkUserStatusSubgraph,
+  ]);
 
   // Reset step when modal closes
   useEffect(() => {

@@ -21,16 +21,20 @@ import { formatUnits } from "viem";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
-import { useAccountAddress } from "@/app/hooks/useAccountAddress";
+import { useSavings } from "@/app/components/SavingsProvider";
 
 export default function BrowsePage() {
   const colors = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { address } = useAccountAddress();
 
   const { data: circles = [], isLoading } = useBrowseCircles();
   const { joinCircle, isJoining } = useCircleSavings();
+  const { circles: userCircles } = useSavings();
+
+  const joinedCircleIds = useMemo(() => {
+    return new Set(userCircles.map((c) => c.rawCircle.circleId.toString()));
+  }, [userCircles]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<
@@ -51,11 +55,8 @@ export default function BrowsePage() {
       const isJoinable = circle.state === 1 || circle.state === 2;
       if (!isJoinable) return false;
 
-      // Don't show circles where current user is the creator
-      if (
-        address &&
-        circle.creator.id.toLowerCase() === address.toLowerCase()
-      ) {
+      // Don't show circles user has already joined
+      if (joinedCircleIds.has(circle.circleId.toString())) {
         return false;
       }
 
@@ -103,7 +104,7 @@ export default function BrowsePage() {
     maxContribution,
     minCollateral,
     maxCollateral,
-    address,
+    joinedCircleIds,
   ]);
 
   const handleJoin = async () => {
