@@ -27,6 +27,14 @@ export const useCircleSavings = () => {
   const { primaryWallet } = useDynamicContext();
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [isContributing, setIsContributing] = useState(false);
+  const [isInitiatingVoting, setIsInitiatingVoting] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
+  const [isExecutingVote, setIsExecutingVote] = useState(false);
+  const [isWithdrawingCollateral, setIsWithdrawingCollateral] = useState(false);
+  const [isInvitingMembers, setIsInvitingMembers] = useState(false);
+  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
+  const [isForfeiting, setIsForfeiting] = useState(false);
 
   /**
    * Universal helper to resolve the Smart Account Client for a transaction.
@@ -340,12 +348,232 @@ export const useCircleSavings = () => {
     }
   };
 
+  /**
+   * Contributes to the current round of a circle.
+   */
+  const contribute = async (circleId: string) => {
+    setIsContributing(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "contribute",
+        args: [BigInt(circleId)],
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsContributing(false);
+    }
+  };
+
+  /**
+   * Initiates voting for a circle.
+   */
+  const initiateVoting = async (circleId: string) => {
+    setIsInitiatingVoting(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "initiateVoting",
+        args: [BigInt(circleId)],
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsInitiatingVoting(false);
+    }
+  };
+
+  /**
+   * Casts a vote in a circle.
+   * @param choice 0: START, 1: WITHDRAW
+   */
+  const castVote = async (circleId: string, choice: number) => {
+    setIsVoting(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "castVote",
+        args: [BigInt(circleId), choice],
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  /**
+   * Executes the result of a voting period.
+   */
+  const executeVote = async (circleId: string) => {
+    setIsExecutingVote(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "executeVote",
+        args: [BigInt(circleId)],
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsExecutingVote(false);
+    }
+  };
+
+  /**
+   * Withdraws collateral from a DEAD circle.
+   */
+  const withdrawCollateral = async (circleId: string) => {
+    setIsWithdrawingCollateral(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "WithdrawCollateral",
+        args: [BigInt(circleId)],
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsWithdrawingCollateral(false);
+    }
+  };
+
+  /**
+   * Invites new members to a private circle.
+   */
+  const inviteMembers = async (circleId: string, invitees: string[]) => {
+    setIsInvitingMembers(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "inviteMembers",
+        args: [BigInt(circleId), invitees],
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsInvitingMembers(false);
+    }
+  };
+
+  /**
+   * Updates the visibility of a circle (0 = Private, 1 = Public).
+   * Note: Making a circle public may require payment of a visibility fee.
+   */
+  const updateCircleVisibility = async (
+    circleId: string,
+    visibility: 0 | 1,
+  ) => {
+    setIsUpdatingVisibility(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      let fee = 0n;
+      if (visibility === 1) {
+        // Fetch fee if changing to public
+        fee = BigInt("500000"); // 0.5 USDT
+      }
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "updateCircleVisibility",
+        args: [BigInt(circleId), visibility],
+        value: fee,
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsUpdatingVisibility(false);
+    }
+  };
+
+  /**
+   * Forfeits members who missed their contribution deadline.
+   */
+  const forfeitMember = async (circleId: string, lateMembers: string[]) => {
+    setIsForfeiting(true);
+    try {
+      const { walletClient } = await getSmartAccountClient();
+
+      const hash = await walletClient.writeContract({
+        account: walletClient.account,
+        address: CIRCLE_SAVING_CONTRACT,
+        abi: CIRCLE_SAVINGS_ABI,
+        functionName: "forfeitMember",
+        args: [BigInt(circleId), lateMembers],
+      });
+
+      return await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      throw normalizeError(err);
+    } finally {
+      setIsForfeiting(false);
+    }
+  };
+
   return {
     createCircle,
     joinCircle,
+    contribute,
+    initiateVoting,
+    castVote,
+    executeVote,
+    withdrawCollateral,
+    inviteMembers,
+    updateCircleVisibility,
+    forfeitMember,
     checkUserStatusSubgraph,
     calculateRequiredCollateral,
     isCreating,
     isJoining,
+    isContributing,
+    isInitiatingVoting,
+    isVoting,
+    isExecutingVote,
+    isWithdrawingCollateral,
+    isInvitingMembers,
+    isUpdatingVisibility,
+    isForfeiting,
   };
 };

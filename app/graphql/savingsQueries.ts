@@ -1,24 +1,111 @@
 export const GET_USER_SAVINGS_SUMMARY = `
-  query GetUserSavingsSummary($address: ID!) {
+  query GetUserSavingsSummary($address: ID!, $userAddress: Bytes!) {
     user(id: $address) {
       id
       totalGoalsCompleted
       totalCirclesCompleted
-      personalGoals: activePersonalGoals(orderBy: createdAt, orderDirection: desc) {
+      totalReputation
+      repCategory
+      totalLatePayments
+    }
+    personalGoals(
+      where: { user: $userAddress, isActive: true }
+      orderBy: createdAt
+      orderDirection: desc
+    ) {
+      id
+      goalId
+      goalName
+      goalAmount
+      currentAmount
+      contributionAmount
+      frequency
+      deadline
+      createdAt
+      updatedAt
+      isActive
+      isYieldEnabled
+      token
+    }
+    circlesJoined: circleJoineds(
+      where: { user: $userAddress }
+    ) {
+      circleId
+    }
+    contributionMades(where: { user: $userAddress }) {
+      amount
+      circleId
+      round
+    }
+    payoutDistributeds(where: { user: $userAddress }) {
+      payoutAmount
+    }
+    memberForfeiteds(where: { forfeitedUser: $userAddress }) {
+      circleId
+      deductionAmount
+    }
+  }
+`;
+
+export const GET_CIRCLES_BY_IDS = `
+  query GetCirclesByIds($ids: [BigInt!]) {
+    circles(where: { circleId_in: $ids }) {
+      id
+      circleId
+      circleName
+      circleDescription
+      contributionAmount
+      collateralAmount
+      frequency
+      maxMembers
+      currentMembers
+      currentRound
+      visibility
+      state
+      createdAt
+      startedAt
+      updatedAt
+      token
+      totalPot
+      contributionsThisRound
+      nextDeadline
+      creator {
         id
-        goalId
-        goalName
-        goalAmount
-        currentAmount
-        contributionAmount
-        frequency
-        deadline
-        createdAt
-        updatedAt
-        isActive
-        isYieldEnabled
-        token
       }
+      lastVoteExecuted {
+        id
+        circleStarted
+        startVoteTotal
+        withdrawVoteTotal
+        withdrawWon
+      }
+    }
+    circleJoineds(where: { circleId_in: $ids }) {
+      circleId
+      user {
+        id
+      }
+    }
+    positionAssigneds(where: { circleId_in: $ids }) {
+      circleId
+      user {
+        id
+      }
+      position
+    }
+    contributionMades(where: { circleId_in: $ids }) {
+      circleId
+      user {
+        id
+      }
+      round
+    }
+    payoutDistributeds(where: { circleId_in: $ids }) {
+      circleId
+      user {
+        id
+      }
+      round
     }
   }
 `;
@@ -61,51 +148,42 @@ export const GET_GOAL_DETAILS = `
 `;
 
 export const GET_CIRCLE_DETAILS = `
-  query GetCircleDetails($id: ID!) {
-    circle(id: $id) {
+  query GetCircleDetails($circleId: BigInt!) {
+    circles(where: { circleId: $circleId }) {
       id
-      name
-      description
+      circleId
+      circleName
+      circleDescription
       creator {
         id
       }
-      targetAmount
       contributionAmount
+      collateralAmount
       frequency
-      totalRounds
+      maxMembers
+      currentMembers
       currentRound
-      startDate
+      visibility
+      state
+      createdAt
+      startedAt
+      updatedAt
       token
-      isActive
-      members {
+      totalPot
+      contributionsThisRound
+      nextDeadline
+      lastVoteExecuted {
         id
-        user {
-          id
-        }
-        joinedAt
-        position
-      }
-      payouts(orderBy: round, orderDirection: desc) {
-        id
-        recipient {
-          id
-        }
-        amount
-        round
-        timestamp
-      }
-      contributions(orderBy: timestamp, orderDirection: desc) {
-        id
-        user {
-          id
-        }
-        amount
-        round
-        timestamp
+        circleStarted
+        startVoteTotal
+        withdrawVoteTotal
+        withdrawWon
       }
     }
   }
 `;
+
+export const GET_SINGLE_CIRCLE = GET_CIRCLE_DETAILS;
 
 export const GET_PERSONAL_SAVINGS_ACTIVITY = `
   query GetPersonalSavingsActivity($address: Bytes!) {
@@ -113,7 +191,7 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       amount
@@ -124,12 +202,11 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
         transactionHash
       }
     }
-
     goalWithdrawns(
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       goalId
@@ -142,12 +219,11 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
         transactionHash
       }
     }
-
     goalCompleteds(
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       goalId
@@ -156,10 +232,7 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
         transactionHash
       }
     }
-
-    personalGoals(
-      where: { user: $address }
-    ) {
+    personalGoals(where: { user: $address }) {
       id
       goalId
       goalName
@@ -174,7 +247,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -184,12 +257,11 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
     contributionMades(
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -200,12 +272,11 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
     lateContributionMades(
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -217,12 +288,11 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
     payoutDistributeds(
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -233,12 +303,11 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
     collateralReturneds(
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -249,12 +318,11 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
     collateralWithdrawns(
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -265,12 +333,11 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
     memberForfeiteds(
       where: { forfeiter: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -280,12 +347,11 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
     deadCircleFeeDeducteds(
       where: { creator: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 100
+      first: 50
     ) {
       id
       circleId
@@ -295,7 +361,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-
+    # Circles info for lookup
     circles(first: 1000) {
       circleId
       circleName
@@ -333,36 +399,15 @@ export const GET_ALL_CIRCLES = `
   }
 `;
 
-export const GET_SINGLE_CIRCLE = `
-  query GetSingleCircle($id: ID!) {
-    circle(id: $id) {
+export const GET_USER_CIRCLES = `
+  query GetUserCircles($address: Bytes!) {
+    circleJoineds(where: { user: $address }, first: 100) {
       id
       circleId
-      circleName
-      circleDescription
-      contributionAmount
-      collateralAmount
-      frequency
-      maxMembers
-      currentMembers
-      currentRound
-      visibility
-      state
-      createdAt
-      startedAt
-      updatedAt
-      token
-      creator {
-        id
-      }
-      members: members {
-        id
-        user {
-          id
-        }
-        joinedAt
-        position
-      }
+    }
+    circlesCreated: circles(where: { creator: $address }, first: 100) {
+      id
+      circleId
     }
   }
 `;

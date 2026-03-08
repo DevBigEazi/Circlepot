@@ -21,17 +21,20 @@ import { formatUnits } from "viem";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
-import { useAccountAddress } from "@/app/hooks/useAccountAddress";
-import { Tooltip } from "@/app/components/Tooltip";
+import { useSavings } from "@/app/components/SavingsProvider";
 
 export default function BrowsePage() {
   const colors = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { address } = useAccountAddress();
 
   const { data: circles = [], isLoading } = useBrowseCircles();
   const { joinCircle, isJoining } = useCircleSavings();
+  const { circles: userCircles } = useSavings();
+
+  const joinedCircleIds = useMemo(() => {
+    return new Set(userCircles.map((c) => c.rawCircle.circleId.toString()));
+  }, [userCircles]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<
@@ -52,11 +55,8 @@ export default function BrowsePage() {
       const isJoinable = circle.state === 1 || circle.state === 2;
       if (!isJoinable) return false;
 
-      // Don't show circles where current user is the creator
-      if (
-        address &&
-        circle.creator.id.toLowerCase() === address.toLowerCase()
-      ) {
+      // Don't show circles user has already joined
+      if (joinedCircleIds.has(circle.circleId.toString())) {
         return false;
       }
 
@@ -104,7 +104,7 @@ export default function BrowsePage() {
     maxContribution,
     minCollateral,
     maxCollateral,
-    address,
+    joinedCircleIds,
   ]);
 
   const handleJoin = async () => {
@@ -321,11 +321,7 @@ export default function BrowsePage() {
                 </button>
               );
 
-              return f.description ? (
-                <Tooltip key={f.id} content={f.description} position="bottom">
-                  {ButtonContent}
-                </Tooltip>
-              ) : (
+              return (
                 <React.Fragment key={f.id}>{ButtonContent}</React.Fragment>
               );
             })}
@@ -375,19 +371,15 @@ export default function BrowsePage() {
                           {circle.circleName}
                         </h3>
                         {Number(circle.visibility) === 0 ? (
-                          <Tooltip content="Exclusive access. Restricted to users with invitation links.">
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-help">
-                              <Lock size={10} />
-                              Private
-                            </div>
-                          </Tooltip>
+                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-help">
+                            <Lock size={10} />
+                            Private
+                          </div>
                         ) : (
-                          <Tooltip content="Open to everyone. Anyone can discover and join publicly.">
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-help">
-                              <Globe size={10} />
-                              Public
-                            </div>
-                          </Tooltip>
+                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-help">
+                            <Globe size={10} />
+                            Public
+                          </div>
                         )}
                       </div>
                       <p className="text-xs opacity-50 font-bold line-clamp-2 leading-relaxed">
@@ -431,7 +423,7 @@ export default function BrowsePage() {
                   >
                     <div className="flex flex-col">
                       <span className="text-[8px] font-black uppercase tracking-[0.15em] opacity-30">
-                        Organizer
+                        Creator
                       </span>
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-60 truncate max-w-[100px]">
                         {circle.creator.username || "Anonymous"}

@@ -95,14 +95,14 @@ const NavBar: React.FC<NavBarProps> = ({
                   )}
                   <div>
                     <h1
-                      className="text-xl font-bold"
+                      className="text-lg sm:text-xl font-bold"
                       style={{ color: colors.text }}
                     >
                       {title}
                     </h1>
                     {subtitle && (
                       <div
-                        className="text-sm"
+                        className="text-[10px] sm:text-sm"
                         style={{ color: colors.textLight }}
                       >
                         {subtitle}
