@@ -66,7 +66,7 @@ export default function Home() {
         actions={actions}
       />
 
-      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24">
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-12">
         <div className="flex flex-col gap-8">
           {/* Main Balance Section */}
           <BalanceDisplay

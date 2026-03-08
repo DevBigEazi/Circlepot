@@ -11,7 +11,7 @@ export default function NotificationsPage() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen pb-12"
       style={{ backgroundColor: colors.background }}
     >
       <NavBar

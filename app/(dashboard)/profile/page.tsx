@@ -138,7 +138,7 @@ const ProfilePage = () => {
 
   return (
     <div
-      className="min-h-screen pb-20"
+      className="min-h-screen pb-12"
       style={{ backgroundColor: colors.background }}
     >
       <NavBar
@@ -148,10 +148,10 @@ const ProfilePage = () => {
         colors={colors}
       />
 
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 space-y-6 mt-6">
+      <div className="max-w-2xl mx-auto px-2 sm:px-4 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
         {/* Profile Card */}
         <div
-          className="rounded-3xl p-4 sm:p-8 border shadow-sm space-y-8"
+          className="rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 border shadow-sm space-y-6 sm:space-y-8"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.border,
@@ -161,7 +161,7 @@ const ProfilePage = () => {
           <div className="flex flex-col items-center gap-4">
             <div className="relative group">
               <div
-                className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl overflow-hidden border-2 flex items-center justify-center bg-muted shadow-inner"
+                className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 flex items-center justify-center bg-muted shadow-inner"
                 style={{ borderColor: colors.primary }}
               >
                 {previewImage ? (
@@ -181,10 +181,11 @@ const ProfilePage = () => {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUpdating}
-                className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-xl transition-transform hover:scale-110 disabled:opacity-50"
+                className="absolute -bottom-1 -right-1 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-xl transition-transform hover:scale-110 disabled:opacity-50"
                 style={{ backgroundColor: colors.primary }}
               >
-                <Camera size={20} />
+                <Camera size={16} className="sm:hidden" />
+                <Camera size={20} className="hidden sm:block" />
               </button>
               <input
                 type="file"
@@ -200,7 +201,7 @@ const ProfilePage = () => {
                 <button
                   onClick={handleSaveProfile}
                   disabled={isUpdating}
-                  className="px-6 py-2.5 rounded-2xl text-white font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-white text-sm sm:text-base font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-1.5 sm:gap-2"
                   style={{ backgroundColor: colors.primary }}
                 >
                   {isUpdating ? (
@@ -218,7 +219,7 @@ const ProfilePage = () => {
                     setSelectedFile(null);
                   }}
                   disabled={isUpdating}
-                  className="px-6 py-2.5 rounded-2xl border font-bold transition-colors hover:bg-black/5 disabled:opacity-50"
+                  className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border text-sm sm:text-base font-bold transition-colors hover:bg-black/5 disabled:opacity-50"
                   style={{ borderColor: colors.border, color: colors.text }}
                 >
                   Cancel
@@ -238,7 +239,7 @@ const ProfilePage = () => {
                   type="text"
                   value={profile?.username || ""}
                   disabled
-                  className="w-full px-4 py-3 sm:px-5 sm:py-3.5 pr-12 rounded-2xl border opacity-60 cursor-not-allowed font-medium text-sm sm:text-base"
+                  className="w-full px-3.5 py-2.5 sm:px-5 sm:py-3.5 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border opacity-60 cursor-not-allowed font-medium text-xs sm:text-base"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,
@@ -270,7 +271,7 @@ const ProfilePage = () => {
                   type="text"
                   value={profile?.accountId || ""}
                   disabled
-                  className="w-full px-4 py-3 sm:px-5 sm:py-3.5 pr-12 rounded-2xl border opacity-60 cursor-not-allowed font-mono text-sm sm:text-base"
+                  className="w-full px-3.5 py-2.5 sm:px-5 sm:py-3.5 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border opacity-60 cursor-not-allowed font-mono text-[10px] sm:text-base"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,
@@ -306,7 +307,7 @@ const ProfilePage = () => {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   disabled={isUpdating}
-                  className="w-full px-5 py-3.5 pr-12 rounded-2xl border transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="w-full px-3.5 py-2.5 sm:px-5 sm:py-3.5 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border text-sm sm:text-base transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,
@@ -331,7 +332,7 @@ const ProfilePage = () => {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   disabled={isUpdating}
-                  className="w-full px-5 py-3.5 pr-12 rounded-2xl border transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="w-full px-3.5 py-2.5 sm:px-5 sm:py-3.5 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border text-sm sm:text-base transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                   style={{
                     backgroundColor: colors.background,
                     borderColor: colors.border,
@@ -359,7 +360,7 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Email */}
               <div
-                className="p-6 rounded-3xl border space-y-4"
+                className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border space-y-3 sm:space-y-4"
                 style={{
                   backgroundColor: colors.background,
                   borderColor: colors.border,
@@ -397,7 +398,7 @@ const ProfilePage = () => {
 
               {/* Phone */}
               <div
-                className="p-6 rounded-3xl border space-y-4"
+                className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border space-y-3 sm:space-y-4"
                 style={{
                   backgroundColor: colors.background,
                   borderColor: colors.border,

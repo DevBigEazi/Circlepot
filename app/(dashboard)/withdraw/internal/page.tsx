@@ -137,7 +137,7 @@ const WithdrawInternalPage: React.FC = () => {
         titleIcon={<User size={18} className="text-white" />}
         colors={colors}
       />
-      <div className="flex-1 pb-20 pt-4 px-4 overflow-y-auto">
+      <div className="flex-1 pb-12 pt-4 px-4 overflow-y-auto">
         <div className="max-w-xl mx-auto space-y-6">
           {/* Instruction Card */}
           <div

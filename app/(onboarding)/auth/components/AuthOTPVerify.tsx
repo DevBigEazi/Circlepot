@@ -87,7 +87,7 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in">
+    <div className="flex flex-col gap-6 sm:gap-8 animate-fade-in">
       <button
         onClick={onBack}
         className="flex items-center gap-2.5 text-sm font-bold text-text-light hover:text-foreground transition-all group w-fit cursor-pointer"
@@ -100,12 +100,12 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
         <span>Back</span>
       </button>
 
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-foreground font-schibsted-grotesk">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-schibsted-grotesk">
             Verify Your Identity
           </h2>
-          <p className="text-sm text-text-light mt-2 max-w-[200px] mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-text-light mt-1.5 sm:mt-2 max-w-[200px] mx-auto leading-relaxed">
             Enter the 6-digit code sent to{" "}
             <span className="font-bold text-foreground break-all">
               {targetAddress}
@@ -113,7 +113,7 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
           </p>
         </div>
 
-        <div className="flex justify-between items-center gap-2.5">
+        <div className="flex justify-between items-center gap-1.5 sm:gap-2.5">
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -127,7 +127,7 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 border-border/80 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none bg-white text-foreground disabled:opacity-50 shadow-sm"
+              className="w-9 h-12 px-0 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold border-2 border-border/80 rounded-xl sm:rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none bg-white text-foreground disabled:opacity-50 shadow-sm"
               disabled={isLoading || !isOnline}
               autoFocus={index === 0}
             />
@@ -137,7 +137,7 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
         <button
           onClick={() => onVerify(otp.join(""))}
           disabled={isLoading || otp.some((digit) => !digit) || !isOnline}
-          className="flex justify-center items-center rounded-2xl py-4 font-bold gap-3 transition-all bg-primary hover:bg-primary/95 text-white hover:shadow-xl disabled:opacity-50 cursor-pointer w-full group overflow-hidden relative"
+          className="flex justify-center items-center rounded-xl sm:rounded-2xl py-3 sm:py-4 text-sm sm:text-base font-bold gap-2 sm:gap-3 transition-all bg-primary hover:bg-primary/95 text-white hover:shadow-xl disabled:opacity-50 cursor-pointer w-full group overflow-hidden relative"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">
@@ -171,14 +171,14 @@ export const AuthOTPVerify: React.FC<AuthOTPVerifyProps> = ({
         </div>
 
         {/* Informative nudge */}
-        <div className="bg-accent-bg/10 rounded-2xl p-5 border border-accent-border/20 transition-all hover:bg-accent-bg/20">
+        <div className="bg-accent-bg/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-accent-border/20 transition-all hover:bg-accent-bg/20">
           <div className="flex items-center gap-2 mb-1">
             <Clock size={14} className="text-primary" />
-            <span className="text-xs font-bold text-foreground">
+            <span className="text-[11px] sm:text-xs font-bold text-foreground">
               Almost there!
             </span>
           </div>
-          <p className="text-[12px] text-text-light leading-relaxed">
+          <p className="text-[11px] sm:text-[12px] text-text-light leading-relaxed">
             Your digital wallet is being prepared in the background. Once
             verified, you&apos;ll be redirected instantly.
           </p>

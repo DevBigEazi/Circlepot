@@ -10,7 +10,6 @@ import {
   HelpCircle,
   ShieldCheck,
   Bell,
-  LogOut,
 } from "lucide-react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import { useUserProfile } from "@/app/hooks/useUserProfile";
@@ -20,19 +19,16 @@ import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ThemeToggle from "@/app/components/ThemeToggle";
-import LogoutModal from "@/app/components/LogoutModal";
 import { getInitials } from "@/app/utils/helpers";
 import NavBar from "@/app/components/NavBar";
 
 const SettingsPage = () => {
   const colors = useThemeColors();
   const router = useRouter();
-  const { handleLogOut } = useDynamicContext();
   const { selectedCurrency, setSelectedCurrency } = useCurrency();
   const { availableCurrencies } = useCurrencyConverter();
   const { profile } = useUserProfile();
 
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
   const [currencySearch, setCurrencySearch] = useState("");
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
@@ -51,15 +47,6 @@ const SettingsPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const onLogout = async () => {
-    try {
-      await handleLogOut();
-      router.push("/");
-    } catch {
-      toast.error("Failed to sign out");
-    }
-  };
-
   const filteredCurrencies = Object.keys(availableCurrencies).filter((code) => {
     const currency = availableCurrencies[code];
     return (
@@ -70,7 +57,7 @@ const SettingsPage = () => {
 
   return (
     <div
-      className="min-h-screen pb-20"
+      className="min-h-screen pb-12"
       style={{ backgroundColor: colors.background }}
     >
       <NavBar
@@ -80,11 +67,11 @@ const SettingsPage = () => {
         colors={colors}
       />
 
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 space-y-4 mt-6">
+      <div className="max-w-2xl mx-auto px-2 sm:px-4 space-y-3.5 sm:space-y-4 mt-4 sm:mt-6">
         {/* Profile Card Navigation */}
         <button
           onClick={() => router.push("/profile")}
-          className="w-full text-left rounded-3xl p-6 border shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between"
+          className="w-full text-left rounded-2xl sm:rounded-3xl p-4 sm:p-6 border shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.border,
@@ -133,17 +120,17 @@ const SettingsPage = () => {
 
         {/* Preferences Section */}
         <div
-          className="rounded-3xl px-4 py-8 sm:p-8 border shadow-sm"
+          className="rounded-2xl sm:rounded-3xl px-3.5 py-6 sm:p-8 border shadow-sm"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.border,
           }}
         >
-          <h3 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-6 opacity-40">
+          <h3 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-4 sm:mb-6 opacity-40">
             Preferences
           </h3>
 
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Theme */}
             <div className="space-y-3">
               <label
@@ -168,7 +155,7 @@ const SettingsPage = () => {
                   onClick={() =>
                     setIsCurrencyDropdownOpen(!isCurrencyDropdownOpen)
                   }
-                  className="w-full px-4 sm:px-5 py-3.5 rounded-2xl border flex items-center justify-between transition-all hover:bg-black/5"
+                  className="w-full px-3.5 sm:px-5 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl border flex items-center justify-between transition-all hover:bg-black/5"
                   style={{
                     borderColor: colors.border,
                     backgroundColor: colors.background,
@@ -199,7 +186,7 @@ const SettingsPage = () => {
 
                 {isCurrencyDropdownOpen && (
                   <div
-                    className="absolute z-50 mt-2 w-full max-h-80 overflow-hidden rounded-3xl shadow-2xl border animate-in fade-in slide-in-from-top-2"
+                    className="absolute z-50 mt-2 w-full max-h-80 overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border animate-in fade-in slide-in-from-top-2"
                     style={{
                       backgroundColor: colors.surface,
                       borderColor: colors.border,
@@ -219,7 +206,7 @@ const SettingsPage = () => {
                           placeholder="Search currency..."
                           value={currencySearch}
                           onChange={(e) => setCurrencySearch(e.target.value)}
-                          className="w-full pl-12 pr-4 py-3 rounded-2xl border text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                          className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl border text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                           style={{
                             borderColor: colors.border,
                             backgroundColor: colors.background,
@@ -285,27 +272,27 @@ const SettingsPage = () => {
 
         {/* Support Section */}
         <div
-          className="rounded-3xl px-4 py-8 sm:p-8 border shadow-sm"
+          className="rounded-2xl sm:rounded-3xl px-3.5 py-6 sm:p-8 border shadow-sm"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.border,
           }}
         >
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-6 opacity-40">
+          <h3 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-4 sm:mb-6 opacity-40">
             System & Support
           </h3>
 
           <div className="space-y-1">
-            <button className="w-full flex items-center justify-between p-4 rounded-2xl transition-colors hover:bg-black/5">
-              <div className="flex items-center gap-4">
+            <button className="w-full flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-colors hover:bg-black/5">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div
-                  className="p-2 rounded-xl"
+                  className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl"
                   style={{ backgroundColor: colors.accentBg }}
                 >
                   <Bell size={18} style={{ color: colors.primary }} />
                 </div>
                 <span
-                  className="font-bold text-sm"
+                  className="font-bold text-xs sm:text-sm"
                   style={{ color: colors.text }}
                 >
                   Notifications
@@ -314,16 +301,16 @@ const SettingsPage = () => {
               <ChevronRight size={18} style={{ color: colors.textLight }} />
             </button>
 
-            <button className="w-full flex items-center justify-between p-4 rounded-2xl transition-colors hover:bg-black/5">
-              <div className="flex items-center gap-4">
+            <button className="w-full flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-colors hover:bg-black/5">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div
-                  className="p-2 rounded-xl"
+                  className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl"
                   style={{ backgroundColor: colors.accentBg }}
                 >
                   <HelpCircle size={18} style={{ color: colors.primary }} />
                 </div>
                 <span
-                  className="font-bold text-sm"
+                  className="font-bold text-xs sm:text-sm"
                   style={{ color: colors.text }}
                 >
                   Help & Support
@@ -332,16 +319,19 @@ const SettingsPage = () => {
               <ChevronRight size={18} style={{ color: colors.textLight }} />
             </button>
 
-            <button className="w-full flex items-center justify-between p-4 rounded-2xl transition-colors hover:bg-black/5">
-              <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push("/settings/privacy")}
+              className="w-full flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-colors hover:bg-black/5"
+            >
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div
-                  className="p-2 rounded-xl"
+                  className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl"
                   style={{ backgroundColor: colors.accentBg }}
                 >
                   <ShieldCheck size={18} style={{ color: colors.primary }} />
                 </div>
                 <span
-                  className="font-bold text-sm"
+                  className="font-bold text-xs sm:text-sm"
                   style={{ color: colors.text }}
                 >
                   Privacy & Security
@@ -351,42 +341,7 @@ const SettingsPage = () => {
             </button>
           </div>
         </div>
-
-        {/* Logout Button */}
-        <button
-          onClick={() => setShowLogoutModal(true)}
-          className="w-full p-6 rounded-3xl border flex items-center justify-between transition-all hover:bg-red-50 hover:border-red-200 group"
-          style={{
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-red-100 group-hover:bg-red-500 transition-colors">
-              <LogOut
-                size={20}
-                className="text-red-500 group-hover:text-white transition-colors"
-              />
-            </div>
-            <div className="text-left">
-              <span className="block font-bold text-red-500">Sign Out</span>
-              <span
-                className="text-xs opacity-60"
-                style={{ color: colors.text }}
-              >
-                Disconnect from Circlepot
-              </span>
-            </div>
-          </div>
-        </button>
       </div>
-
-      {showLogoutModal && (
-        <LogoutModal
-          onConfirm={onLogout}
-          onCancel={() => setShowLogoutModal(false)}
-        />
-      )}
     </div>
   );
 };

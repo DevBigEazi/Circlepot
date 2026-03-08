@@ -123,7 +123,7 @@ const WithdrawExternalPage: React.FC = () => {
       />
 
       <div
-        className="min-h-screen pb-20 pt-4"
+        className="min-h-screen pb-12 pt-4"
         style={{ backgroundColor: colors.background }}
       >
         <div className="max-w-xl mx-auto px-4 space-y-6">
