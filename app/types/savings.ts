@@ -59,8 +59,14 @@ export interface CircleMember {
     username?: string;
     fullName?: string;
   };
+  totalContributed: string;
+  collateralLocked: string;
+  avatar?: string | null;
   joinedAt: string;
   position: number;
+  isActive: boolean;
+  hasReceivedPayout: boolean;
+  isForfeited: boolean;
 }
 
 export interface RawCircle {
@@ -80,14 +86,21 @@ export interface RawCircle {
   startedAt: string;
   updatedAt: string;
   token: string;
+  totalPot: string;
   creator: {
     id: string;
   };
   members?: {
     id: string;
     user: { id: string };
+    totalContributed: string;
+    collateralLocked: string;
     joinedAt: string;
+    avatar?: string | null;
+    avatarUrl?: string | null;
     position: number;
+    isActive: boolean;
+    hasReceivedPayout: boolean;
   }[];
 }
 
@@ -95,7 +108,7 @@ export interface CircleCreator {
   id: string;
   username?: string;
   fullName?: string;
-  avatarUrl?: string; // From MongoDB profile
+  avatarUrl?: string | null;
 }
 
 export interface Circle {
@@ -106,17 +119,87 @@ export interface Circle {
   circleDescription: string;
   contributionAmount: string;
   collateralAmount: string;
-  frequency: number; // 0: Daily, 1: Weekly, 2: Monthly
+  frequency: number;
   maxMembers: string;
   currentMembers: string;
   currentRound: string;
-  visibility: number; // 0: Private, 1: Public
-  state: number; // 1: CREATED, 2: VOTING, 3: ACTIVE, 4: COMPLETED, 5: DEAD
+  visibility: number;
+  state: number;
   createdAt: string;
   startedAt: string;
   updatedAt: string;
   token: string;
+  totalPot: string;
+  contributionsThisRound?: string;
+  nextDeadline?: string;
+  lastVoteExecuted?: {
+    id: string;
+    circleStarted: boolean;
+    startVoteTotal: string;
+    withdrawVoteTotal: string;
+    withdrawWon: boolean;
+  } | null;
+  members?: CircleMember[];
 }
+
+export interface ActiveCircle {
+  id: string;
+  name: string;
+  contribution: string;
+  frequency: number;
+  totalPositions: number;
+  currentPosition: number;
+  payoutAmount: string;
+  nextPayout: string;
+  status:
+    | "pending"
+    | "created"
+    | "voting"
+    | "active"
+    | "completed"
+    | "dead"
+    | "unknown";
+  membersList: {
+    id: string;
+    username: string;
+    fullName: string;
+    avatarUrl?: string | null;
+    isActive: boolean;
+    hasContributed: boolean;
+    position: number;
+    hasReceivedPayout: boolean;
+  }[];
+  currentRound: string;
+  contributionDeadline: string;
+  baseDeadline: string;
+  votingEvents: Record<string, unknown>[];
+  votes: Record<string, unknown>[];
+  voteResults: Record<string, unknown>[];
+  positions: Record<string, unknown>[];
+  payouts: Record<string, unknown>[];
+  hasContributed: boolean;
+  userTotalContributed: string;
+  hasWithdrawn: boolean;
+  hasReceivedCollateral: boolean;
+  isForfeited: boolean;
+  isForfeitedThisRound: boolean;
+  forfeitedAmount: string;
+  forfeitedContributionPortion: string;
+  forfeitCount: number;
+  isYieldEnabled?: boolean;
+  yieldAPY?: string;
+  isPastDeadline: boolean;
+  isGracePeriod: boolean;
+  collateralLocked: string;
+  collateralRequired: string;
+  collateralDeadline: string;
+  rawCircle: Circle;
+}
+
+export type CircleActionData = ActiveCircle & {
+  lateMembers?: string[];
+  choice?: number;
+};
 
 export interface UserCircle {
   id: string;
@@ -129,7 +212,8 @@ export interface SubgraphSavingsResponse {
     id: string;
     totalGoalsCompleted: string;
     totalCirclesCompleted: string;
-    personalGoals: RawPersonalGoal[];
-    circles: UserCircle[];
+    totalReputation: string;
+    repCategory: number;
+    totalLatePayments: string;
   } | null;
 }
