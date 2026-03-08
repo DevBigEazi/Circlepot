@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { X, MessageSquare, Construction } from "lucide-react";
 import { ThemeColors } from "../../hooks/useThemeColors";
 

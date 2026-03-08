@@ -5,9 +5,9 @@ import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "../hooks/useUserProfile";
 import ProfileCreationModal from "../components/ProfileCreationModal";
-import LoadingSpinner from "../components/LoadingSpinner";
 import BottomNav from "../components/BottomNav";
 import { useAccountAddress } from "../hooks/useAccountAddress";
+import Image from "next/image";
 
 export default function DashboardLayout({
   children,
@@ -54,8 +54,23 @@ export default function DashboardLayout({
       (isProfileLoading || isDeterminingProfile || isAccountInitializing))
   ) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Preparing your account..." />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 animate-fade-in">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28">
+          {/* Outer Ring Animation */}
+          <div className="absolute inset-0 rounded-full border-4 border-primary/10 border-t-primary animate-spin" />
+
+          {/* Logo with pulse */}
+          <div className="absolute inset-4 flex items-center justify-center animate-pulse">
+            <Image
+              src="/assets/images/logo.png"
+              alt="Circlepot Logo"
+              width={64}
+              height={64}
+              className="object-contain"
+              priority
+            />
+          </div>
+        </div>
       </div>
     );
   }
