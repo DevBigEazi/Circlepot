@@ -92,7 +92,7 @@ export const useCircleActivity = () => {
         const circleCollaterals = new Map<string, string>();
         const circleCreators = new Map<string, string>();
 
-        data.circles.forEach((c) => {
+        (data.circles || []).forEach((c) => {
           circleNames.set(c.circleId, c.circleName);
           circleCollaterals.set(c.circleId, c.collateralAmount);
           if (c.creator?.id) {
@@ -102,7 +102,7 @@ export const useCircleActivity = () => {
 
         // Fees mapping by TX Hash so we can bundle them
         const feeByHash = new Map<string, string>();
-        data.deadCircleFeeDeducteds.forEach((fee) => {
+        (data.deadCircleFeeDeducteds || []).forEach((fee) => {
           feeByHash.set(
             fee.transaction.transactionHash,
             formatUnits(BigInt(fee.deadFee), 6),
@@ -110,7 +110,7 @@ export const useCircleActivity = () => {
         });
 
         const forfeitureByHash = new Map<string, string>();
-        data.memberForfeiteds.forEach((fee) => {
+        (data.memberForfeiteds || []).forEach((fee) => {
           forfeitureByHash.set(
             fee.transaction.transactionHash,
             formatUnits(BigInt(fee.deductionAmount), 6),
@@ -120,7 +120,7 @@ export const useCircleActivity = () => {
         const transactions: Transaction[] = [];
 
         // 1. Circle Joined (or Created if user is the creator)
-        data.circleJoineds.forEach((j) => {
+        (data.circleJoineds || []).forEach((j) => {
           const cName = circleNames.get(j.circleId) || "Savings Circle";
           const collateral = circleCollaterals.get(j.circleId) || "0";
           const creator = circleCreators.get(j.circleId);
@@ -150,7 +150,7 @@ export const useCircleActivity = () => {
         });
 
         // 2. Contributions
-        data.contributionMades.forEach((c) => {
+        (data.contributionMades || []).forEach((c) => {
           const cName = circleNames.get(c.circleId) || "Savings Circle";
           transactions.push({
             id: `cc-${c.id}`,
@@ -172,7 +172,7 @@ export const useCircleActivity = () => {
         });
 
         // 3. Late Contributions (bundle fee into note)
-        data.lateContributionMades.forEach((lc) => {
+        (data.lateContributionMades || []).forEach((lc) => {
           const cName = circleNames.get(lc.circleId) || "Savings Circle";
           const feeStr = formatUnits(BigInt(lc.fee), 6);
           const totalBase = BigInt(lc.amount) + BigInt(lc.fee);
@@ -198,7 +198,7 @@ export const useCircleActivity = () => {
         });
 
         // 4. Payouts
-        data.payoutDistributeds.forEach((p) => {
+        (data.payoutDistributeds || []).forEach((p) => {
           const cName = circleNames.get(p.circleId) || "Savings Circle";
           transactions.push({
             id: `cp-${p.id}`,
@@ -253,8 +253,8 @@ export const useCircleActivity = () => {
           });
         };
 
-        data.collateralReturneds.forEach((r) => processReturn(r));
-        data.collateralWithdrawns.forEach((w) => processReturn(w));
+        (data.collateralReturneds || []).forEach((r) => processReturn(r));
+        (data.collateralWithdrawns || []).forEach((w) => processReturn(w));
 
         return transactions;
       } catch (err) {

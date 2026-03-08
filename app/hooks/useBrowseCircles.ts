@@ -88,14 +88,14 @@ export const useCircleDetails = (circleId?: string) => {
       if (!SUBGRAPH_URL || !circleId) return null;
 
       try {
-        // 1. Fetch circle from Subgraph
-        const result = await request<{ circle: RawCircle }>(
+        // 1. Fetch circle from Subgraph using filter
+        const result = await request<{ circles: RawCircle[] }>(
           SUBGRAPH_URL,
           GET_SINGLE_CIRCLE,
-          { id: circleId },
+          { circleId: circleId },
         );
 
-        const circle = result.circle;
+        const circle = result.circles?.[0];
         if (!circle) return null;
 
         // 2. Fetch profile from MongoDB API

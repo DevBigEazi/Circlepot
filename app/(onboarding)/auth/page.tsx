@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useDynamicContext,
   useConnectWithOtp,
@@ -23,9 +23,11 @@ import {
 
 type AuthStep = "select" | "email_input" | "phone_input" | "otp";
 
-export default function AuthPage() {
+function AuthPageContent() {
   const router = useRouter();
   const { user } = useDynamicContext();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams?.get("redirect") || "/dashboard";
   const isLoggedIn = !!user;
 
   const [step, setStep] = useState<AuthStep>("select");
@@ -63,9 +65,9 @@ export default function AuthPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (isLoggedIn && user) {
-      router.replace("/dashboard");
+      router.replace(redirectPath);
     }
-  }, [isLoggedIn, user, router]);
+  }, [isLoggedIn, user, router, redirectPath]);
 
   // Handle errors from social accounts hook to prevent "stuck" states
   useEffect(() => {
@@ -270,5 +272,17 @@ export default function AuthPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center"></div>
+      }
+    >
+      <AuthPageContent />
+    </Suspense>
   );
 }

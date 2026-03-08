@@ -83,7 +83,7 @@ export const useSavingsActivity = () => {
         // Build lookup maps for goal names and amounts
         const goalNames = new Map<string, string>();
         const goalAmounts = new Map<string, string>();
-        data.personalGoals.forEach((g) => {
+        (data.personalGoals || []).forEach((g) => {
           goalNames.set(g.goalId, g.goalName);
           goalAmounts.set(g.goalId, g.goalAmount);
         });
@@ -92,7 +92,7 @@ export const useSavingsActivity = () => {
         const seenHashes = new Set<string>();
 
         // --- Goal Contributions ---
-        data.goalContributions.forEach((c) => {
+        (data.goalContributions || []).forEach((c) => {
           const goalName = goalNames.get(c.goalId) || "Savings Goal";
           const txHash = c.transaction.transactionHash;
           transactions.push({
@@ -116,7 +116,7 @@ export const useSavingsActivity = () => {
 
         // --- Goal Withdrawals & Completions (Primary Source: goalWithdrawns) ---
         // This captures the ACTUAL amount (including yield or minus penalty)
-        data.goalWithdrawns.forEach((w) => {
+        (data.goalWithdrawns || []).forEach((w) => {
           const goalName = goalNames.get(w.goalId) || "Savings Goal";
           const penalty = BigInt(w.penalty);
           const txHash = w.transaction.transactionHash;
@@ -151,7 +151,7 @@ export const useSavingsActivity = () => {
 
         // --- Supplemental Goal Completions ---
         // Only add if we haven't already captured it via a goalWithdrawn event in the same TX
-        data.goalCompleteds.forEach((comp) => {
+        (data.goalCompleteds || []).forEach((comp) => {
           const txHash = comp.transaction.transactionHash;
           if (seenHashes.has(txHash)) return;
           seenHashes.add(txHash);

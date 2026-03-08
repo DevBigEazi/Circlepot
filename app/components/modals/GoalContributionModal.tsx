@@ -152,7 +152,7 @@ export const GoalContributionModal: React.FC<GoalContributionModalProps> = ({
                 parseFloat(amount) <= 0 ||
                 parseFloat(amount) > defaultAmount
               }
-              className="w-full py-4 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed bg-primary text-primary-foreground"
+              className="w-full text-white py-4 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed bg-primary text-primary-foreground"
             >
               {isLoading ? (
                 <>

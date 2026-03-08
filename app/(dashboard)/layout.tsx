@@ -36,7 +36,8 @@ export default function DashboardLayout({
         "circlepot_onboarding_completed",
       );
       if (hasCompleted) {
-        router.replace("/auth");
+        const currentPath = window.location.pathname;
+        router.replace(`/auth?redirect=${encodeURIComponent(currentPath)}`);
       } else {
         router.replace("/");
       }
