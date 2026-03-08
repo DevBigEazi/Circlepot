@@ -1,0 +1,451 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  Vote,
+  DollarSign,
+  UserX,
+  CheckCircle,
+  Share2,
+  UserPlus,
+  Info,
+  MessageSquare,
+  AlertTriangle,
+  Settings,
+} from "lucide-react";
+import { ActiveCircle } from "../types/savings";
+import { toast } from "sonner";
+import { ThemeColors } from "../hooks/useThemeColors";
+import LoadingSpinner from "./LoadingSpinner";
+
+interface CircleActionsProps {
+  circle: ActiveCircle;
+  isCreator: boolean;
+  isMember: boolean;
+  onContribute: () => void;
+  onInitiateVoting: () => void;
+  onVote: (choice: number) => void;
+  onExecuteVote: () => void;
+  onWithdrawCollateral: () => void;
+  onInviteMembers: () => void;
+  onForfeit: (lateMembers: string[]) => void;
+  onOpenDetails: () => void;
+  onOpenChat: () => void;
+  onUpdateVisibility: () => void;
+  colors: ThemeColors;
+  isGlobalLoading?: boolean;
+  isTargetLoading?: boolean;
+}
+
+export const CircleActions: React.FC<CircleActionsProps> = ({
+  circle,
+  isCreator,
+  isMember,
+  onContribute,
+  onInitiateVoting,
+  onVote,
+  onExecuteVote,
+  onWithdrawCollateral,
+  onInviteMembers,
+  onForfeit,
+  onOpenDetails,
+  onOpenChat,
+  onUpdateVisibility,
+  colors,
+  isGlobalLoading = false,
+  isTargetLoading = false,
+}) => {
+  const [isCopying, setIsCopying] = useState(false);
+  const [now, setNow] = useState<number>(0);
+
+  React.useEffect(() => {
+    setNow(Math.floor(Date.now() / 1000));
+    const interval = setInterval(() => {
+      setNow(Math.floor(Date.now() / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatCountdown = (targetTime: number) => {
+    const diff = targetTime - now;
+    if (diff <= 0) return "00:00:00";
+
+    const days = Math.floor(diff / 86400);
+    const hours = Math.floor((diff % 86400) / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    const seconds = diff % 60;
+
+    if (days > 0) {
+      return `${days} ${days === 1 ? "day" : "days"} ${hours}hrs ${minutes}mins`;
+    }
+
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const {
+    status,
+    hasContributed,
+    isForfeitedThisRound,
+    hasWithdrawn,
+    rawCircle,
+    currentPosition,
+    currentRound,
+    isPastDeadline,
+  } = circle;
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/join/${rawCircle.circleId}`;
+    try {
+      setIsCopying(true);
+      await navigator.clipboard.writeText(url);
+      toast.success("Invite link copied!");
+      setTimeout(() => setIsCopying(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const buttonBaseClass =
+    "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-200 active:scale-95 shadow-sm border-2 disabled:opacity-50 disabled:cursor-not-allowed flex-1 min-w-0";
+
+  // State: CREATED (1)
+  if (status === "created") {
+    // Check Ultimatum & Threshold
+    const createdAt = Number(rawCircle.createdAt);
+    const ultimatumDuration =
+      rawCircle.frequency === 2 ? 14 * 86400 : 7 * 86400;
+    const ultimatumPassed = now > createdAt + ultimatumDuration;
+    const thresholdReached =
+      Number(rawCircle.currentMembers) >=
+      Math.ceil(Number(rawCircle.maxMembers) * 0.6);
+
+    return (
+      <div
+        className="flex flex-col gap-3 pt-4 border-t"
+        style={{ borderColor: `${colors.border}40` }}
+      >
+        <div className="flex gap-2 w-full">
+          {ultimatumPassed && thresholdReached && isMember && (
+            <button
+              onClick={onInitiateVoting}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass} text-white`}
+              style={{
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+              }}
+            >
+              {isTargetLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <>
+                  <Vote size={14} /> Initiate Vote
+                </>
+              )}
+            </button>
+          )}
+          {isCreator && rawCircle.visibility === 0 && (
+            <button
+              onClick={onInviteMembers}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass}`}
+              style={{
+                borderColor: colors.primary,
+                color: colors.primary,
+                backgroundColor: `${colors.primary}10`,
+              }}
+            >
+              <UserPlus size={14} /> Invite
+            </button>
+          )}
+          <button
+            onClick={handleShare}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.7,
+            }}
+          >
+            <Share2 size={14} /> {isCopying ? "Copied" : "Share"}
+          </button>
+        </div>
+        <div className="flex gap-2 w-full">
+          <button
+            onClick={onOpenDetails}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.6,
+            }}
+          >
+            <Info size={14} /> Details
+          </button>
+          <button
+            onClick={onOpenChat}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.6,
+            }}
+          >
+            <MessageSquare size={14} /> Chat
+          </button>
+          {isCreator && (
+            <button
+              onClick={onUpdateVisibility}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass}`}
+              style={{
+                borderColor: colors.border,
+                color: colors.text,
+                opacity: 0.6,
+              }}
+            >
+              <Settings size={14} /> Settings
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // State: VOTING (2)
+  if (status === "voting") {
+    // In a real app we'd check subgraph for user's specific vote
+    const hasVoted = false;
+
+    return (
+      <div
+        className="flex flex-col gap-3 pt-4 border-t"
+        style={{ borderColor: `${colors.border}40` }}
+      >
+        {isMember && !hasVoted && (
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={() => onVote(1)}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass} bg-emerald-500 text-white border-emerald-500`}
+            >
+              <CheckCircle size={14} /> Start
+            </button>
+            <button
+              onClick={() => onVote(2)}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass} bg-rose-500 text-white border-rose-500`}
+            >
+              <UserX size={14} /> Withdraw
+            </button>
+          </div>
+        )}
+        {isCreator && (
+          <button
+            onClick={onExecuteVote}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass} text-white`}
+            style={{
+              backgroundColor: colors.primary,
+              borderColor: colors.primary,
+            }}
+          >
+            {isTargetLoading ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <>
+                <Vote size={14} /> Finalize Vote
+              </>
+            )}
+          </button>
+        )}
+        <div className="flex gap-2 w-full">
+          <button
+            onClick={onOpenDetails}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.6,
+            }}
+          >
+            <Info size={14} /> Details
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // State: ACTIVE (3)
+  if (status === "active") {
+    const isRecipient = currentPosition === Number(currentRound);
+
+    return (
+      <div
+        className="flex flex-col gap-3 pt-4 border-t"
+        style={{ borderColor: `${colors.border}40` }}
+      >
+        {isMember && !hasContributed && !isForfeitedThisRound && (
+          <div className="flex flex-col gap-2 w-full">
+            <button
+              onClick={onContribute}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass} text-white`}
+              style={{
+                backgroundColor: isPastDeadline ? "#f59e0b" : "#10b981",
+                borderColor: isPastDeadline ? "#f59e0b" : "#10b981",
+              }}
+            >
+              {isTargetLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <>
+                  <DollarSign size={14} />{" "}
+                  {isPastDeadline ? "Contribute (Late)" : "Contribute"}
+                </>
+              )}
+            </button>
+            <div
+              className={`text-[9px] font-bold text-center uppercase tracking-tighter ${isPastDeadline ? "text-rose-500 animate-pulse" : "opacity-60"}`}
+              style={{ color: isPastDeadline ? undefined : colors.text }}
+            >
+              {now > Number(circle.contributionDeadline)
+                ? "Eligible for Forfeit"
+                : `Forfeit in: ${formatCountdown(Number(circle.contributionDeadline))}`}
+            </div>
+          </div>
+        )}
+
+        {isMember && hasContributed && (
+          <button
+            disabled
+            className={`${buttonBaseClass} bg-black/5 border-black/10 text-black/40`}
+          >
+            <CheckCircle size={14} className="text-emerald-500" />
+            <span>
+              Next Round: {formatCountdown(Number(circle.contributionDeadline))}
+            </span>
+          </button>
+        )}
+
+        {isRecipient && now > Number(circle.contributionDeadline) && (
+          <button
+            onClick={() => {
+              // Extract unique member IDs who haven't contributed
+              const lateMembers = circle.membersList
+                .filter((m) => m.isActive && !m.hasContributed)
+                .map((m) => m.id);
+              onForfeit(lateMembers);
+            }}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass} bg-rose-500 text-white border-rose-500`}
+          >
+            {isTargetLoading ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <>
+                <UserX size={14} /> Forfeit Late Members
+              </>
+            )}
+          </button>
+        )}
+
+        <div className="grid grid-cols-2 gap-2 w-full">
+          <button
+            onClick={onOpenDetails}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.6,
+            }}
+          >
+            <Info size={14} /> Details
+          </button>
+          <button
+            onClick={onOpenChat}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.6,
+            }}
+          >
+            <MessageSquare size={14} /> Chat
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // State: COMPLETED (4) or DEAD (5)
+  if (status === "completed" || status === "dead") {
+    return (
+      <div
+        className="flex flex-col gap-3 pt-4 border-t"
+        style={{ borderColor: `${colors.border}40` }}
+      >
+        <div
+          className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-black uppercase tracking-widest text-[10px] border-2 ${status === "completed" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}
+        >
+          {status === "completed" ? (
+            <CheckCircle size={14} />
+          ) : (
+            <AlertTriangle size={14} />
+          )}
+          {status === "completed" ? "Goal Achieved" : "Circle Terminated"}
+        </div>
+        {isMember && !hasWithdrawn && (
+          <button
+            onClick={onWithdrawCollateral}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass} text-white`}
+            style={{
+              backgroundColor: colors.primary,
+              borderColor: colors.primary,
+            }}
+          >
+            {isTargetLoading ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <>
+                <DollarSign size={14} /> Withdraw Collateral
+              </>
+            )}
+          </button>
+        )}
+        <div className="flex gap-2 w-full">
+          <button
+            onClick={onOpenDetails}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.6,
+            }}
+          >
+            <Info size={14} /> History
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={onOpenDetails}
+      disabled={isGlobalLoading}
+      className={`${buttonBaseClass} w-full`}
+      style={{ borderColor: colors.border, color: colors.text, opacity: 0.6 }}
+    >
+      <Info size={14} /> View Status
+    </button>
+  );
+};
