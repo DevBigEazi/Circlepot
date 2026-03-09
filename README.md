@@ -25,8 +25,43 @@ Or create a `.env` file in the root directory with the following variables:
 ```env
 # VAPID Keys for Web Push Notifications
 # Generate your own keys with: npx web-push generate-vapid-keys
+# VAPID Keys for Web Push Notifications
+# Generate your own keys with: npx web-push generate-vapid-keys
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_public_key_here
 VAPID_PRIVATE_KEY=your_private_key_here
+
+# Dynamic XYZ 
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=
+NEXT_PUBLIC_GELATO_API_KEY=your_gelato_api_key_here
+
+
+# MongoDB
+MONGODB_URI=mongodb+srv://
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# Blockchain (Relayer)
+RELAYER_PRIVATE_KEY=0x
+
+#Contract Adresses & URL
+NEXT_PUBLIC_PLATFORM_FEE_RECIPIENT=
+NEXT_PUBLIC_REFERRAL_CONTRACT=
+NEXT_PUBLIC_PERSONAL_SAVING_CONTRACT=
+NEXT_PUBLIC_CIRCLE_SAVING_CONTRACT=
+NEXT_PUBLIC_USDT_CONTRACT=
+NEXT_PUBLIC_RPC_URL=
+
+# App origin URL (used for JWT audience validation — match exactly)
+# Local: http://localhost:3000 | Production: https://your-domain.com
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# subgraph url
+NEXT_PUBLIC_SUBGRAPH_URL= 
+
+
 ```
 
 > **Note:** Never commit your `.env` file. It is already included in `.gitignore`.
