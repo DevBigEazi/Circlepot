@@ -17,6 +17,7 @@ import PersonalGoalCard from "@/app/components/PersonalGoalCard";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { formatUnits } from "viem";
 import { GoalContributionModal } from "@/app/components/modals/GoalContributionModal";
+import { GoalWithdrawalModal } from "@/app/components/modals/GoalWithdrawalModal";
 import { usePersonalGoals } from "@/app/hooks/usePersonalGoals";
 import { useSavings } from "@/app/components/SavingsProvider";
 import { toast } from "sonner";
@@ -76,7 +77,13 @@ export default function SavingsPage() {
     isLoading,
     address,
   } = useSavings();
-  const { contributeToGoal, isContributing } = usePersonalGoals();
+  const {
+    contributeToGoal,
+    isContributing,
+    withdrawFromGoal,
+    completeGoal,
+    isWithdrawing,
+  } = usePersonalGoals();
   const {
     contribute: contributeToCircle,
     initiateVoting,
@@ -149,6 +156,32 @@ export default function SavingsPage() {
       {
         loadingMsg: "Syncing contribution...",
         successMsg: "Contribution successful!",
+      },
+    );
+  };
+
+  const handleWithdraw = async (amount: number) => {
+    if (!activeModal.goal) return;
+    await handleTransactionSync(
+      () =>
+        withdrawFromGoal(
+          activeModal.goal!.goalId.toString(),
+          amount.toString(),
+        ),
+      {
+        loadingMsg: "Processing withdrawal...",
+        successMsg: "Withdrawal successful!",
+      },
+    );
+  };
+
+  const handleCompleteWithdraw = async () => {
+    if (!activeModal.goal) return;
+    await handleTransactionSync(
+      () => completeGoal(activeModal.goal!.goalId.toString()),
+      {
+        loadingMsg: "Completing goal...",
+        successMsg: "Goal completed and funds returned!",
       },
     );
   };
@@ -448,7 +481,7 @@ export default function SavingsPage() {
                   Savings Circles
                 </h2>
                 <button
-                  onClick={() => router.push("/circles/create")}
+                  onClick={() => router.push("/create/circle")}
                   className="flex items-center gap-1 sm:gap-1.5 py-2 sm:py-3 px-3 sm:px-5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-wider text-white transition-all hover:opacity-90 shadow-xl shadow-primary/20"
                   style={{ backgroundColor: colors.primary }}
                 >
@@ -513,6 +546,24 @@ export default function SavingsPage() {
             setActiveModal({ type: null, goal: null, circle: null })
           }
           onContribute={handleContribute}
+        />
+      )}
+      {activeModal.type === "withdraw" && activeModal.goal && (
+        <GoalWithdrawalModal
+          isOpen={true}
+          goalName={activeModal.goal.goalName}
+          currentAmount={Number(
+            formatUnits(BigInt(activeModal.goal.currentAmount), 6),
+          )}
+          targetAmount={Number(
+            formatUnits(BigInt(activeModal.goal.goalAmount), 6),
+          )}
+          isLoading={isWithdrawing}
+          onClose={() =>
+            setActiveModal({ type: null, goal: null, circle: null })
+          }
+          onEarlyWithdraw={handleWithdraw}
+          onCompleteWithdraw={handleCompleteWithdraw}
         />
       )}
       {activeModal.type === "circle-details" && activeModal.circle && (
