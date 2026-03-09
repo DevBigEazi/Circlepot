@@ -168,12 +168,19 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
 
       // 2. Create profile via our API
       const storedRef = localStorage.getItem("cp_referral_code");
+
+      if (!accountAddress) {
+        throw new Error(
+          "Your wallet address is still initializing. Please wait a moment and try again.",
+        );
+      }
+
       await createProfile({
         username: userName.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         profilePhoto: previewImage, // Cloudinary handles base64 on server
-        walletAddress: accountAddress || null,
+        walletAddress: accountAddress, // We know it's defined now
         referralCode: storedRef || undefined,
       });
 
@@ -214,14 +221,15 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
     usernameAvailable === true &&
     !isCheckingUsername &&
     firstName.trim().length > 0 &&
-    lastName.trim().length > 0;
+    lastName.trim().length > 0 &&
+    !!accountAddress;
 
   const isProcessing = isSubmitting || isAccountInitializing;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
       <div
-        className="rounded-3xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="rounded-3xl w-[94%] sm:w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
         style={{
           backgroundColor: colors.surface,
           borderColor: colors.border,
@@ -230,7 +238,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
       >
         {/* Header */}
         <div
-          className="p-8 text-center border-b"
+          className="p-4 sm:p-8 text-center border-b"
           style={{ borderColor: colors.border }}
         >
           <div
@@ -251,12 +259,12 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-4 sm:space-y-6">
           {/* Profile Image */}
           <div className="flex flex-col items-center">
             <div className="relative group">
               <div
-                className="w-28 h-28 rounded-3xl overflow-hidden border-2 shadow-lg transition-transform group-hover:scale-105"
+                className="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl overflow-hidden border-2 shadow-lg transition-transform group-hover:scale-105"
                 style={{ borderColor: colors.primary }}
               >
                 {previewImage ? (
@@ -273,7 +281,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                     style={{ backgroundColor: colors.accentBg }}
                   >
                     <UserRound
-                      size={52}
+                      size={48}
                       style={{ color: colors.primary }}
                       className="opacity-60"
                     />
@@ -283,10 +291,10 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
               <button
                 onClick={triggerFileInput}
                 disabled={isProcessing}
-                className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl flex items-center justify-center shadow-xl transition-all hover:scale-110 disabled:opacity-50"
+                className="absolute -bottom-1 -right-1 w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center shadow-xl transition-all hover:scale-110 disabled:opacity-50"
                 style={{ backgroundColor: colors.primary }}
               >
-                <Camera size={20} className="text-white" />
+                <Camera size={18} className="text-white" />
               </button>
               <input
                 type="file"
@@ -402,19 +410,35 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-8 border-t" style={{ borderColor: colors.border }}>
+        <div
+          className="p-4 sm:p-8 border-t"
+          style={{ borderColor: colors.border }}
+        >
           <button
             onClick={handleCompleteSetup}
             disabled={!isFormValid || isProcessing}
-            className="w-full py-4 rounded-2xl font-bold text-white transition-all shadow-lg hover:shadow-primary/20 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+            className="w-full h-14 rounded-2xl font-bold text-white transition-all shadow-lg hover:shadow-primary/20 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap"
             style={{ backgroundColor: colors.primary }}
           >
             {isSubmitting ? (
-              <LoadingSpinner size="sm" text="Creating profile..." />
+              <div className="flex items-center gap-2 animate-in fade-in duration-300">
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <span className="text-sm font-bold">Creating profile...</span>
+              </div>
             ) : (
               <>
-                <Check size={20} />
-                {hasFailed ? "Retry Setup" : "Complete Setup"}
+                {!accountAddress && !isSubmitting ? (
+                  <span className="text-[11px] uppercase tracking-wider opacity-80 animate-pulse font-bold">
+                    Initializing wallet...
+                  </span>
+                ) : (
+                  <>
+                    <Check size={20} className="shrink-0" />
+                    <span className="text-sm font-bold">
+                      {hasFailed ? "Retry Setup" : "Complete Setup"}
+                    </span>
+                  </>
+                )}
               </>
             )}
           </button>

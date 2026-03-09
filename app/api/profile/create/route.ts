@@ -34,6 +34,13 @@ export async function POST(req: NextRequest) {
     const walletAddress = jwtWalletAddress || bodyWalletAddress;
     const dynamicUserId = payload.sub;
 
+    if (!walletAddress) {
+      return NextResponse.json(
+        { error: "Wallet address could not be resolved. Please try again." },
+        { status: 400 },
+      );
+    }
+
     if (!username || username.length < 3) {
       return NextResponse.json(
         { error: "Username too short" },
