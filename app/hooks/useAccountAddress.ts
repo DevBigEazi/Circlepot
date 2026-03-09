@@ -23,8 +23,8 @@ export const useAccountAddress = () => {
   useEffect(() => {
     const resolveAddress = async () => {
       if (!primaryWallet) {
-        setAddress(undefined);
-        setIsInitializing(false);
+        // If we don't have a wallet yet, check if we're still waiting for one to populate.
+        // We'll give it a moment to avoid the "null address" race condition.
         return;
       }
 
