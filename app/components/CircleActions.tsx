@@ -273,26 +273,36 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
         className="flex flex-col gap-3 pt-4 border-t"
         style={{ borderColor: `${colors.border}40` }}
       >
-        {isMember && !hasContributed && !isForfeitedThisRound && (
+        {isMember && !isForfeitedThisRound && (
           <div className="flex flex-col gap-2 w-full">
-            <button
-              onClick={onContribute}
-              disabled={isGlobalLoading}
-              className={`${buttonBaseClass} text-white`}
-              style={{
-                backgroundColor: isPastDeadline ? "#f59e0b" : "#10b981",
-                borderColor: isPastDeadline ? "#f59e0b" : "#10b981",
-              }}
-            >
-              {isTargetLoading ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                <>
-                  <DollarSign size={14} />{" "}
-                  {isPastDeadline ? "Contribute (Late)" : "Contribute"}
-                </>
-              )}
-            </button>
+            {hasContributed ? (
+              <button
+                disabled
+                className={`${buttonBaseClass} bg-emerald-500/5 text-emerald-600 border-emerald-500/10`}
+              >
+                <CheckCircle size={14} />
+                <span>Round Contributed</span>
+              </button>
+            ) : (
+              <button
+                onClick={onContribute}
+                disabled={isGlobalLoading}
+                className={`${buttonBaseClass} text-white`}
+                style={{
+                  backgroundColor: isPastDeadline ? "#f59e0b" : "#10b981",
+                  borderColor: isPastDeadline ? "#f59e0b" : "#10b981",
+                }}
+              >
+                {isTargetLoading ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <>
+                    <DollarSign size={14} />{" "}
+                    {isPastDeadline ? "Contribute (Late)" : "Contribute"}
+                  </>
+                )}
+              </button>
+            )}
           </div>
         )}
 
