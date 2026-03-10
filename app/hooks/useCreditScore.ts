@@ -1,25 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { CreditScore, ScoreCategory } from "../types/credit";
-import { useAccountAddress } from "./useAccountAddress";
-
-const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
-
-const REPUTATION_QUERY = `
-  query GetUserReputation($userId: String!) {
-    user(id: $userId) {
-      id
-      username
-      fullName
-      repCategory
-      totalReputation
-      totalLatePayments
-      totalGoalsCompleted
-      totalCirclesCompleted
-    }
-  }
-`;
+import { ScoreCategory, CreditScore } from "../types/credit";
+import { useSavings } from "../components/SavingsProvider";
 
 const getCategoryLabel = (category: number): string => {
   switch (category) {
@@ -56,67 +38,30 @@ const getCategoryColor = (category: number): string => {
 };
 
 /**
- * Hook to fetch credit score/reputation from the subgraph.
- * Refactored to use useAccountAddress for prioritized SA identity.
+ * Hook to fetch credit score/reputation from the shared SavingsProvider.
+ * This centralizes the data source and ensures consistency across the app.
  */
 export const useCreditScore = () => {
-  const { address: rawAddress, isInitializing } = useAccountAddress();
-  const address = rawAddress?.toLowerCase();
+  const {
+    reputation,
+    trustCategory,
+    totalGoalsCompleted,
+    totalCirclesCompleted,
+    isLoading,
+  } = useSavings();
 
-  return useQuery({
-    queryKey: ["creditScore", address],
-    queryFn: async (): Promise<CreditScore> => {
-      if (!address || !SUBGRAPH_URL) {
-        return {
-          score: 300,
-          category: ScoreCategory.POOR,
-          categoryLabel: getCategoryLabel(ScoreCategory.POOR),
-          categoryColor: getCategoryColor(ScoreCategory.POOR),
-          totalCirclesCompleted: 0,
-          totalGoalsCompleted: 0,
-          totalLatePayments: 0,
-        };
-      }
+  const creditScore: CreditScore = {
+    score: reputation || 300,
+    category: (trustCategory as ScoreCategory) ?? ScoreCategory.POOR,
+    categoryLabel: getCategoryLabel(trustCategory ?? ScoreCategory.POOR),
+    categoryColor: getCategoryColor(trustCategory ?? ScoreCategory.POOR),
+    totalCirclesCompleted: totalCirclesCompleted || 0,
+    totalGoalsCompleted: totalGoalsCompleted || 0,
+    totalLatePayments: 0, // Not explicitly tracked in summary yet
+  };
 
-      const response = await fetch(SUBGRAPH_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: REPUTATION_QUERY,
-          variables: { userId: address },
-        }),
-      });
-
-      const { data } = await response.json();
-      const user = data?.user;
-
-      if (user) {
-        const score = Number(user.totalReputation) || 300;
-        const category =
-          (user.repCategory as ScoreCategory) ?? ScoreCategory.POOR;
-
-        return {
-          score,
-          category,
-          categoryLabel: getCategoryLabel(category),
-          categoryColor: getCategoryColor(category),
-          totalCirclesCompleted: Number(user.totalCirclesCompleted) || 0,
-          totalGoalsCompleted: Number(user.totalGoalsCompleted) || 0,
-          totalLatePayments: Number(user.totalLatePayments) || 0,
-        };
-      }
-
-      return {
-        score: 300,
-        category: ScoreCategory.POOR,
-        categoryLabel: getCategoryLabel(ScoreCategory.POOR),
-        categoryColor: getCategoryColor(ScoreCategory.POOR),
-        totalCirclesCompleted: 0,
-        totalGoalsCompleted: 0,
-        totalLatePayments: 0,
-      };
-    },
-    enabled: !!address && !!SUBGRAPH_URL && !isInitializing,
-    staleTime: 60000,
-  });
+  return {
+    data: creditScore,
+    isLoading,
+  };
 };
