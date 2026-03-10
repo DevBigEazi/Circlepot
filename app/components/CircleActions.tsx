@@ -66,22 +66,6 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const formatCountdown = (targetTime: number) => {
-    const diff = targetTime - now;
-    if (diff <= 0) return "00:00:00";
-
-    const days = Math.floor(diff / 86400);
-    const hours = Math.floor((diff % 86400) / 3600);
-    const minutes = Math.floor((diff % 3600) / 60);
-    const seconds = diff % 60;
-
-    if (days > 0) {
-      return `${days} ${days === 1 ? "day" : "days"} ${hours}hrs ${minutes}mins`;
-    }
-
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
-
   const {
     status,
     hasContributed,
@@ -309,27 +293,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
                 </>
               )}
             </button>
-            <div
-              className={`text-[9px] font-bold text-center uppercase tracking-tighter ${isPastDeadline ? "text-rose-500 animate-pulse" : "opacity-60"}`}
-              style={{ color: isPastDeadline ? undefined : colors.text }}
-            >
-              {now > Number(circle.contributionDeadline)
-                ? "Eligible for Forfeit"
-                : `Forfeit in: ${formatCountdown(Number(circle.contributionDeadline))}`}
-            </div>
           </div>
-        )}
-
-        {isMember && hasContributed && (
-          <button
-            disabled
-            className={`${buttonBaseClass} bg-black/5 border-black/10 text-black/40`}
-          >
-            <CheckCircle size={14} className="text-emerald-500" />
-            <span>
-              Next Round: {formatCountdown(Number(circle.contributionDeadline))}
-            </span>
-          </button>
         )}
 
         {isRecipient && now > Number(circle.contributionDeadline) && (

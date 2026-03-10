@@ -10,10 +10,12 @@ import {
   Award,
   ShieldAlert,
   User,
+  AlertTriangle,
 } from "lucide-react";
 import { ActiveCircle, CircleActionData } from "../types/savings";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { CircleActions } from "./CircleActions";
+import CountdownTimer from "./CountdownTimer";
 
 interface ActiveCircleCardProps {
   circle: ActiveCircle;
@@ -41,6 +43,7 @@ export default function ActiveCircleCard({
     membersList,
     currentRound,
     isForfeited,
+    hasContributed,
     rawCircle,
   } = circle;
 
@@ -60,6 +63,19 @@ export default function ActiveCircleCard({
 
   const currentStatus =
     statusConfig[status as keyof typeof statusConfig] || statusConfig.unknown;
+
+  const [now, setNow] = React.useState(0);
+
+  React.useEffect(() => {
+    setNow(Math.floor(Date.now() / 1000));
+    const interval = setInterval(() => {
+      setNow(Math.floor(Date.now() / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const isActuallyLate =
+    Number(circle.baseDeadline) > 0 && now > Number(circle.baseDeadline);
 
   return (
     <div
@@ -138,6 +154,108 @@ export default function ActiveCircleCard({
         >
           <Award size={20} className="sm:w-6 sm:h-6" />
         </div>
+      </div>
+
+      {/* Real-time Timers based on Circle Status */}
+      <div className="mb-5 sm:mb-6">
+        {status === "created" &&
+          (() => {
+            const createdAt = Number(rawCircle.createdAt);
+            const frequency = rawCircle.frequency;
+            // Ultimatum: 7 days for Daily/Weekly, 14 days for Monthly
+            const ultimatumPeriod = frequency <= 1 ? 604800 : 1209600;
+            const ultimatumDeadline = createdAt + ultimatumPeriod;
+
+            return (
+              <div className="p-3 sm:p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-40 block">
+                    Voting Available In
+                  </span>
+                  <CountdownTimer
+                    deadline={ultimatumDeadline}
+                    className="text-primary"
+                  />
+                </div>
+                <Clock size={16} className="text-primary opacity-30" />
+              </div>
+            );
+          })()}
+
+        {status === "voting" &&
+          circle.votingEvents?.[0] &&
+          (() => {
+            const votingEndAt = Number(circle.votingEvents[0].votingEndAt);
+
+            return (
+              <div className="p-3 sm:p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-40 block">
+                    Voting Ends In
+                  </span>
+                  <CountdownTimer
+                    deadline={votingEndAt}
+                    className="text-amber-600"
+                  />
+                </div>
+                <ShieldAlert size={16} className="text-amber-500 opacity-30" />
+              </div>
+            );
+          })()}
+
+        {status === "active" &&
+          (() => {
+            const baseDeadline = Number(circle.baseDeadline);
+            const contributionDeadline = Number(circle.contributionDeadline);
+
+            // Use the dynamic check for the label and style
+            const showForfeitLabel = isActuallyLate && !hasContributed;
+            const hasLateMembers = membersList.some(
+              (m) => m.isActive && !m.hasContributed,
+            );
+
+            // Flip deadline: count to base deadline first, then to contribution deadline during grace
+            const targetDeadline = isActuallyLate
+              ? contributionDeadline
+              : baseDeadline;
+
+            return (
+              <div
+                className={`p-3 sm:p-4 rounded-2xl flex items-center justify-between ${
+                  showForfeitLabel
+                    ? "bg-rose-500/5 border-rose-500/10"
+                    : "bg-emerald-500/5 border-emerald-500/10"
+                } border`}
+              >
+                <div className="space-y-0.5">
+                  <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-40 block">
+                    {showForfeitLabel
+                      ? "Forfeit Available In"
+                      : "Round Ends In"}
+                  </span>
+                  <CountdownTimer
+                    deadline={targetDeadline}
+                    showLateTime={showForfeitLabel}
+                    className={
+                      showForfeitLabel ? "text-rose-600" : "text-emerald-600"
+                    }
+                  />
+                  {isActuallyLate && hasContributed && hasLateMembers && (
+                    <div className="flex items-center gap-1 mt-1 opacity-70">
+                      <AlertTriangle size={10} className="text-amber-500" />
+                      <span className="text-[7px] font-black uppercase tracking-tighter text-emerald-700">
+                        You can forfeit late members after this
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <Calendar
+                  size={16}
+                  className={`${showForfeitLabel ? "text-rose-500" : "text-emerald-500"} opacity-30`}
+                />
+              </div>
+            );
+          })()}
       </div>
 
       {/* Main Stats Row */}

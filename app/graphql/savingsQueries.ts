@@ -113,6 +113,37 @@ export const GET_CIRCLES_BY_IDS = `
         blockTimestamp
       }
     }
+    voteExecuteds(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc) {
+      id
+      circleId
+      circleStarted
+      startVoteTotal
+      withdrawVoteTotal
+      withdrawWon
+      transaction {
+        blockTimestamp
+      }
+    }
+    votingInitiateds(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc) {
+      id
+      circleId
+      votingStartAt
+      votingEndAt
+      transaction {
+        blockTimestamp
+      }
+    }
+    voteCasts(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc) {
+      id
+      voter {
+        id
+      }
+      circleId
+      choice
+      transaction {
+        blockTimestamp
+      }
+    }
   }
 `;
 

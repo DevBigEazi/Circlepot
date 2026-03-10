@@ -328,7 +328,7 @@ export default function SavingsPage() {
         colors={colors}
       />
 
-      <main className="max-w-4xl mx-auto px-4 mt-8 space-y-10">
+      <main className="max-w-4xl mx-auto px-4 mt-2 space-y-2">
         <div
           className="flex p-1.5 rounded-2xl bg-opacity-50"
           style={{ backgroundColor: `${colors.surface}` }}

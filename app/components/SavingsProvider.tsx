@@ -69,6 +69,29 @@ type GraphPayout = {
   payoutAmount: string;
   transaction: { blockTimestamp: string };
 };
+type GraphVotingInitiated = {
+  id: string;
+  circleId: string;
+  votingStartAt: string;
+  votingEndAt: string;
+  transaction: { blockTimestamp: string };
+};
+type GraphVoteExecuted = {
+  id: string;
+  circleId: string;
+  circleStarted: boolean;
+  startVoteTotal: string;
+  withdrawVoteTotal: string;
+  withdrawWon: boolean;
+  transaction: { blockTimestamp: string };
+};
+type GraphVoteCast = {
+  id: string;
+  voter: GraphUser;
+  circleId: string;
+  choice: string;
+  transaction: { blockTimestamp: string };
+};
 
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL || "";
 
@@ -202,6 +225,15 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
     const allPayouts =
       ((circlesData as Record<string, unknown>)
         ?.payoutDistributeds as GraphPayout[]) || [];
+    const allVotingInitiateds =
+      ((circlesData as Record<string, unknown>)
+        ?.votingInitiateds as GraphVotingInitiated[]) || [];
+    const allVoteExecuteds =
+      ((circlesData as Record<string, unknown>)
+        ?.voteExecuteds as GraphVoteExecuted[]) || [];
+    const allVoteCasts =
+      ((circlesData as Record<string, unknown>)
+        ?.voteCasts as GraphVoteCast[]) || [];
 
     return rawCircles.map((c) => {
       // Reconstruct members for this circle
@@ -309,6 +341,17 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
           };
         });
 
+      // Filter voting events for this circle
+      const votingEventsForCircle = allVotingInitiateds.filter(
+        (v) => v.circleId.toString() === c.circleId.toString(),
+      );
+      const voteResultsForCircle = allVoteExecuteds.filter(
+        (v) => v.circleId.toString() === c.circleId.toString(),
+      );
+      const votesForCircle = allVoteCasts.filter(
+        (v) => v.circleId.toString() === c.circleId.toString(),
+      );
+
       const transformed = transformCircleToActiveCircle(
         {
           ...c,
@@ -322,6 +365,9 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
         } as unknown as Circle,
         address,
         payoutsForCircle,
+        votingEventsForCircle,
+        voteResultsForCircle,
+        votesForCircle,
       );
 
       // Determine if the user has contributed to this specific circle in the current round
@@ -329,11 +375,14 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
         (data?.contributionMades as Array<{
           circleId: string;
           round: string;
+          user?: { id: string };
         }>) || [];
       const hasContributedThisRound = contributionMades.some(
         (cm) =>
           cm.circleId.toString() === c.circleId.toString() &&
-          cm.round.toString() === c.currentRound.toString(),
+          cm.round.toString() === c.currentRound.toString() &&
+          address &&
+          cm.user?.id?.toLowerCase() === address.toLowerCase(),
       );
 
       return {

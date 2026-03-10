@@ -23,14 +23,11 @@ export const useAccountAddress = () => {
   useEffect(() => {
     const resolveAddress = async () => {
       if (!primaryWallet) {
-        // If we don't have a wallet yet, check if we're still waiting for one to populate.
-        // We'll give it a moment to avoid the "null address" race condition.
+        if (isInitializing) setIsInitializing(false);
         return;
       }
 
       try {
-        const { connector } = primaryWallet;
-
         // 1. Check if we already have it in additionalAddresses (fast path)
         let foundSA: string | undefined;
         wallets.forEach((w) => {
@@ -41,47 +38,48 @@ export const useAccountAddress = () => {
           if (found) foundSA = found.address;
         });
 
-        if (foundSA) {
-          setAddress(getAddress(foundSA));
-          setIsInitializing(false);
-          return;
-        }
+        let targetAddress: `0x${string}`;
 
-        // 2. Fallback to deep discovery if it's a ZeroDev connector
-        if (isZeroDevConnector(connector)) {
-          // Sync with network to ensure AA provider is ready
+        if (foundSA) {
+          targetAddress = getAddress(foundSA);
+        } else if (isZeroDevConnector(primaryWallet.connector)) {
+          // 2. Fallback to deep discovery if it's a ZeroDev connector
           await (
-            connector as { getNetwork: () => Promise<unknown> }
+            primaryWallet.connector as { getNetwork: () => Promise<unknown> }
           ).getNetwork();
           const provider = await (
-            connector as unknown as {
+            primaryWallet.connector as unknown as {
               getAccountAbstractionProvider: (config: {
                 withSponsorship: boolean;
               }) => Promise<{ account?: { address: string } }>;
             }
           ).getAccountAbstractionProvider({ withSponsorship: true });
+
           if (provider?.account?.address) {
-            setAddress(getAddress(provider.account.address));
-            setIsInitializing(false);
-            return;
+            targetAddress = getAddress(provider.account.address);
+          } else {
+            targetAddress = getAddress(primaryWallet.address);
           }
+        } else {
+          // 3. Last fallback to primary wallet address (EOA)
+          targetAddress = getAddress(primaryWallet.address);
         }
 
-        // 3. Last fallback to primary wallet address (EOA)
-        setAddress(getAddress(primaryWallet.address));
+        // ONLY update if actually different to avoid infinite loops
+        if (address !== targetAddress) {
+          setAddress(targetAddress);
+        }
       } catch (err) {
-        console.warn(
-          "Failed to resolve Smart Account address, using EOA:",
-          err,
-        );
-        setAddress(getAddress(primaryWallet.address));
+        console.warn("Failed to resolve address:", err);
+        const fallback = getAddress(primaryWallet.address);
+        if (address !== fallback) setAddress(fallback);
       } finally {
-        setIsInitializing(false);
+        if (isInitializing) setIsInitializing(false);
       }
     };
 
     resolveAddress();
-  }, [primaryWallet, wallets]);
+  }, [primaryWallet, wallets, address, isInitializing]);
 
   return {
     address,

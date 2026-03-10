@@ -10,7 +10,6 @@ import {
   useRefreshUser,
 } from "@dynamic-labs/sdk-react-core";
 import { useAccountAddress } from "../hooks/useAccountAddress";
-import LoadingSpinner from "./LoadingSpinner";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import Image from "next/image";

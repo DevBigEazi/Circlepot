@@ -172,11 +172,11 @@ export interface ActiveCircle {
   currentRound: string;
   contributionDeadline: string;
   baseDeadline: string;
-  votingEvents: Record<string, unknown>[];
-  votes: Record<string, unknown>[];
-  voteResults: Record<string, unknown>[];
-  positions: Record<string, unknown>[];
   payouts: CirclePayout[];
+  votingEvents: VotingEvent[];
+  votes: VoteCast[];
+  voteResults: VoteResult[];
+  positions: Record<string, unknown>[];
   hasContributed: boolean;
   userTotalContributed: string;
   hasWithdrawn: boolean;
@@ -228,4 +228,39 @@ export interface SubgraphSavingsResponse {
     repCategory: number;
     totalLatePayments: string;
   } | null;
+}
+export interface VotingEvent {
+  id: string;
+  circleId: string;
+  votingStartAt: string;
+  votingEndAt: string;
+  transaction: {
+    blockTimestamp: string;
+  };
+}
+
+export interface VoteCast {
+  id: string;
+  voter: {
+    id: string;
+    username?: string;
+    fullName?: string;
+  };
+  circleId: string;
+  choice: string;
+  transaction: {
+    blockTimestamp: string;
+  };
+}
+
+export interface VoteResult {
+  id: string;
+  circleId: string;
+  circleStarted: boolean;
+  startVoteTotal: string;
+  withdrawVoteTotal: string;
+  withdrawWon: boolean;
+  transaction: {
+    blockTimestamp: string;
+  };
 }
