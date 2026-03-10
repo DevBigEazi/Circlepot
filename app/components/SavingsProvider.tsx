@@ -371,18 +371,12 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
       );
 
       // Determine if the user has contributed to this specific circle in the current round
-      const contributionMades =
-        (data?.contributionMades as Array<{
-          circleId: string;
-          round: string;
-          user?: { id: string };
-        }>) || [];
-      const hasContributedThisRound = contributionMades.some(
+      const hasContributedThisRound = allContributions.some(
         (cm) =>
           cm.circleId.toString() === c.circleId.toString() &&
           cm.round.toString() === c.currentRound.toString() &&
           address &&
-          cm.user?.id?.toLowerCase() === address.toLowerCase(),
+          cm.user.id.toLowerCase() === address.toLowerCase(),
       );
 
       return {
@@ -394,7 +388,6 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
     circlesData,
     address,
     data?.memberForfeiteds,
-    data?.contributionMades,
     profilesMap,
   ]);
 
