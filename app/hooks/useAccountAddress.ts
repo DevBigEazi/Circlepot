@@ -79,7 +79,7 @@ export const useAccountAddress = () => {
     };
 
     resolveAddress();
-  }, [primaryWallet, wallets]);
+  }, [primaryWallet, wallets, address, isInitializing]);
 
   return {
     address,

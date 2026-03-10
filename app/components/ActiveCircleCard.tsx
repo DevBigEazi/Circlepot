@@ -210,7 +210,6 @@ export default function ActiveCircleCard({
 
             // Use the dynamic check for the label and style
             const showForfeitLabel = isActuallyLate && !hasContributed;
-            const isRecipient = currentPosition === Number(currentRound);
             const hasLateMembers = membersList.some(
               (m) => m.isActive && !m.hasContributed,
             );
