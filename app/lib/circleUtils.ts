@@ -1,4 +1,11 @@
-import { Circle, ActiveCircle, CirclePayout } from "../types/savings";
+import {
+  Circle,
+  ActiveCircle,
+  CirclePayout,
+  VotingEvent,
+  VoteCast,
+  VoteResult,
+} from "../types/savings";
 import { formatUnits } from "viem";
 
 /**
@@ -164,6 +171,9 @@ export const transformCircleToActiveCircle = (
   circle: Circle,
   userAddress?: string,
   payouts: CirclePayout[] = [],
+  votingEvents: VotingEvent[] = [],
+  voteResults: VoteResult[] = [],
+  votes: VoteCast[] = [],
 ): ActiveCircle => {
   const members = circle.members || [];
   const userMember = members.find((m) =>
@@ -291,9 +301,9 @@ export const transformCircleToActiveCircle = (
     currentRound: circle.currentRound,
     contributionDeadline: contributionDeadlineBigInt.toString(),
     baseDeadline: baseDeadlineBigInt.toString(),
-    votingEvents: [],
-    votes: [],
-    voteResults: [],
+    votingEvents,
+    votes,
+    voteResults,
     positions: (circle.members || []).map((m) => ({
       user: m.user,
       position: m.position,
