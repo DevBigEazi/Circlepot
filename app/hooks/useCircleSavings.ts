@@ -537,7 +537,7 @@ export const useCircleSavings = () => {
 
   /**
    * Updates the visibility of a circle (0 = Private, 1 = Public).
-   * Note: Making a circle public may require payment of a visibility fee.
+   * Note: Changing circle visibility requires payment of a visibility fee (0.5 USDT).
    */
   const updateCircleVisibility = async (
     circleId: string,
@@ -545,21 +545,56 @@ export const useCircleSavings = () => {
   ) => {
     setIsUpdatingVisibility(true);
     try {
-      const { walletClient } = await getSmartAccountClient();
+      const { walletClient, targetAddress } = await getSmartAccountClient();
+      const address = targetAddress;
 
-      let fee = 0n;
-      if (visibility === 1) {
-        // Fetch fee if changing to public
-        fee = BigInt("500000"); // 0.5 USDT
+      const feeWei = parseUnits("0.5", 6);
+
+      // 1. Check Balance
+      const balance = (await publicClient.readContract({
+        address: USDT_CONTRACT,
+        abi: TOKEN_ABI,
+        functionName: "balanceOf",
+        args: [address],
+      })) as bigint;
+
+      if (balance < feeWei) {
+        throw new Error(
+          `Insufficient USDT for visibility fee. balance: ${(Number(balance) / 1e6).toFixed(2)}, need: 0.50`,
+        );
       }
 
+      // 2. Check & Approve Allowance
+      const allowance = (await publicClient.readContract({
+        address: USDT_CONTRACT,
+        abi: TOKEN_ABI,
+        functionName: "allowance",
+        args: [address, CIRCLE_SAVING_CONTRACT],
+      })) as bigint;
+
+      if (allowance < feeWei) {
+        const approveHash = await walletClient.writeContract({
+          account: walletClient.account,
+          address: USDT_CONTRACT,
+          abi: TOKEN_ABI,
+          functionName: "approve",
+          args: [CIRCLE_SAVING_CONTRACT, feeWei * 10n], // Approve more to be safe for future updates
+        });
+
+        await publicClient.waitForTransactionReceipt({
+          hash: approveHash,
+          timeout: 120_000,
+          pollingInterval: 1_000,
+        });
+      }
+
+      // 3. Update Visibility
       const hash = await walletClient.writeContract({
         account: walletClient.account,
         address: CIRCLE_SAVING_CONTRACT,
         abi: CIRCLE_SAVINGS_ABI,
         functionName: "updateCircleVisibility",
         args: [BigInt(circleId), visibility],
-        value: fee,
       });
 
       return await publicClient.waitForTransactionReceipt({ hash });
