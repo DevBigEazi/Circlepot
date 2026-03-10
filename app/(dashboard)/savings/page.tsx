@@ -590,10 +590,55 @@ export default function SavingsPage() {
         <WithdrawCollateralModal
           isOpen={true}
           circleName={activeModal.circle.name}
-          amount={
-            activeModal.circle.rawCircle.members?.[0]?.collateralLocked || "0"
+          collateralLocked={formatUnits(
+            BigInt(
+              activeModal.circle.rawCircle.members?.[0]?.collateralLocked ||
+                "0",
+            ),
+            6,
+          )}
+          creatorDeadFee={(() => {
+            const isCreator =
+              address?.toLowerCase() ===
+              activeModal.circle.rawCircle.creator.id.toLowerCase();
+            const isDead = activeModal.circle.status === "dead";
+            if (isCreator && isDead) {
+              // 1 USD for private (0), 0.5 USD for public (1)
+              return activeModal.circle.rawCircle.visibility === 0
+                ? "1.00"
+                : "0.50";
+            }
+            return "0.00";
+          })()}
+          netAmount={(() => {
+            const locked = BigInt(
+              activeModal.circle.rawCircle.members?.[0]?.collateralLocked ||
+                "0",
+            );
+            const isCreator =
+              address?.toLowerCase() ===
+              activeModal.circle.rawCircle.creator.id.toLowerCase();
+            const isDead = activeModal.circle.status === "dead";
+            let fee = 0n;
+            if (isCreator && isDead) {
+              fee =
+                activeModal.circle.rawCircle.visibility === 0
+                  ? 1000000n
+                  : 500000n;
+            }
+            return formatUnits(locked - fee, 6);
+          })()}
+          isCreator={
+            address?.toLowerCase() ===
+            activeModal.circle.rawCircle.creator.id.toLowerCase()
           }
-          isDead={activeModal.circle.status === "dead"}
+          withdrawalReason={
+            activeModal.circle.status === "completed"
+              ? "completed"
+              : activeModal.circle.rawCircle.lastVoteExecuted?.withdrawWon
+                ? "vote_failed"
+                : "below_threshold"
+          }
           colors={colors}
           isLoading={isWithdrawingCollateral}
           onClose={() =>
