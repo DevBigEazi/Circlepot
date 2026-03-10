@@ -132,6 +132,25 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
               )}
             </button>
           )}
+          {ultimatumPassed && !thresholdReached && isMember && (
+            <button
+              onClick={onWithdrawCollateral}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass} text-white`}
+              style={{
+                backgroundColor: "#f59e0b",
+                borderColor: "#f59e0b",
+              }}
+            >
+              {isTargetLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <>
+                  <AlertTriangle size={14} /> Withdraw Collateral
+                </>
+              )}
+            </button>
+          )}
           {isCreator && rawCircle.visibility === 0 && (
             <button
               onClick={onInviteMembers}

@@ -165,6 +165,29 @@ export default function ActiveCircleCard({
             // Ultimatum: 7 days for Daily/Weekly, 14 days for Monthly
             const ultimatumPeriod = frequency <= 1 ? 604800 : 1209600;
             const ultimatumDeadline = createdAt + ultimatumPeriod;
+            const isUltimatumPassed = now > ultimatumDeadline;
+            const thresholdReached =
+              Number(rawCircle.currentMembers) >=
+              Math.ceil(Number(rawCircle.maxMembers) * 0.6);
+
+            if (isUltimatumPassed && !thresholdReached) {
+              return (
+                <div className="p-3 sm:p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-amber-600 block">
+                      Gathering Failed
+                    </span>
+                    <div className="text-xs font-black text-amber-700">
+                      Ultimatum passed without 60% members
+                    </div>
+                  </div>
+                  <AlertTriangle
+                    size={16}
+                    className="text-amber-500 opacity-50"
+                  />
+                </div>
+              );
+            }
 
             return (
               <div className="p-3 sm:p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-between">
@@ -383,7 +406,16 @@ export default function ActiveCircleCard({
             <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">
               {status === "active"
                 ? `Next: ${nextPayout}`
-                : `Starts: On Reach 60%`}
+                : status === "created" &&
+                    now >
+                      Number(rawCircle.createdAt) +
+                        (rawCircle.frequency <= 1 ? 604800 : 1209600) &&
+                    !(
+                      Number(rawCircle.currentMembers) >=
+                      Math.ceil(Number(rawCircle.maxMembers) * 0.6)
+                    )
+                  ? "Launch Failed: Under 60%"
+                  : `Starts: On Reach 60%`}
             </span>
           </div>
           {isForfeited && (
