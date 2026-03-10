@@ -616,6 +616,13 @@ export default function SavingsPage() {
           isOpen={true}
           circleName={activeModal.circle.name}
           isLoading={isVoting}
+          startVotes={
+            activeModal.circle.votes.filter((v) => v.choice === "1").length
+          }
+          withdrawVotes={
+            activeModal.circle.votes.filter((v) => v.choice === "2").length
+          }
+          totalMembers={Number(activeModal.circle.rawCircle.currentMembers)}
           onClose={() =>
             setActiveModal({ type: null, goal: null, circle: null })
           }

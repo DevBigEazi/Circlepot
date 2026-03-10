@@ -313,6 +313,9 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
             isOpen={showVoteModal}
             circleName={circle.name}
             isLoading={isGlobalLoading}
+            startVotes={circle.votes.filter((v) => v.choice === "1").length}
+            withdrawVotes={circle.votes.filter((v) => v.choice === "2").length}
+            totalMembers={Number(rawCircle.currentMembers)}
             onClose={() => setShowVoteModal(false)}
             onVote={(choice) => {
               onVote(choice ? 1 : 2);
