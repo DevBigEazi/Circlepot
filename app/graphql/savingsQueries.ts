@@ -101,12 +101,17 @@ export const GET_CIRCLES_BY_IDS = `
       round
       amount
     }
-    payoutDistributeds(where: { circleId_in: $ids }) {
+    payoutDistributeds(where: { circleId_in: $ids }, orderBy: round, orderDirection: desc) {
+      id
       circleId
       user {
         id
       }
       round
+      payoutAmount
+      transaction {
+        blockTimestamp
+      }
     }
   }
 `;

@@ -62,9 +62,12 @@ type GraphContribution = {
   amount?: string;
 };
 type GraphPayout = {
+  id: string;
   circleId: string;
   user: GraphUser;
   round: string;
+  payoutAmount: string;
+  transaction: { blockTimestamp: string };
 };
 
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL || "";
@@ -280,6 +283,32 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
       const creatorUserName =
         creatorProfile?.username || creatorAddr.slice(0, 8);
 
+      // Filter and Enriched Payouts for this circle
+      const payoutsForCircle = allPayouts
+        .filter((pm) => pm.circleId.toString() === c.circleId.toString())
+        .map((pm) => {
+          const uAddr = pm.user.id.toLowerCase();
+          const uProfile = profilesMap[uAddr];
+          const isUser = address && uAddr === address;
+
+          return {
+            id: pm.id,
+            user: {
+              id: uAddr,
+              username: uProfile?.username || uAddr.slice(0, 8),
+              fullName: isUser
+                ? "You"
+                : uProfile
+                  ? `${uProfile.firstName || ""} ${uProfile.lastName || ""}`.trim() ||
+                    uProfile.username
+                  : uAddr.slice(0, 8),
+            },
+            round: pm.round.toString(),
+            payoutAmount: formatUnits(BigInt(pm.payoutAmount || 0), 6),
+            timestamp: pm.transaction.blockTimestamp,
+          };
+        });
+
       const transformed = transformCircleToActiveCircle(
         {
           ...c,
@@ -292,6 +321,7 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
           },
         } as unknown as Circle,
         address,
+        payoutsForCircle,
       );
 
       // Determine if the user has contributed to this specific circle in the current round

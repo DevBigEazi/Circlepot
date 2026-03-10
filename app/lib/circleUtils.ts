@@ -1,4 +1,4 @@
-import { Circle, ActiveCircle } from "../types/savings";
+import { Circle, ActiveCircle, CirclePayout } from "../types/savings";
 import { formatUnits } from "viem";
 
 /**
@@ -163,6 +163,7 @@ export const calculateNextPayout = (
 export const transformCircleToActiveCircle = (
   circle: Circle,
   userAddress?: string,
+  payouts: CirclePayout[] = [],
 ): ActiveCircle => {
   const members = circle.members || [];
   const userMember = members.find((m) =>
@@ -254,7 +255,7 @@ export const transformCircleToActiveCircle = (
         isActive: m.isActive,
         hasContributed:
           (m as { hasContributed?: boolean }).hasContributed || false,
-        hasReceivedPayout: false,
+        hasReceivedPayout: m.hasReceivedPayout || false,
       });
     } else {
       combinedMembers.push({
@@ -297,7 +298,7 @@ export const transformCircleToActiveCircle = (
       user: m.user,
       position: m.position,
     })),
-    payouts: [],
+    payouts,
     hasContributed: false,
     userTotalContributed,
     hasWithdrawn:

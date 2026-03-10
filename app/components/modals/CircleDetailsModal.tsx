@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertTriangle,
+  TrendingUp,
 } from "lucide-react";
 import { ActiveCircle } from "../../types/savings";
 import { ThemeColors } from "../../hooks/useThemeColors";
@@ -206,108 +207,203 @@ export const CircleDetailsModal: React.FC<CircleDetailsModalProps> = ({
           )}
 
           {activeTab === "Members" && (
-            <div className="space-y-3">
-              {membersList.map((member) => {
-                const isEmpty = member.id.startsWith("empty");
-                return (
+            <div className="space-y-4">
+              {/* Member Status Legend */}
+              <div className="flex flex-wrap gap-x-6 gap-y-2 px-1 pb-2">
+                <div className="flex items-center gap-2">
                   <div
-                    key={member.id}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isEmpty ? "opacity-40 grayscale" : ""}`}
-                    style={{
-                      borderColor: colors.border,
-                      backgroundColor: colors.surface,
-                    }}
+                    className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] font-black text-white shadow-sm shrink-0"
+                    title="Contributed"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center text-xs font-black overflow-hidden relative">
-                        {isEmpty ? (
-                          member.position
-                        ) : member.avatarUrl ? (
-                          <img
-                            src={member.avatarUrl}
-                            alt={member.username}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          member.username.slice(0, 2).toUpperCase()
-                        )}
-                      </div>
-                      <div>
-                        <div
-                          className="text-sm font-black flex flex-wrap gap-x-1"
-                          style={{ color: colors.text }}
-                        >
-                          {member.fullName === "You" ? (
-                            "You"
-                          ) : member.fullName &&
-                            member.fullName.includes(" ") ? (
-                            <>
-                              <span>{member.fullName.split(" ")[0]}</span>
-                              <span className="hidden sm:inline">
-                                {member.fullName.split(" ").slice(1).join(" ")}
-                              </span>
-                            </>
+                    C
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                    Contributed (Current Round)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-black text-white shadow-sm shrink-0"
+                    title="Payout Received"
+                  >
+                    P
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                    Payout Received
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {membersList.map((member) => {
+                  const isEmpty = member.id.startsWith("empty");
+                  return (
+                    <div
+                      key={member.id}
+                      className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isEmpty ? "opacity-40 grayscale" : ""}`}
+                      style={{
+                        borderColor: colors.border,
+                        backgroundColor: colors.surface,
+                      }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center text-xs font-black overflow-hidden relative">
+                          {isEmpty ? (
+                            member.position
+                          ) : member.avatarUrl ? (
+                            <img
+                              src={member.avatarUrl}
+                              alt={member.username}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            member.fullName || member.username
+                            member.username.slice(0, 2).toUpperCase()
                           )}
                         </div>
-                        <div className="text-[10px] font-bold opacity-30 truncate max-w-[150px]">
-                          {isEmpty
-                            ? "Waiting for member"
-                            : `@${member.username.replace("@", "")}`}
+                        <div>
+                          <div
+                            className="text-sm font-black flex flex-wrap gap-x-1"
+                            style={{ color: colors.text }}
+                          >
+                            {member.fullName === "You" ? (
+                              "You"
+                            ) : member.fullName &&
+                              member.fullName.includes(" ") ? (
+                              <>
+                                <span>{member.fullName.split(" ")[0]}</span>
+                                <span className="hidden sm:inline">
+                                  {member.fullName
+                                    .split(" ")
+                                    .slice(1)
+                                    .join(" ")}
+                                </span>
+                              </>
+                            ) : (
+                              member.fullName || member.username
+                            )}
+                          </div>
+                          <div className="text-[10px] font-bold opacity-30 truncate max-w-[150px]">
+                            {isEmpty
+                              ? "Waiting for member"
+                              : `@${member.username.replace("@", "")}`}
+                          </div>
                         </div>
                       </div>
+                      {!isEmpty && (
+                        <div className="flex items-center gap-2">
+                          {member.hasContributed && (
+                            <div
+                              className="text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm"
+                              title="Contributed"
+                            >
+                              C
+                            </div>
+                          )}
+                          {member.hasReceivedPayout && (
+                            <div
+                              className="text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm"
+                              title="Payout Received"
+                            >
+                              P
+                            </div>
+                          )}
+                          <div className="text-[10px] font-black uppercase tracking-widest py-1 px-3 rounded-full bg-primary/10 text-primary">
+                            Pos {member.position}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {!isEmpty && (
-                      <div className="flex items-center gap-2">
-                        {member.hasContributed && (
-                          <div
-                            className="text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm"
-                            title="Contributed"
-                          >
-                            C
-                          </div>
-                        )}
-                        {member.hasReceivedPayout && (
-                          <div
-                            className="text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm"
-                            title="Payout Received"
-                          >
-                            P
-                          </div>
-                        )}
-                        <div className="text-[10px] font-black uppercase tracking-widest py-1 px-3 rounded-full bg-primary/10 text-primary">
-                          Pos {member.position}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
 
           {activeTab === "History" && (
-            <div className="flex flex-col items-center justify-center py-20 opacity-30 space-y-4">
-              <History size={48} />
-              <p className="text-xs font-black uppercase tracking-widest">
-                Historical data syncing...
-              </p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 rounded-3xl bg-black/5">
+                <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center"
+                  style={{
+                    backgroundColor: `${colors.secondary}15`,
+                    color: colors.secondary,
+                  }}
+                >
+                  <TrendingUp size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest opacity-40">
+                    Payout History
+                  </h3>
+                  <div
+                    className="text-sm font-black"
+                    style={{ color: colors.text }}
+                  >
+                    {circle.payouts?.length || 0} of {circle.totalPositions}{" "}
+                    Rounds Completed
+                  </div>
+                </div>
+              </div>
+
+              {!circle.payouts || circle.payouts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 opacity-30 space-y-4">
+                  <History size={48} />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-center">
+                    No payouts recorded yet.
+                    <br />
+                    History will appear once rounds complete.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {circle.payouts.map((payout, idx) => (
+                    <div
+                      key={payout.id || idx}
+                      className="flex items-center justify-between p-4 rounded-2xl border transition-all hover:scale-[1.01]"
+                      style={{
+                        borderColor: colors.border,
+                        backgroundColor: colors.surface,
+                      }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black text-white shadow-lg"
+                          style={{ backgroundColor: colors.primary }}
+                        >
+                          #{payout.round}
+                        </div>
+                        <div>
+                          <div
+                            className="text-sm font-black"
+                            style={{ color: colors.text }}
+                          >
+                            {payout.user.fullName}
+                          </div>
+                          <div className="text-[10px] font-bold opacity-30">
+                            {new Date(
+                              Number(payout.timestamp) * 1000,
+                            ).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-black text-emerald-500">
+                          +${payout.payoutAmount}
+                        </div>
+                        <div className="text-[9px] font-black uppercase tracking-widest opacity-30">
+                          Distributed
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div
-          className="p-8 border-t"
-          style={{ borderColor: `${colors.border}40` }}
-        >
-          <button
-            onClick={onClose}
-            className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs bg-black text-white hover:opacity-90 transition-opacity"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

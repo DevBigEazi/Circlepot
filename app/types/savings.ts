@@ -176,7 +176,7 @@ export interface ActiveCircle {
   votes: Record<string, unknown>[];
   voteResults: Record<string, unknown>[];
   positions: Record<string, unknown>[];
-  payouts: Record<string, unknown>[];
+  payouts: CirclePayout[];
   hasContributed: boolean;
   userTotalContributed: string;
   hasWithdrawn: boolean;
@@ -205,6 +205,18 @@ export interface UserCircle {
   id: string;
   joinedAt: string;
   circle: Circle;
+}
+
+export interface CirclePayout {
+  id: string;
+  user: {
+    id: string;
+    username: string;
+    fullName: string;
+  };
+  round: string;
+  payoutAmount: string;
+  timestamp: string;
 }
 
 export interface SubgraphSavingsResponse {
