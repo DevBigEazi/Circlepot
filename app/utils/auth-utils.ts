@@ -89,7 +89,7 @@ export const mapDynamicError = (error: unknown): string | null => {
     message.includes("configuration") ||
     message.includes("misconfigured")
   ) {
-    return "This login method is not yet configured. Please use Email login for now.";
+    return "Network error: try refresh or close and reopen the app";
   }
 
   // 4. OTP / Verification Errors

@@ -35,18 +35,18 @@ export const LateContributionModal: React.FC<LateContributionModalProps> = ({
       />
 
       <div
-        className="relative w-full max-w-md bg-surface rounded-[2.5rem] shadow-2xl overflow-hidden border-4 animate-in fade-in zoom-in duration-300"
+        className="relative w-full max-w-sm sm:max-w-md bg-surface rounded-3xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-4 animate-in fade-in zoom-in duration-300"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
         <div
-          className="p-8 border-b relative"
+          className="p-5 sm:p-8 border-b relative"
           style={{ borderColor: `${colors.border}40` }}
         >
           <button
             onClick={onClose}
-            className="absolute right-8 top-8 p-2 rounded-xl hover:bg-black/5 transition-colors"
+            className="absolute right-5 sm:right-8 top-5 sm:top-8 p-1.5 sm:p-2 rounded-xl hover:bg-black/5 transition-colors"
           >
-            <X size={24} />
+            <X size={20} className="sm:w-6 sm:h-6" />
           </button>
 
           <div className="flex items-center gap-4 mb-2">
@@ -58,7 +58,7 @@ export const LateContributionModal: React.FC<LateContributionModalProps> = ({
             </div>
             <div>
               <h2
-                className="text-2xl font-black tracking-tight"
+                className="text-lg sm:text-2xl font-black tracking-tight"
                 style={{ color: colors.text }}
               >
                 Late Contribution
@@ -70,7 +70,7 @@ export const LateContributionModal: React.FC<LateContributionModalProps> = ({
           </div>
         </div>
 
-        <div className="p-8 space-y-6">
+        <div className="p-5 sm:p-8 space-y-4 sm:space-y-6">
           <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-5 flex gap-4 items-start">
             <AlertTriangle className="text-amber-500 shrink-0" size={24} />
             <div className="space-y-1">
@@ -118,12 +118,12 @@ export const LateContributionModal: React.FC<LateContributionModalProps> = ({
         </div>
 
         <div
-          className="p-8 border-t flex gap-4"
+          className="p-5 sm:p-8 border-t flex flex-row gap-2 sm:gap-4"
           style={{ borderColor: `${colors.border}40` }}
         >
           <button
             onClick={onClose}
-            className="flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] border-2 transition-all hover:bg-black/5"
+            className="flex-1 py-3.5 sm:py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] sm:text-[10px] border-2 transition-all hover:bg-black/5"
             style={{ borderColor: colors.border, color: colors.text }}
           >
             Cancel
@@ -131,13 +131,14 @@ export const LateContributionModal: React.FC<LateContributionModalProps> = ({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-3 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-[#f59e0b] text-white shadow-xl shadow-amber-500/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+            className="flex-3 py-3.5 sm:py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] sm:text-[10px] bg-[#f59e0b] text-white shadow-xl shadow-amber-500/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1.5 sm:gap-2"
           >
             {isLoading ? (
               "Processing..."
             ) : (
               <>
-                <ArrowRight size={14} /> Pay Late
+                <ArrowRight size={12} className="sm:w-3.5 sm:h-3.5" />
+                <span>Pay Late</span>
               </>
             )}
           </button>
