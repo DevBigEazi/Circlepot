@@ -17,6 +17,8 @@ import { ActiveCircle } from "../types/savings";
 import { toast } from "sonner";
 import { ThemeColors } from "../hooks/useThemeColors";
 import LoadingSpinner from "./LoadingSpinner";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { VoteModal } from "./modals/VoteModal";
 
 interface CircleActionsProps {
   circle: ActiveCircle;
@@ -55,8 +57,10 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
   isGlobalLoading = false,
   isTargetLoading = false,
 }) => {
+  const { primaryWallet } = useDynamicContext();
   const [isCopying, setIsCopying] = useState(false);
   const [now, setNow] = useState<number>(0);
+  const [showVoteModal, setShowVoteModal] = useState(false);
 
   React.useEffect(() => {
     setNow(Math.floor(Date.now() / 1000));
@@ -201,33 +205,44 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
 
   // State: VOTING (2)
   if (status === "voting") {
-    // In a real app we'd check subgraph for user's specific vote
-    const hasVoted = false;
+    const userAddress = primaryWallet?.address?.toLowerCase();
+    const hasVoted = circle.votes.some(
+      (v) => v.voter.id.toLowerCase() === userAddress,
+    );
+
+    const latestVoting = circle.votingEvents?.[0];
+    const votingEnded = latestVoting
+      ? now > Number(latestVoting.votingEndAt)
+      : false;
 
     return (
       <div
         className="flex flex-col gap-3 pt-4 border-t"
         style={{ borderColor: `${colors.border}40` }}
       >
-        {isMember && !hasVoted && (
-          <div className="flex gap-2 w-full">
-            <button
-              onClick={() => onVote(1)}
-              disabled={isGlobalLoading}
-              className={`${buttonBaseClass} bg-emerald-500 text-white border-emerald-500`}
-            >
-              <CheckCircle size={14} /> Start
-            </button>
-            <button
-              onClick={() => onVote(2)}
-              disabled={isGlobalLoading}
-              className={`${buttonBaseClass} bg-rose-500 text-white border-rose-500`}
-            >
-              <UserX size={14} /> Withdraw
-            </button>
+        {isMember && !hasVoted && !votingEnded && (
+          <button
+            onClick={() => setShowVoteModal(true)}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass} text-white`}
+            style={{
+              backgroundColor: colors.primary,
+              borderColor: colors.primary,
+            }}
+          >
+            <Vote size={14} /> Vote Now
+          </button>
+        )}
+
+        {isMember && hasVoted && !votingEnded && (
+          <div
+            className={`${buttonBaseClass} bg-emerald-500/10 text-emerald-600 border-emerald-500/20`}
+          >
+            <CheckCircle size={14} /> Vote Recorded
           </div>
         )}
-        {isCreator && (
+
+        {votingEnded && (
           <button
             onClick={onExecuteVote}
             disabled={isGlobalLoading}
@@ -241,11 +256,12 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
               <LoadingSpinner size="sm" />
             ) : (
               <>
-                <Vote size={14} /> Finalize Vote
+                <Vote size={14} /> Finalize Vote Results
               </>
             )}
           </button>
         )}
+
         <div className="flex gap-2 w-full">
           <button
             onClick={onOpenDetails}
@@ -259,7 +275,32 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
           >
             <Info size={14} /> Details
           </button>
+          <button
+            onClick={onOpenChat}
+            disabled={isGlobalLoading}
+            className={`${buttonBaseClass}`}
+            style={{
+              borderColor: colors.border,
+              color: colors.text,
+              opacity: 0.6,
+            }}
+          >
+            <MessageSquare size={14} /> Chat
+          </button>
         </div>
+
+        {showVoteModal && (
+          <VoteModal
+            isOpen={showVoteModal}
+            circleName={circle.name}
+            isLoading={isGlobalLoading}
+            onClose={() => setShowVoteModal(false)}
+            onVote={(choice) => {
+              onVote(choice ? 1 : 2);
+              setShowVoteModal(false);
+            }}
+          />
+        )}
       </div>
     );
   }

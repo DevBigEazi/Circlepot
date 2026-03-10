@@ -186,19 +186,42 @@ export default function ActiveCircleCard({
           circle.votingEvents?.[0] &&
           (() => {
             const votingEndAt = Number(circle.votingEvents[0].votingEndAt);
+            const userVote = circle.votes.find(
+              (v) => v.voter.id.toLowerCase() === userAddressLower,
+            );
+            const votingEnded = now > votingEndAt;
 
             return (
-              <div className="p-3 sm:p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-between">
+              <div
+                className={`p-3 sm:p-4 rounded-2xl border flex items-center justify-between ${votingEnded ? "bg-amber-500/5 border-amber-500/10" : "bg-primary/5 border-primary/10"}`}
+              >
                 <div className="space-y-0.5">
                   <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-40 block">
-                    Voting Ends In
+                    {votingEnded ? "Voting Ended" : "Voting Ends In"}
                   </span>
-                  <CountdownTimer
-                    deadline={votingEndAt}
-                    className="text-amber-600"
-                  />
+                  {votingEnded ? (
+                    <div className="text-xs font-black text-amber-600">
+                      Finalizing results...
+                    </div>
+                  ) : (
+                    <CountdownTimer
+                      deadline={votingEndAt}
+                      className="text-primary"
+                    />
+                  )}
+                  {userVote && (
+                    <div className="flex items-center gap-1 mt-1 opacity-70">
+                      <span className="text-[7px] font-black uppercase tracking-tighter text-emerald-700">
+                        ✓ You voted:{" "}
+                        {userVote.choice === "1" ? "Start" : "Withdraw"}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <ShieldAlert size={16} className="text-amber-500 opacity-30" />
+                <ShieldAlert
+                  size={16}
+                  className={`${votingEnded ? "text-amber-500" : "text-primary"} opacity-30`}
+                />
               </div>
             );
           })()}
