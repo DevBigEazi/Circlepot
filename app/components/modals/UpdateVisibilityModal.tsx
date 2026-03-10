@@ -134,11 +134,11 @@ export const UpdateVisibilityModal: React.FC<UpdateVisibilityModalProps> = ({
               </button>
             </div>
 
-            {selectedVisibility === 1 && currentVisibility === 0 && (
+            {selectedVisibility !== currentVisibility && (
               <div className="mt-4 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-600">
                 <p className="text-[10px] sm:text-xs font-bold leading-relaxed">
-                  Note: Making the circle public requires paying a visibility
-                  fee (e.g. $0.5 USDT). Ensure you have enough funds.
+                  Note: Changing circle visibility requires paying a visibility
+                  fee of $0.5 USDT. Ensure you have enough funds.
                 </p>
               </div>
             )}

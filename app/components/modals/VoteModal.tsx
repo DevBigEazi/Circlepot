@@ -10,6 +10,9 @@ interface VoteModalProps {
   onVote: (choice: boolean) => void;
   circleName: string;
   isLoading: boolean;
+  startVotes?: number;
+  withdrawVotes?: number;
+  totalMembers?: number;
 }
 
 export const VoteModal: React.FC<VoteModalProps> = ({
@@ -18,6 +21,9 @@ export const VoteModal: React.FC<VoteModalProps> = ({
   onVote,
   circleName,
   isLoading,
+  startVotes = 0,
+  withdrawVotes = 0,
+  totalMembers = 0,
 }) => {
   const colors = useThemeColors();
   const [selectedChoice, setSelectedChoice] = useState<boolean | null>(null);
@@ -78,11 +84,47 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         <div className="p-8 space-y-6">
           <div className="bg-black/5 rounded-2xl p-5 flex gap-4 items-start border-2 border-dashed border-black/10">
             <Info className="opacity-40 shrink-0" size={20} />
-            <p className="text-xs font-medium opacity-60 leading-relaxed">
-              The circle has not reached its minimum member requirement. Members
-              must vote to either <strong>Start Anyway</strong> or{" "}
-              <strong>Withdraw Collateral</strong> and terminate the circle.
-            </p>
+            <div className="space-y-3">
+              <p className="text-xs font-medium opacity-60 leading-relaxed">
+                The circle has not reached its minimum member requirement.
+                Members must vote to either <strong>Start Anyway</strong> or{" "}
+                <strong>Withdraw Collateral</strong>.
+              </p>
+
+              {totalMembers > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                      Voting Progress
+                    </span>
+                    <span className="text-[10px] font-black opacity-60">
+                      {startVotes + withdrawVotes} / {totalMembers} voted
+                    </span>
+                  </div>
+                  <div
+                    className="w-full h-1.5 rounded-full overflow-hidden flex"
+                    style={{ backgroundColor: `${colors.border}40` }}
+                  >
+                    <div
+                      className="h-full transition-all duration-500 bg-emerald-500"
+                      style={{ width: `${(startVotes / totalMembers) * 100}%` }}
+                    />
+                    <div
+                      className="h-full transition-all duration-500 bg-rose-500"
+                      style={{
+                        width: `${(withdrawVotes / totalMembers) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[8px] font-bold uppercase tracking-tighter">
+                    <span className="text-emerald-600">{startVotes} Start</span>
+                    <span className="text-rose-600">
+                      {withdrawVotes} Withdraw
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
@@ -105,10 +147,15 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 </div>
                 <div className="text-left">
                   <div
-                    className="font-black text-sm"
+                    className="font-black text-sm flex items-center gap-2"
                     style={{ color: colors.text }}
                   >
                     Start Anyway
+                    {startVotes > 0 && (
+                      <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 text-[10px] font-bold">
+                        {startVotes}
+                      </span>
+                    )}
                   </div>
                   <div className="text-[10px] font-bold opacity-40">
                     Proceed with current members
@@ -137,10 +184,15 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 </div>
                 <div className="text-left">
                   <div
-                    className="font-black text-sm"
+                    className="font-black text-sm flex items-center gap-2"
                     style={{ color: colors.text }}
                   >
                     Withdraw Collateral
+                    {withdrawVotes > 0 && (
+                      <span className="px-2 py-0.5 rounded-lg bg-rose-500/10 text-rose-600 text-[10px] font-bold">
+                        {withdrawVotes}
+                      </span>
+                    )}
                   </div>
                   <div className="text-[10px] font-bold opacity-40">
                     Close circle & return funds
