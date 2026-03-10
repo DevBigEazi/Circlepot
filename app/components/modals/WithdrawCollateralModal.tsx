@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { X, AlertTriangle, Wallet, ArrowRight } from "lucide-react";
 import { ThemeColors } from "../../hooks/useThemeColors";
 
