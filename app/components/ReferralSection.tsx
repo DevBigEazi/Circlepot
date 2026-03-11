@@ -7,6 +7,7 @@ import { useReferralData } from "@/app/hooks/useReferralData";
 import { useCurrency } from "./CurrencyProvider";
 import { useCurrencyConverter } from "@/app/hooks/useCurrencyConverter";
 import { useQuery } from "@tanstack/react-query";
+import { GET_REFERRAL_STATS } from "../graphql/referralQueries";
 import { toast } from "sonner";
 import { formatUnits } from "viem";
 
@@ -31,18 +32,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          query: `
-            query GetReferralSettings {
-              referralSystem(id: "system") {
-                id
-                rewardsEnabled
-                supportedTokens {
-                  token
-                  bonusAmount
-                }
-              }
-            }
-          `,
+          query: GET_REFERRAL_STATS,
         }),
       });
       const { data } = await response.json();

@@ -22,7 +22,8 @@ export const GET_USER_REFERRALS = `
 
 export const GET_REFERRAL_STATS = `
   query GetReferralStats {
-    referralSystem(id: "system") {
+    referralSystem(id: "0x73797374656d") {
+      id
       rewardsEnabled
       campaignMode
       supportedTokens {
