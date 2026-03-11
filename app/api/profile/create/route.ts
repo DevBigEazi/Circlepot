@@ -29,9 +29,11 @@ export async function POST(req: NextRequest) {
       walletAddress: bodyWalletAddress,
     } = (await req.body) ? await req.json() : {};
 
-    // 1. Resolve final wallet address (JWT is source of truth, body is fallback)
+    // 1. Resolve final wallet address (Body is prioritized for SA support, JWT is fallback)
     const jwtWalletAddress = getWalletFromPayload(payload);
-    const walletAddress = jwtWalletAddress || bodyWalletAddress;
+    const walletAddress = (
+      bodyWalletAddress || jwtWalletAddress
+    )?.toLowerCase();
     const dynamicUserId = payload.sub;
 
     if (!walletAddress) {
