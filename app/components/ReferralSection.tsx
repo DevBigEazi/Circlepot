@@ -87,7 +87,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
     (t: { bonusAmount: string }) => BigInt(t.bonusAmount) > BigInt(0),
   );
   const bonusVal = activeToken ? BigInt(activeToken.bonusAmount) : BigInt(0);
-  const bonusAmount = formatUnits(bonusVal, 18); // USDC/Token usually 18 in this contract
+  const bonusAmount = formatUnits(bonusVal, 6); // USDT is 6 decimals
   const hasBonus = isEnabled && bonusVal > BigInt(0);
 
   const isLoading = isLoadingData || isLoadingSettings;
@@ -122,7 +122,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
         </div>
       </div>
 
-      {/* Stats Grid - React design 2 cols */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
           <div
@@ -148,7 +148,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
             <p className="text-xl font-bold text-green-500">
               {isLoading
                 ? "..."
-                : `$${Number(formatUnits(referralData?.totalEarned || BigInt(0), 18)).toFixed(2)}`}
+                : `$${Number(formatUnits(referralData?.totalEarned || BigInt(0), 6)).toFixed(2)}`}
             </p>
             {referralData?.totalEarned &&
               referralData.totalEarned > BigInt(0) &&
@@ -159,7 +159,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
                 >
                   ≈ {availableCurrencies[selectedCurrency]?.symbol || ""}
                   {convertToLocal(
-                    Number(formatUnits(referralData.totalEarned, 18)),
+                    Number(formatUnits(referralData.totalEarned, 6)),
                     selectedCurrency,
                   )}{" "}
                   {selectedCurrency}
@@ -170,9 +170,9 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
                 <div className="mt-0.5">
                   <p className="text-[10px] text-amber-500 font-bold">
                     + $
-                    {Number(
-                      formatUnits(referralData.pendingEarned, 18),
-                    ).toFixed(2)}{" "}
+                    {Number(formatUnits(referralData.pendingEarned, 6)).toFixed(
+                      2,
+                    )}{" "}
                     Pending
                   </p>
                   {selectedCurrency !== "USD" && (
@@ -182,7 +182,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
                     >
                       ≈ {availableCurrencies[selectedCurrency]?.symbol || ""}
                       {convertToLocal(
-                        Number(formatUnits(referralData.pendingEarned, 18)),
+                        Number(formatUnits(referralData.pendingEarned, 6)),
                         selectedCurrency,
                       )}{" "}
                       {selectedCurrency}
@@ -194,7 +194,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
         </div>
       </div>
 
-      {/* Copy Input - React design */}
+      {/* Copy Input*/}
       <div className="space-y-3">
         <div className="flex gap-2">
           <div
