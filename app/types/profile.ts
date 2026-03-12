@@ -1,4 +1,8 @@
+import { PushSubscription, NotificationPreferences } from "./notifications";
+
 export interface Profile {
+  pushSubscription?: PushSubscription;
+  notificationPreferences?: NotificationPreferences;
   dynamicUserId: string;
   walletAddress: string | null;
   username: string;
