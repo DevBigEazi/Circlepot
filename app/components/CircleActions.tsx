@@ -330,15 +330,42 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
   // State: ACTIVE (3)
   if (status === "active") {
     const isRecipient = currentPosition === Number(currentRound);
+    const gracePeriodPassed = now > Number(circle.contributionDeadline);
+    const hasPayout = circle.payouts.some((p) => Number(p.round) === Number(currentRound));
+    const lateMembersList = circle.membersList
+      .filter((m) => m.isActive && !m.hasContributed)
+      .map((m) => m.id);
+    
+    // Forfeit logic: available if grace passed, no payout yet, and user is recipient OR has already contributed
+    const showForfeit =
+      isMember &&
+      (isRecipient || hasContributed) &&
+      gracePeriodPassed &&
+      lateMembersList.length > 0 &&
+      !hasPayout;
 
     return (
       <div
         className="flex flex-col gap-3 pt-4 border-t"
         style={{ borderColor: `${colors.border}40` }}
       >
-        {isMember && !isForfeitedThisRound && (
-          <div className="flex flex-col gap-2 w-full">
-            {hasContributed ? (
+        <div className="flex flex-col gap-2 w-full">
+          {showForfeit ? (
+            <button
+              onClick={() => onForfeit(lateMembersList)}
+              disabled={isGlobalLoading}
+              className={`${buttonBaseClass} bg-rose-500 text-white border-rose-500`}
+            >
+              {isTargetLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <>
+                  <UserX size={14} /> Forfeit Late Members
+                </>
+              )}
+            </button>
+          ) : isMember && !isForfeitedThisRound ? (
+            hasContributed ? (
               <button
                 disabled
                 className={`${buttonBaseClass} bg-emerald-500/5 text-emerald-600 border-emerald-500/10`}
@@ -365,31 +392,9 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
                   </>
                 )}
               </button>
-            )}
-          </div>
-        )}
-
-        {isRecipient && now > Number(circle.contributionDeadline) && (
-          <button
-            onClick={() => {
-              // Extract unique member IDs who haven't contributed
-              const lateMembers = circle.membersList
-                .filter((m) => m.isActive && !m.hasContributed)
-                .map((m) => m.id);
-              onForfeit(lateMembers);
-            }}
-            disabled={isGlobalLoading}
-            className={`${buttonBaseClass} bg-rose-500 text-white border-rose-500`}
-          >
-            {isTargetLoading ? (
-              <LoadingSpinner size="sm" />
-            ) : (
-              <>
-                <UserX size={14} /> Forfeit Late Members
-              </>
-            )}
-          </button>
-        )}
+            )
+          ) : null}
+        </div>
 
         <div className="grid grid-cols-2 gap-2 w-full">
           <button

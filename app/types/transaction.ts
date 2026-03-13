@@ -9,7 +9,8 @@ export type TransactionType =
   | "goal_contribution"
   | "goal_withdrawal"
   | "goal_completion"
-  | "referral_reward";
+  | "referral_reward"
+  | "circle_forfeit";
 
 export interface Transaction {
   id: string; // Typically transactionHash + logIndex
@@ -30,5 +31,6 @@ export interface Transaction {
     circleName?: string;
     goalName?: string;
     note?: string;
+    payoutFee?: string;
   };
 }

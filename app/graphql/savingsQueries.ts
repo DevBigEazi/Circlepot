@@ -39,6 +39,10 @@ export const GET_USER_SAVINGS_SUMMARY = `
     }
     payoutDistributeds(where: { user: $userAddress }) {
       payoutAmount
+      circleId
+    }
+    lateContributionMades(where: { user: $userAddress }) {
+      fee
     }
     memberForfeiteds(where: { forfeitedUser: $userAddress }) {
       circleId
@@ -370,8 +374,8 @@ export const GET_USER_CIRCLE_ACTIVITY = `
         transactionHash
       }
     }
-    memberForfeiteds(
-      where: { forfeiter: $address }
+    forfeitedPenalties: memberForfeiteds(
+      where: { forfeitedUser: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
       first: 50
@@ -379,6 +383,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       id
       circleId
       deductionAmount
+      forfeiter { id }
       transaction {
         blockTimestamp
         transactionHash
@@ -403,6 +408,8 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       circleId
       circleName
       collateralAmount
+      contributionAmount
+      maxMembers
       creator {
         id
       }

@@ -73,7 +73,6 @@ export default function SavingsPage() {
     reputation,
     totalSavedCircles,
     totalPayoutsCircles,
-    totalPenaltiesCircles,
     isLoading,
     address,
   } = useSavings();
@@ -468,7 +467,6 @@ export default function SavingsPage() {
               activeCircles={activeCircleCount}
               totalSaved={totalSavedCircles}
               totalPayouts={totalPayoutsCircles}
-              totalPenalties={totalPenaltiesCircles}
               reputation={reputation}
             />
 

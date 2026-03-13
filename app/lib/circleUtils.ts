@@ -202,10 +202,17 @@ export const transformCircleToActiveCircle = (
     ? formatBigInt(userMember.totalContributed)
     : "0";
 
+  // Find latest payout timestamp for this circle
+  const lastPayoutTimestamp = payouts.length > 0
+    ? payouts.reduce((latest, p) => 
+        Number(p.timestamp) > latest ? Number(p.timestamp) : latest, 0)
+    : 0;
+
   const baseDeadlineBigInt = calculateBaseDeadline(
     circle.startedAt,
     circle.frequency,
     circle.currentRound,
+    lastPayoutTimestamp,
   );
 
   const contributionDeadlineBigInt = BigInt(
@@ -213,6 +220,7 @@ export const transformCircleToActiveCircle = (
       circle.startedAt,
       circle.currentRound,
       circle.frequency,
+      lastPayoutTimestamp,
     ),
   );
 

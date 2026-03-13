@@ -11,9 +11,10 @@ import Image from "next/image";
 interface BalanceDisplayProps {
   balance: string;
   creditScore?: CreditScore;
-  circleCommitted?: number;
+  circlePayouts?: number;
   circleCollateral?: number;
   circleContributions?: number;
+  circleSystemFees?: number;
   personalSavingsCommitted?: number;
   isLoading?: boolean;
   onAddClick?: () => void;
@@ -23,9 +24,10 @@ interface BalanceDisplayProps {
 export default function BalanceDisplay({
   balance,
   creditScore,
-  circleCommitted = 0,
+  circlePayouts = 0,
   circleCollateral = 0,
   circleContributions = 0,
+  circleSystemFees = 0,
   personalSavingsCommitted = 0,
   isLoading = false,
   onAddClick,
@@ -47,8 +49,9 @@ export default function BalanceDisplay({
     localStorage.setItem("showBalance", JSON.stringify(newVal));
   };
 
+  const circleNetPosition = circleContributions - circlePayouts - circleSystemFees;
   const totalDisplayBalance =
-    Number(balance) + circleCommitted + personalSavingsCommitted;
+    Number(balance) + circleNetPosition + circleCollateral + personalSavingsCommitted;
 
   if (isLoading) {
     return (
@@ -130,14 +133,14 @@ export default function BalanceDisplay({
                     </div>
                     <div className="flex justify-between text-xs">
                       <span style={{ color: colors.textLight }}>
-                        Circle Contributions:
+                        Net Pot Performance:
                       </span>
                       <span
                         className="font-medium"
-                        style={{ color: colors.text }}
+                        style={{ color: circleNetPosition >= 0 ? colors.text : "#f43f5e" }}
                       >
-                        $
-                        {circleContributions.toLocaleString(undefined, {
+                        {circleNetPosition >= 0 ? "+" : "-"}$
+                        {Math.abs(circleNetPosition).toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
@@ -145,7 +148,7 @@ export default function BalanceDisplay({
                     </div>
                     <div className="flex justify-between text-xs">
                       <span style={{ color: colors.textLight }}>
-                        Collateral Locked:
+                        Security Deposits:
                       </span>
                       <span
                         className="font-medium"
@@ -192,7 +195,7 @@ export default function BalanceDisplay({
                     style={{ color: colors.textLight }}
                   >
                     Your total balance includes funds you can spend and funds
-                    locked in savings goals or circles.
+                    locked in savings. Circle balances are adjusted for received payouts and platform fees to maintain principal accuracy.
                   </p>
                 </div>
               )}

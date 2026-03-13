@@ -18,6 +18,7 @@ interface CountdownTimerProps {
   deadline: string | number | bigint;
   onExpire?: () => void;
   showLateTime?: boolean;
+  expiredText?: string;
   className?: string;
   variant?: "compact" | "detailed";
 }
@@ -25,6 +26,7 @@ interface CountdownTimerProps {
 export default function CountdownTimer({
   deadline,
   onExpire,
+  expiredText,
   showLateTime = false,
   className = "",
   variant = "compact",
@@ -108,7 +110,7 @@ export default function CountdownTimer({
       <span
         className={`font-black text-rose-500 uppercase tracking-widest ${className}`}
       >
-        Deadline Passed
+        {expiredText || "Deadline Passed"}
       </span>
     );
   }
