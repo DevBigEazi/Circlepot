@@ -34,6 +34,7 @@ interface LateContributionMadeEvent extends CircleEvent {
 }
 interface PayoutDistributedEvent extends CircleEvent {
   payoutAmount: string;
+  fee?: string;
   token: string;
 }
 interface CollateralEvent extends CircleEvent {
@@ -209,14 +210,12 @@ export const useCircleActivity = () => {
         // 4. Payouts
         (data.payoutDistributeds || []).forEach((p) => {
           const cName = circleNames.get(p.circleId) || "Savings Circle";
-          const potAmount = circlePots.get(p.circleId) || 0n;
-          const payoutAmount = BigInt(p.payoutAmount);
-          const feeValue = potAmount > payoutAmount ? potAmount - payoutAmount : 0n;
+          const feeStr = p.fee ? formatUnits(BigInt(p.fee), 6) : "0";
 
           transactions.push({
             id: `cp-${p.id}`,
             type: "circle_payout",
-            amount: formatUnits(payoutAmount, 6),
+            amount: formatUnits(BigInt(p.payoutAmount), 6),
             currency: "USDT",
             timestamp: parseInt(p.transaction.blockTimestamp, 10),
             status: "success",
@@ -228,7 +227,7 @@ export const useCircleActivity = () => {
             metadata: {
               circleName: cName,
               note: "Pot payout received",
-              payoutFee: feeValue > 0n ? formatUnits(feeValue, 6) : undefined,
+              payoutFee: feeStr !== "0" ? feeStr : undefined,
             },
           });
         });

@@ -53,7 +53,13 @@ type GraphForfeit = {
   circleId: string;
   forfeitedUser: GraphUser;
   deductionAmount: string;
+  potAmount: string;
+  feeAmount: string;
   [key: string]: unknown;
+};
+type GraphLateContribution = {
+  amount: string;
+  fee: string;
 };
 type GraphContribution = {
   circleId: string;
@@ -67,6 +73,7 @@ type GraphPayout = {
   user: GraphUser;
   round: string;
   payoutAmount: string;
+  fee?: string;
   transaction: { blockTimestamp: string };
 };
 type GraphVotingInitiated = {
@@ -106,7 +113,8 @@ interface SavingsContextType {
   totalContributionsCircles: string;
   totalPayoutsCircles: string;
   totalCollateralCircles: string;
-  totalSystemFeesCircles: string;
+  totalSystemFeesCircles: string; // Payout fees only
+  totalLateFeesCircles: string; // Late fees + Forfeitures
   totalForfeituresCircles: string;
   isLoading: boolean;
   refetch: () => void;
@@ -402,8 +410,9 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
     let rawContributions = 0n;
     let rawPayouts = 0n;
     let rawCollateral = 0n;
-    let rawSystemFees = 0n; // Late fees + Payout fees
-    let rawForfeitureDeductions = 0n; // Deductions from collateral
+    let rawPayoutFees = 0n; // Strictly Payout fees
+    let rawLateFees = 0n; // Late fees + Penalty portion of Forfeitures
+    let rawForfeitureDeductions = 0n; // Gross deductions from collateral
 
     // 1. Contributions
     ((data?.contributionMades as Array<{ amount: string }>) || []).forEach(
@@ -412,61 +421,58 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
       },
     );
 
-    // 2. Collateral (minus any penalties already recorded)
+    // 2. Collateral (only for non-terminal circles)
     activeCircles.forEach((circle) => {
       const isMember = joinedIds.includes(circle.rawCircle.circleId.toString());
-      if (isMember) {
+      // Only include collateral if circle is not completed or dead
+      // (as funds are returned to balance upon completion/forfeiture)
+      if (isMember && circle.status !== "completed" && circle.status !== "dead") {
         rawCollateral += BigInt(circle.rawCircle.collateralAmount || 0);
       }
     });
 
-    // 3. Payouts
+    // 3. Payouts (Recovered Funds)
     (
       (data?.payoutDistributeds as Array<{ payoutAmount: string }>) || []
     ).forEach((p) => {
       rawPayouts += BigInt(p.payoutAmount || 0);
     });
 
-    // 4. System Fees (Late fees)
-    ((data?.lateContributionMades as Array<{ fee: string }>) || []).forEach(
+    // 4. Late Fees
+    ((data?.lateContributionMades as GraphLateContribution[]) || []).forEach(
       (lc) => {
-        rawSystemFees += BigInt(lc.fee || 0);
+        rawLateFees += BigInt(lc.fee || 0);
+        rawContributions += BigInt(lc.amount || 0);
       },
     );
 
-    // 5. Forfeitures (Deductions specifically from collateral)
+    // 5. Forfeitures
     ((data?.memberForfeiteds as GraphForfeit[]) || []).forEach((f) => {
       rawForfeitureDeductions += BigInt(f.deductionAmount || 0);
+      rawContributions += BigInt(f.potAmount || 0);
+      rawLateFees += BigInt(f.feeAmount || 0);
     });
 
-    // 6. Payout Fees (The portion kept by the platform - also a system fee)
-    ((circlesData as { circles: GraphCircle[] })?.circles || []).forEach((circle) => {
-      const payoutsForUser = ((data?.payoutDistributeds as GraphPayout[]) || [])
-        .filter(p => p.circleId?.toString() === circle.circleId?.toString());
-      
-      if (payoutsForUser.length > 0) {
-        const totalPot = BigInt(circle.maxMembers || 0) * BigInt(circle.contributionAmount || 0);
-        const totalReceived = payoutsForUser.reduce((acc, p) => acc + BigInt(p.payoutAmount || 0), 0n);
-        // Only if the user received the full payout do we account for the fee deduction
-        if (totalReceived > 0n && totalReceived < totalPot) {
-          rawSystemFees += (totalPot - totalReceived);
-        }
-      }
+    // 6. Payout Fees
+    ((data?.payoutDistributeds as GraphPayout[]) || []).forEach((p) => {
+      rawPayoutFees += BigInt(p.fee || 0);
     });
 
-    // Net Savings formula:
-    // (Contributions - Payouts - SystemFees) + (Collateral - ForfeitureDeductions)
-    const netSavings = (rawContributions - rawPayouts - rawSystemFees) + (rawCollateral - rawForfeitureDeductions);
+    // Net Savings formula for balance reconciliation:
+    // (Contributions - Payouts - PayoutFees) + (Collateral - ForfeitureDeductions)
+    // Note: Late fees are already deducted from wallet balance, so we don't subtract them again here.
+    const netSavings = (rawContributions - rawPayouts - rawPayoutFees) + (rawCollateral - rawForfeitureDeductions);
 
     return {
       netSavings: formatUnits(netSavings, 6),
       contributions: formatUnits(rawContributions, 6),
       payouts: formatUnits(rawPayouts, 6),
       collateral: formatUnits(rawCollateral - rawForfeitureDeductions, 6),
-      systemFees: formatUnits(rawSystemFees, 6),
+      payoutFees: formatUnits(rawPayoutFees, 6),
+      lateFees: formatUnits(rawLateFees, 6),
       forfeitures: formatUnits(rawForfeitureDeductions, 6),
     };
-  }, [data, activeCircles, joinedIds, circlesData]);
+  }, [data, activeCircles, joinedIds]);
 
   const value: SavingsContextType = {
     personalGoals: ((data?.personalGoals as RawPersonalGoal[]) || []).map(
@@ -483,7 +489,8 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
     totalContributionsCircles: circleStats.contributions,
     totalPayoutsCircles: circleStats.payouts,
     totalCollateralCircles: circleStats.collateral,
-    totalSystemFeesCircles: circleStats.systemFees,
+    totalSystemFeesCircles: circleStats.payoutFees,
+    totalLateFeesCircles: circleStats.lateFees,
     totalForfeituresCircles: circleStats.forfeitures,
     isLoading: isSummaryLoading || isInitializing || isCirclesLoading,
     refetch,

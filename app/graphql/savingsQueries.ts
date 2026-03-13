@@ -39,14 +39,18 @@ export const GET_USER_SAVINGS_SUMMARY = `
     }
     payoutDistributeds(where: { user: $userAddress }) {
       payoutAmount
+      fee
       circleId
     }
     lateContributionMades(where: { user: $userAddress }) {
+      amount
       fee
     }
     memberForfeiteds(where: { forfeitedUser: $userAddress }) {
       circleId
       deductionAmount
+      potAmount
+      feeAmount
     }
   }
 `;
@@ -113,6 +117,7 @@ export const GET_CIRCLES_BY_IDS = `
       }
       round
       payoutAmount
+      fee
       transaction {
         blockTimestamp
       }
@@ -338,6 +343,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       id
       circleId
       payoutAmount
+      fee
       token
       transaction {
         blockTimestamp
