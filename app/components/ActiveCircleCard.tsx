@@ -64,9 +64,11 @@ export default function ActiveCircleCard({
   const currentStatus =
     statusConfig[status as keyof typeof statusConfig] || statusConfig.unknown;
 
+  const [mounted, setMounted] = React.useState(false);
   const [now, setNow] = React.useState(0);
-
+ 
   React.useEffect(() => {
+    setMounted(true);
     setNow(Math.floor(Date.now() / 1000));
     const interval = setInterval(() => {
       setNow(Math.floor(Date.now() / 1000));
@@ -76,6 +78,9 @@ export default function ActiveCircleCard({
 
   const isActuallyLate =
     Number(circle.baseDeadline) > 0 && now > Number(circle.baseDeadline);
+  const gracePeriodPassed =
+    Number(circle.contributionDeadline) > 0 &&
+    now > Number(circle.contributionDeadline);
 
   return (
     <div
@@ -250,11 +255,11 @@ export default function ActiveCircleCard({
           })()}
 
         {status === "active" &&
+          mounted &&
           (() => {
             const baseDeadline = Number(circle.baseDeadline);
             const contributionDeadline = Number(circle.contributionDeadline);
 
-            // Use the dynamic check for the label and style
             const showForfeitLabel = isActuallyLate && !hasContributed;
             const hasLateMembers = membersList.some(
               (m) => m.isActive && !m.hasContributed,
@@ -277,20 +282,33 @@ export default function ActiveCircleCard({
                   <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-40 block">
                     {showForfeitLabel
                       ? "Forfeit Available In"
-                      : "Round Ends In"}
+                      : isActuallyLate && hasContributed
+                        ? "Settlement Period"
+                        : "Round Ends In"}
                   </span>
                   <CountdownTimer
                     deadline={targetDeadline}
                     showLateTime={showForfeitLabel}
+                    expiredText={
+                      isActuallyLate && hasContributed
+                        ? "Time to Forfeit"
+                        : "Deadline Passed"
+                    }
                     className={
-                      showForfeitLabel ? "text-rose-600" : "text-emerald-600"
+                      showForfeitLabel
+                        ? "text-rose-600"
+                        : isActuallyLate && hasContributed
+                          ? "text-emerald-600"
+                          : "text-emerald-600"
                     }
                   />
                   {isActuallyLate && hasContributed && hasLateMembers && (
                     <div className="flex items-center gap-1 mt-1 opacity-70">
                       <AlertTriangle size={10} className="text-amber-500" />
                       <span className="text-[7px] font-black uppercase tracking-tighter text-emerald-700">
-                        You can forfeit late members after this
+                        {gracePeriodPassed
+                          ? "Forfeit defaulting members now"
+                          : "You can forfeit late members after this"}
                       </span>
                     </div>
                   )}

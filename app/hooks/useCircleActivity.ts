@@ -45,11 +45,15 @@ interface DeadCircleFeeEvent extends CircleEvent {
 }
 interface MemberForfeitedEvent extends CircleEvent {
   deductionAmount: string;
+  forfeitedUser?: { id: string };
+  forfeiter?: { id: string };
 }
 interface CircleMeta {
   circleId: string;
   circleName: string;
-  collateralAmount: string; // Used to know how much was locked when joined
+  collateralAmount: string;
+  contributionAmount: string;
+  maxMembers: string;
   creator: {
     id: string;
   };
@@ -62,7 +66,7 @@ interface UserCircleActivityResponse {
   payoutDistributeds: PayoutDistributedEvent[];
   collateralReturneds: CollateralEvent[];
   collateralWithdrawns: CollateralEvent[];
-  memberForfeiteds: MemberForfeitedEvent[];
+  forfeitedPenalties: MemberForfeitedEvent[];
   deadCircleFeeDeducteds: DeadCircleFeeEvent[];
   circles: CircleMeta[];
 }
@@ -91,10 +95,15 @@ export const useCircleActivity = () => {
         const circleNames = new Map<string, string>();
         const circleCollaterals = new Map<string, string>();
         const circleCreators = new Map<string, string>();
+        const circlePots = new Map<string, bigint>();
 
         (data.circles || []).forEach((c) => {
           circleNames.set(c.circleId, c.circleName);
           circleCollaterals.set(c.circleId, c.collateralAmount);
+          circlePots.set(
+            c.circleId,
+            BigInt(c.maxMembers || 0) * BigInt(c.contributionAmount || 0),
+          );
           if (c.creator?.id) {
             circleCreators.set(c.circleId, c.creator.id.toLowerCase());
           }
@@ -110,7 +119,7 @@ export const useCircleActivity = () => {
         });
 
         const forfeitureByHash = new Map<string, string>();
-        (data.memberForfeiteds || []).forEach((fee) => {
+        (data.forfeitedPenalties || []).forEach((fee) => {
           forfeitureByHash.set(
             fee.transaction.transactionHash,
             formatUnits(BigInt(fee.deductionAmount), 6),
@@ -200,10 +209,14 @@ export const useCircleActivity = () => {
         // 4. Payouts
         (data.payoutDistributeds || []).forEach((p) => {
           const cName = circleNames.get(p.circleId) || "Savings Circle";
+          const potAmount = circlePots.get(p.circleId) || 0n;
+          const payoutAmount = BigInt(p.payoutAmount);
+          const feeValue = potAmount > payoutAmount ? potAmount - payoutAmount : 0n;
+
           transactions.push({
             id: `cp-${p.id}`,
             type: "circle_payout",
-            amount: formatUnits(BigInt(p.payoutAmount), 6),
+            amount: formatUnits(payoutAmount, 6),
             currency: "USDT",
             timestamp: parseInt(p.transaction.blockTimestamp, 10),
             status: "success",
@@ -215,6 +228,7 @@ export const useCircleActivity = () => {
             metadata: {
               circleName: cName,
               note: "Pot payout received",
+              payoutFee: feeValue > 0n ? formatUnits(feeValue, 6) : undefined,
             },
           });
         });
@@ -255,6 +269,28 @@ export const useCircleActivity = () => {
 
         (data.collateralReturneds || []).forEach((r) => processReturn(r));
         (data.collateralWithdrawns || []).forEach((w) => processReturn(w));
+
+        // 6. Forfeiture penalties received by user (recorded as a penalty event)
+        (data.forfeitedPenalties || []).forEach((f) => {
+          const cName = circleNames.get(f.circleId) || "Savings Circle";
+          transactions.push({
+            id: `fp-${f.id}`,
+            type: "circle_forfeit",
+            amount: formatUnits(BigInt(f.deductionAmount), 6),
+            currency: "USDT",
+            timestamp: parseInt(f.transaction.blockTimestamp, 10),
+            status: "success",
+            hash: f.transaction.transactionHash,
+            from: f.forfeiter?.id || "",
+            to: address,
+            isIncoming: false, // Penalty is a deduction
+            displayName: cName,
+            metadata: {
+              circleName: cName,
+              note: "Penalty: Forfeited due to default",
+            },
+          });
+        });
 
         return transactions;
       } catch (err) {

@@ -103,8 +103,11 @@ interface SavingsContextType {
   reputation: number;
   trustCategory: number;
   totalSavedCircles: string;
+  totalContributionsCircles: string;
   totalPayoutsCircles: string;
-  totalPenaltiesCircles: string;
+  totalCollateralCircles: string;
+  totalSystemFeesCircles: string;
+  totalForfeituresCircles: string;
   isLoading: boolean;
   refetch: () => void;
   error: Error | null;
@@ -352,17 +355,19 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
         (v) => v.circleId.toString() === c.circleId.toString(),
       );
 
+      const enrichedCircle = {
+        ...c,
+        members: membersForCircle,
+        creator: {
+          ...c.creator,
+          username: creatorUserName,
+          fullName: creatorFullName,
+          avatarUrl: creatorProfile?.profilePhoto,
+        },
+      } as unknown as Circle;
+
       const transformed = transformCircleToActiveCircle(
-        {
-          ...c,
-          members: membersForCircle,
-          creator: {
-            ...c.creator,
-            username: creatorUserName,
-            fullName: creatorFullName,
-            avatarUrl: creatorProfile?.profilePhoto,
-          },
-        } as unknown as Circle,
+        enrichedCircle,
         address,
         payoutsForCircle,
         votingEventsForCircle,
@@ -382,6 +387,7 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
       return {
         ...transformed,
         hasContributed: hasContributedThisRound,
+        rawCircle: enrichedCircle,
       };
     });
   }, [
@@ -393,44 +399,74 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
 
   // Calculate Statistics for Circles (using aggregate data from summary)
   const circleStats = useMemo(() => {
-    let saved = 0n;
-    let payouts = 0n;
-    let penalties = 0n;
+    let rawContributions = 0n;
+    let rawPayouts = 0n;
+    let rawCollateral = 0n;
+    let rawSystemFees = 0n; // Late fees + Payout fees
+    let rawForfeitureDeductions = 0n; // Deductions from collateral
 
-    // 1. Total Saved = user's contributions + total locked collateral
+    // 1. Contributions
     ((data?.contributionMades as Array<{ amount: string }>) || []).forEach(
       (c) => {
-        saved += BigInt(c.amount || 0);
+        rawContributions += BigInt(c.amount || 0);
       },
     );
 
-    // Add collateral for each circle the user is in
+    // 2. Collateral (minus any penalties already recorded)
     activeCircles.forEach((circle) => {
-      // Find if user is in this circle
       const isMember = joinedIds.includes(circle.rawCircle.circleId.toString());
       if (isMember) {
-        saved += BigInt(circle.rawCircle.collateralAmount || 0);
+        rawCollateral += BigInt(circle.rawCircle.collateralAmount || 0);
       }
     });
 
-    // 2. Payouts = Sum of all payout distributions
+    // 3. Payouts
     (
       (data?.payoutDistributeds as Array<{ payoutAmount: string }>) || []
     ).forEach((p) => {
-      payouts += BigInt(p.payoutAmount || 0);
+      rawPayouts += BigInt(p.payoutAmount || 0);
     });
 
-    // 3. Penalties = Sum of forfeiture deductions
+    // 4. System Fees (Late fees)
+    ((data?.lateContributionMades as Array<{ fee: string }>) || []).forEach(
+      (lc) => {
+        rawSystemFees += BigInt(lc.fee || 0);
+      },
+    );
+
+    // 5. Forfeitures (Deductions specifically from collateral)
     ((data?.memberForfeiteds as GraphForfeit[]) || []).forEach((f) => {
-      penalties += BigInt(f.deductionAmount || 0);
+      rawForfeitureDeductions += BigInt(f.deductionAmount || 0);
     });
+
+    // 6. Payout Fees (The portion kept by the platform - also a system fee)
+    ((circlesData as { circles: GraphCircle[] })?.circles || []).forEach((circle) => {
+      const payoutsForUser = ((data?.payoutDistributeds as GraphPayout[]) || [])
+        .filter(p => p.circleId?.toString() === circle.circleId?.toString());
+      
+      if (payoutsForUser.length > 0) {
+        const totalPot = BigInt(circle.maxMembers || 0) * BigInt(circle.contributionAmount || 0);
+        const totalReceived = payoutsForUser.reduce((acc, p) => acc + BigInt(p.payoutAmount || 0), 0n);
+        // Only if the user received the full payout do we account for the fee deduction
+        if (totalReceived > 0n && totalReceived < totalPot) {
+          rawSystemFees += (totalPot - totalReceived);
+        }
+      }
+    });
+
+    // Net Savings formula:
+    // (Contributions - Payouts - SystemFees) + (Collateral - ForfeitureDeductions)
+    const netSavings = (rawContributions - rawPayouts - rawSystemFees) + (rawCollateral - rawForfeitureDeductions);
 
     return {
-      saved: formatUnits(saved, 6),
-      payouts: formatUnits(payouts, 6),
-      penalties: formatUnits(penalties, 6),
+      netSavings: formatUnits(netSavings, 6),
+      contributions: formatUnits(rawContributions, 6),
+      payouts: formatUnits(rawPayouts, 6),
+      collateral: formatUnits(rawCollateral - rawForfeitureDeductions, 6),
+      systemFees: formatUnits(rawSystemFees, 6),
+      forfeitures: formatUnits(rawForfeitureDeductions, 6),
     };
-  }, [data, activeCircles, joinedIds]);
+  }, [data, activeCircles, joinedIds, circlesData]);
 
   const value: SavingsContextType = {
     personalGoals: ((data?.personalGoals as RawPersonalGoal[]) || []).map(
@@ -443,9 +479,12 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
       Number((data?.user as GraphUser)?.totalCirclesCompleted) || 0,
     reputation: Number((data?.user as GraphUser)?.totalReputation) || 0,
     trustCategory: Number((data?.user as GraphUser)?.repCategory) || 0,
-    totalSavedCircles: circleStats.saved,
+    totalSavedCircles: circleStats.netSavings,
+    totalContributionsCircles: circleStats.contributions,
     totalPayoutsCircles: circleStats.payouts,
-    totalPenaltiesCircles: circleStats.penalties,
+    totalCollateralCircles: circleStats.collateral,
+    totalSystemFeesCircles: circleStats.systemFees,
+    totalForfeituresCircles: circleStats.forfeitures,
     isLoading: isSummaryLoading || isInitializing || isCirclesLoading,
     refetch,
     error: (summaryError || circlesError) as Error | null,

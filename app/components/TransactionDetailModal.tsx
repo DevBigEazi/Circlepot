@@ -16,6 +16,7 @@ import {
   Users,
   Trophy,
   ShieldCheck,
+  ShieldAlert,
   TrendingUp,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -45,6 +46,8 @@ function getModalIcon(type: Transaction["type"], isIncoming: boolean) {
       return <Trophy size={32} />;
     case "circle_collateral_return":
       return <ShieldCheck size={32} />;
+    case "circle_forfeit":
+      return <ShieldAlert size={32} />;
     default:
       return isIncoming ? <Download size={32} /> : <Send size={32} />;
   }
@@ -68,6 +71,8 @@ function getModalIconClasses(type: Transaction["type"], isIncoming: boolean) {
       return "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-400";
     case "circle_collateral_return":
       return "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400";
+    case "circle_forfeit":
+      return "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400";
     default:
       return isIncoming
         ? "bg-green-100 text-green-600"
@@ -93,6 +98,8 @@ function getSummaryText(type: Transaction["type"], isIncoming: boolean) {
       return "You've won the pot";
     case "circle_collateral_return":
       return "Deposit returned";
+    case "circle_forfeit":
+      return isIncoming ? "Penalty applied" : "Forfeit action";
     default:
       return isIncoming ? "You've received" : "You've sent";
   }
@@ -110,6 +117,8 @@ function getAmountSign(type: Transaction["type"], isIncoming: boolean) {
     case "circle_payout":
     case "circle_collateral_return":
       return "+";
+    case "circle_forfeit":
+      return "-";
     default:
       return isIncoming ? "+" : "-";
   }
@@ -124,7 +133,8 @@ function isSavingsType(type: Transaction["type"]) {
     type === "circle_created" ||
     type === "circle_contribution" ||
     type === "circle_payout" ||
-    type === "circle_collateral_return"
+    type === "circle_collateral_return" ||
+    type === "circle_forfeit"
   );
 }
 
@@ -156,7 +166,8 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     transaction.type === "circle_created" ||
     transaction.type === "circle_contribution" ||
     transaction.type === "circle_payout" ||
-    transaction.type === "circle_collateral_return";
+    transaction.type === "circle_collateral_return" ||
+    transaction.type === "circle_forfeit";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -260,6 +271,30 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <p className="text-sm font-bold text-amber-600 dark:text-amber-400">
                   {transaction.metadata.note}
                 </p>
+                {transaction.type === "circle_forfeit" &&
+                  transaction.metadata.note.includes("Penalty") && (
+                    <p className="text-[10px] font-black uppercase tracking-tighter text-rose-500 mt-1">
+                      * Removed from circle collateral
+                    </p>
+                  )}
+              </div>
+            )}
+
+            {/* Payout Fee Section */}
+            {transaction.metadata?.payoutFee && (
+              <div className="space-y-1">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest opacity-40"
+                  style={{ color: colors.text }}
+                >
+                  Platform Handling Fee
+                </span>
+                <div className="flex items-center gap-1.5 text-sm font-bold text-rose-500">
+                  -${transaction.metadata.payoutFee}
+                  <p className="text-[10px] font-medium opacity-50 text-rose-500/70">
+                    (Deducted from pot)
+                  </p>
+                </div>
               </div>
             )}
 

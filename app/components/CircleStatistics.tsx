@@ -1,14 +1,13 @@
 "use client";
 
 import React from "react";
-import { Users, TrendingUp, Award, AlertCircle } from "lucide-react";
+import { Users, TrendingUp, Award } from "lucide-react";
 import { useThemeColors } from "../hooks/useThemeColors";
 
 interface CircleStatisticsProps {
   activeCircles: number;
   totalSaved: string; // Collateral + Contributions
   totalPayouts: string; // Payouts received
-  totalPenalties: string; // Late fees + Forfeitures
   reputation: number;
 }
 
@@ -16,7 +15,6 @@ export const CircleStatistics: React.FC<CircleStatisticsProps> = ({
   activeCircles,
   totalSaved,
   totalPayouts,
-  totalPenalties,
   reputation,
 }) => {
   const colors = useThemeColors();
@@ -30,8 +28,8 @@ export const CircleStatistics: React.FC<CircleStatisticsProps> = ({
     },
     {
       label: "Circle Savings",
-      value: `$${Number(totalSaved).toLocaleString()}`,
-      description: "Collateral + Contributions",
+      value: `${Number(totalSaved) < 0 ? "-" : ""}$${Math.abs(Number(totalSaved)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      description: "Net Balance (Paid - Payouts)",
       icon: <TrendingUp size={16} />,
       color: "#10b981",
     },
@@ -67,12 +65,6 @@ export const CircleStatistics: React.FC<CircleStatisticsProps> = ({
             >
               {card.icon}
             </div>
-            {Number(totalPenalties) > 0 && card.label === "Circle Savings" && (
-              <div className="flex items-center gap-0.5 text-[8px] sm:text-[9px] font-black underline decoration-red-500/30 text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">
-                <AlertCircle size={10} />
-                -${Number(totalPenalties).toLocaleString()}
-              </div>
-            )}
           </div>
           <div className="space-y-0.5">
             <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider opacity-40 truncate block">

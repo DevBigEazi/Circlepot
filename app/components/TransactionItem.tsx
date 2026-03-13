@@ -12,6 +12,7 @@ import {
   Users,
   Trophy,
   ShieldCheck,
+  ShieldAlert,
   TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
@@ -42,6 +43,8 @@ function getIcon(type: Transaction["type"], isIncoming: boolean) {
       return <Trophy size={18} />;
     case "circle_collateral_return":
       return <ShieldCheck size={18} />;
+    case "circle_forfeit":
+      return <ShieldAlert size={18} />;
     default:
       return isIncoming ? <Download size={18} /> : <Send size={18} />;
   }
@@ -65,6 +68,8 @@ function getIconClasses(type: Transaction["type"], isIncoming: boolean) {
       return "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-400";
     case "circle_collateral_return":
       return "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400";
+    case "circle_forfeit":
+      return "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400";
     default:
       return isIncoming
         ? "bg-green-100 text-green-600"
@@ -106,6 +111,13 @@ function getLabel(tx: Transaction) {
         prefix: "Returned deposit from ",
         highlight: tx.metadata?.circleName || "Circle",
       };
+    case "circle_forfeit":
+      return {
+        prefix: tx.metadata?.note?.includes("Penalty")
+          ? "Default penalty in "
+          : "Forfeited member in ",
+        highlight: tx.metadata?.circleName || "Circle",
+      };
     default: {
       const isInternal = tx.displayName?.startsWith("@");
       if (isInternal) {
@@ -137,6 +149,8 @@ function getAmountColor(type: Transaction["type"], isIncoming: boolean) {
       return "text-yellow-600 dark:text-yellow-400";
     case "circle_collateral_return":
       return "text-teal-600 dark:text-teal-400";
+    case "circle_forfeit":
+      return "text-rose-600 dark:text-rose-400";
     default:
       return isIncoming ? "text-green-600" : "text-red-600";
   }
@@ -154,6 +168,8 @@ function getAmountSign(type: Transaction["type"], isIncoming: boolean) {
     case "circle_payout":
     case "circle_collateral_return":
       return "+";
+    case "circle_forfeit":
+      return "-";
     default:
       return isIncoming ? "+" : "-";
   }
@@ -175,7 +191,8 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
     transaction.type === "circle_created" ||
     transaction.type === "circle_contribution" ||
     transaction.type === "circle_payout" ||
-    transaction.type === "circle_collateral_return";
+    transaction.type === "circle_collateral_return" ||
+    transaction.type === "circle_forfeit";
 
   return (
     <button
