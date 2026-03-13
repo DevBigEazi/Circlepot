@@ -184,17 +184,27 @@ export const transformCircleToActiveCircle = (
     userAddress &&
     circle.creator?.id?.toLowerCase() === userAddress.toLowerCase();
 
-  // Calculate Payout (Tiered Fee)
-  const totalPot =
-    BigInt(circle.contributionAmount) * BigInt(circle.maxMembers || 0);
-  let payoutAmountBigInt = totalPot;
-  if (!isCreator) {
-    if (totalPot <= 1000000000n) {
-      // <= $1000
-      const platformFee = (totalPot * 100n) / 10000n; // 1%
-      payoutAmountBigInt = totalPot - platformFee;
-    } else {
-      payoutAmountBigInt = totalPot - 10000000n; // Fixed $10 fee
+  // Calculate Payout (Try to use actuals first, fallback to tiered prediction)
+  const userPayout = payouts.find(
+    (p) => p.user.id.toLowerCase() === userAddress?.toLowerCase()
+  );
+
+  let payoutAmountBigInt: bigint;
+
+  if (userPayout) {
+    // If we have an actual payout record, use it exactly
+    payoutAmountBigInt = BigInt(Math.floor(parseFloat(userPayout.payoutAmount) * 1000000));
+  } else {
+    // Prediction logic (Tiered Fee)
+    const totalPot = BigInt(circle.contributionAmount) * BigInt(circle.maxMembers || 0);
+    payoutAmountBigInt = totalPot;
+    if (!isCreator) {
+      if (totalPot <= 1000000000n) { // <= $1000
+        const platformFee = (totalPot * 100n) / 10000n; // 1%
+        payoutAmountBigInt = totalPot - platformFee;
+      } else {
+        payoutAmountBigInt = totalPot - 10000000n; // Fixed $10 fee
+      }
     }
   }
 
