@@ -241,7 +241,7 @@ export default function ActiveCircleCard({
                     <div className="flex items-center gap-1 mt-1 opacity-70">
                       <span className="text-[7px] font-black uppercase tracking-tighter text-emerald-700">
                         ✓ You voted:{" "}
-                        {userVote.choice === "1" ? "Start" : "Withdraw"}
+                        {Number(userVote.choice) === 1 ? "Start" : "Withdraw"}
                       </span>
                     </div>
                   )}
