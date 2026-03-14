@@ -96,7 +96,7 @@ type GraphVoteCast = {
   id: string;
   voter: GraphUser;
   circleId: string;
-  choice: string;
+  choice: number;
   transaction: { blockTimestamp: string };
 };
 
@@ -397,7 +397,7 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
         hasContributed: hasContributedThisRound,
         rawCircle: enrichedCircle,
       };
-    });
+    }).filter(c => c.status !== 'dead' && c.status !== 'completed');
   }, [
     circlesData,
     address,

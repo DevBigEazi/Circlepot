@@ -599,9 +599,9 @@ export default function SavingsPage() {
             const isCreator =
               address?.toLowerCase() ===
               activeModal.circle.rawCircle.creator.id.toLowerCase();
-            const isDead = activeModal.circle.status === "dead";
-            if (isCreator && isDead) {
-              // 1 USD for private (0), 0.5 USD for public (1)
+            const isDeadScenario = activeModal.circle.status !== "completed";
+            if (isCreator && isDeadScenario) {
+              // Platform fee: 1.00 USDT for private (0), 0.50 USDT for public (1)
               return activeModal.circle.rawCircle.visibility === 0
                 ? "1.00"
                 : "0.50";
@@ -610,15 +610,15 @@ export default function SavingsPage() {
           })()}
           netAmount={(() => {
             const locked = BigInt(
-              activeModal.circle.rawCircle.members?.[0]?.collateralLocked ||
-                "0",
+              activeModal.circle.rawCircle.members?.find(m => m.id.toLowerCase() === address?.toLowerCase())?.collateralLocked ||
+              activeModal.circle.rawCircle.collateralAmount || "0"
             );
             const isCreator =
               address?.toLowerCase() ===
               activeModal.circle.rawCircle.creator.id.toLowerCase();
-            const isDead = activeModal.circle.status === "dead";
+            const isDeadScenario = activeModal.circle.status !== "completed";
             let fee = 0n;
-            if (isCreator && isDead) {
+            if (isCreator && isDeadScenario) {
               fee =
                 activeModal.circle.rawCircle.visibility === 0
                   ? 1000000n
@@ -631,11 +631,9 @@ export default function SavingsPage() {
             activeModal.circle.rawCircle.creator.id.toLowerCase()
           }
           withdrawalReason={
-            activeModal.circle.status === "completed"
-              ? "completed"
-              : activeModal.circle.rawCircle.lastVoteExecuted?.withdrawWon
-                ? "vote_failed"
-                : "below_threshold"
+            activeModal.circle.rawCircle.lastVoteExecuted?.withdrawWon
+              ? "vote_failed"
+              : "below_threshold"
           }
           colors={colors}
           isLoading={isWithdrawingCollateral}
@@ -660,12 +658,22 @@ export default function SavingsPage() {
           circleName={activeModal.circle.name}
           isLoading={isVoting}
           startVotes={
-            activeModal.circle.votes.filter((v) => v.choice === "1").length
+            activeModal.circle.votes.filter((v) => Number(v.choice) === 1).length
           }
           withdrawVotes={
-            activeModal.circle.votes.filter((v) => v.choice === "2").length
+            activeModal.circle.votes.filter((v) => Number(v.choice) === 2).length
           }
           totalMembers={Number(activeModal.circle.rawCircle.currentMembers)}
+          hasVoted={activeModal.circle.votes.some(
+            (v) => v.voter.id.toLowerCase() === address?.toLowerCase()
+          )}
+          isCreator={
+            address?.toLowerCase() ===
+            activeModal.circle.rawCircle.creator.id.toLowerCase()
+          }
+          creatorDeadFee={
+            activeModal.circle.rawCircle.visibility === 0 ? "1.00" : "0.50"
+          }
           onClose={() =>
             setActiveModal({ type: null, goal: null, circle: null })
           }

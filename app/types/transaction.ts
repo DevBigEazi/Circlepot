@@ -32,5 +32,7 @@ export interface Transaction {
     goalName?: string;
     note?: string;
     payoutFee?: string;
+    deadFee?: string;
+    forfeitFee?: string;
   };
 }

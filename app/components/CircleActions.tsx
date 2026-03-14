@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { ThemeColors } from "../hooks/useThemeColors";
 import LoadingSpinner from "./LoadingSpinner";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
-import { VoteModal } from "./modals/VoteModal";
+
 
 interface CircleActionsProps {
   circle: ActiveCircle;
@@ -26,7 +26,7 @@ interface CircleActionsProps {
   isMember: boolean;
   onContribute: () => void;
   onInitiateVoting: () => void;
-  onVote: (choice: number) => void;
+  onVote: (choice?: number) => void;
   onExecuteVote: () => void;
   onWithdrawCollateral: () => void;
   onInviteMembers: () => void;
@@ -60,7 +60,6 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
   const { primaryWallet } = useDynamicContext();
   const [isCopying, setIsCopying] = useState(false);
   const [now, setNow] = useState<number>(0);
-  const [showVoteModal, setShowVoteModal] = useState(false);
 
   React.useEffect(() => {
     setNow(Math.floor(Date.now() / 1000));
@@ -241,7 +240,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
       >
         {isMember && !hasVoted && !votingEnded && (
           <button
-            onClick={() => setShowVoteModal(true)}
+            onClick={() => onVote()}
             disabled={isGlobalLoading}
             className={`${buttonBaseClass} text-white`}
             style={{
@@ -254,11 +253,12 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
         )}
 
         {isMember && hasVoted && !votingEnded && (
-          <div
-            className={`${buttonBaseClass} bg-emerald-500/10 text-emerald-600 border-emerald-500/20`}
+          <button
+            onClick={() => onVote()}
+            className={`${buttonBaseClass} bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 transition-colors`}
           >
             <CheckCircle size={14} /> Vote Recorded
-          </div>
+          </button>
         )}
 
         {votingEnded && (
@@ -307,22 +307,6 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
             <MessageSquare size={14} /> Chat
           </button>
         </div>
-
-        {showVoteModal && (
-          <VoteModal
-            isOpen={showVoteModal}
-            circleName={circle.name}
-            isLoading={isGlobalLoading}
-            startVotes={circle.votes.filter((v) => v.choice === "1").length}
-            withdrawVotes={circle.votes.filter((v) => v.choice === "2").length}
-            totalMembers={Number(rawCircle.currentMembers)}
-            onClose={() => setShowVoteModal(false)}
-            onVote={(choice) => {
-              onVote(choice ? 1 : 2);
-              setShowVoteModal(false);
-            }}
-          />
-        )}
       </div>
     );
   }

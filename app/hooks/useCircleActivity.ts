@@ -262,6 +262,8 @@ export const useCircleActivity = () => {
             metadata: {
               circleName: cName,
               note,
+              deadFee: deadFee || undefined,
+              forfeitFee: forfeitFee || undefined,
             },
           });
         };
