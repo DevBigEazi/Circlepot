@@ -33,66 +33,62 @@ export const WithdrawCollateralModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
       <div
-        className="relative w-full max-w-md bg-surface rounded-[2.5rem] shadow-2xl overflow-hidden border-4 animate-in fade-in zoom-in duration-300"
+        className="relative w-full sm:max-w-md bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-4 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] flex flex-col"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
         <div
-          className="p-8 border-b relative"
+          className="p-6 sm:p-8 border-b relative shrink-0"
           style={{ borderColor: `${colors.border}40` }}
         >
           <button
             onClick={onClose}
-            className="absolute right-8 top-8 p-2 rounded-xl hover:bg-black/5 transition-colors"
+            className="absolute right-6 sm:right-8 top-6 sm:top-8 p-2 rounded-xl hover:bg-black/5 transition-colors"
           >
-            <X size={24} />
+            <X size={20} className="sm:w-6 sm:h-6" />
           </button>
 
           <div className="flex items-center gap-4 mb-2">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center"
               style={{
                 backgroundColor: colors.background,
                 color: colors.primary,
               }}
             >
-              <Wallet size={24} />
+              <Wallet size={20} className="sm:w-6 sm:h-6" />
             </div>
             <div>
               <h2
-                className="text-2xl font-black tracking-tight"
+                className="text-xl sm:text-2xl font-black tracking-tight"
                 style={{ color: colors.text }}
               >
                 Withdrawal
               </h2>
-              <p className="text-xs font-bold opacity-40 uppercase tracking-widest">
+              <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">
                 {circleName}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="p-8 space-y-6">
+        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto custom-scrollbar">
           <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-5 flex gap-4 items-start">
             <AlertTriangle className="text-rose-500 shrink-0" size={24} />
             <div className="space-y-1">
-              <p className="text-xs font-bold text-rose-500/80 leading-relaxed uppercase tracking-widest">
-                {withdrawalReason === "completed"
-                  ? "Goal Achieved"
-                  : "Circle Terminated"}
+              <p className="text-sm sm:text-3xl font-bold text-rose-500/80 leading-relaxed uppercase tracking-widest">
+                Circle Terminated
               </p>
-              <p className="text-[10px] font-bold opacity-60 leading-relaxed">
-                {withdrawalReason === "completed"
-                  ? "This circle has successfully completed! Your collateral is now eligible for return."
-                  : withdrawalReason === "vote_failed"
-                    ? "The vote to terminate the circle has passed. You can now withdraw your locked collateral."
-                    : "The circle did not reach the required minimum members to start. Your collateral is being returned."}
+              <p className="text-[10px] sm:text-[11px] font-bold opacity-60 leading-relaxed">
+                {withdrawalReason === "vote_failed"
+                  ? "The vote to terminate the circle has passed. You can now withdraw your locked collateral."
+                  : "The circle did not reach the required minimum members to start. Your collateral is being returned."}
               </p>
             </div>
           </div>
@@ -102,7 +98,7 @@ export const WithdrawCollateralModal = ({
             style={{ backgroundColor: `${colors.text}05` }}
           >
             <div className="flex justify-between items-center opacity-60">
-              <span className="text-[10px] font-black uppercase tracking-widest">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">
                 Collateral Locked
               </span>
               <span className="text-sm font-black">$ {collateralLocked}</span>
@@ -111,7 +107,7 @@ export const WithdrawCollateralModal = ({
             {isCreator && Number(creatorDeadFee) > 0 && (
               <div className="flex justify-between items-center text-rose-500 mb-2 pt-2 border-t border-black/5">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">
                     Dead Circle Fee
                   </span>
                   <span className="text-[8px] font-bold opacity-60">
@@ -124,31 +120,31 @@ export const WithdrawCollateralModal = ({
 
             <div className="flex justify-between items-center pt-4 border-t border-black/5">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest opacity-40">
                   Net Return
                 </span>
                 <div
-                  className="text-2xl font-black"
+                  className="text-xl sm:text-2xl font-black"
                   style={{ color: colors.text }}
                 >
                   $ {netAmount} USDT
                 </div>
               </div>
               <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center"
                 style={{
                   backgroundColor: `${colors.primary}20`,
                   color: colors.primary,
                 }}
               >
-                <ArrowRight size={24} />
+                <ArrowRight size={20} className="sm:w-6 sm:h-6" />
               </div>
             </div>
           </div>
         </div>
 
         <div
-          className="p-8 border-t flex gap-4"
+          className="p-6 sm:p-8 border-t flex gap-4 shrink-0"
           style={{ borderColor: `${colors.border}40` }}
         >
           <button

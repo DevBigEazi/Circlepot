@@ -94,7 +94,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
   };
 
   const buttonBaseClass =
-    "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-200 active:scale-95 shadow-sm border-2 disabled:opacity-50 disabled:cursor-not-allowed flex-1 min-w-0";
+    "flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl font-black uppercase tracking-widest text-[9px] sm:text-xs transition-all duration-200 active:scale-95 shadow-sm border-2 disabled:opacity-50 disabled:cursor-not-allowed flex-1 min-w-0";
 
   // State: CREATED (1)
   if (status === "created") {
@@ -109,10 +109,10 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
 
     return (
       <div
-        className="flex flex-col gap-3 pt-4 border-t"
+        className="flex flex-col gap-2 pt-4 border-t"
         style={{ borderColor: `${colors.border}40` }}
       >
-        <div className="flex gap-2 w-full">
+        <div className="flex flex-wrap gap-2 w-full">
           {ultimatumPassed && thresholdReached && isMember && (
             <button
               onClick={onInitiateVoting}
@@ -127,7 +127,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
                 <LoadingSpinner size="sm" />
               ) : (
                 <>
-                  <Vote size={14} /> Initiate Vote
+                  <Vote size={14} /> Start Vote
                 </>
               )}
             </button>
@@ -146,7 +146,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
                 <LoadingSpinner size="sm" />
               ) : (
                 <>
-                  <AlertTriangle size={14} /> Withdraw Collateral
+                  <AlertTriangle size={14} /> Withdraw
                 </>
               )}
             </button>
@@ -178,7 +178,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
             <Share2 size={14} /> {isCopying ? "Copied" : "Share"}
           </button>
         </div>
-        <div className="flex gap-2 w-full">
+        <div className="flex flex-wrap gap-2 w-full">
           <button
             onClick={onOpenDetails}
             disabled={isGlobalLoading}
@@ -203,7 +203,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
           >
             <MessageSquare size={14} /> Chat
           </button>
-          {isCreator && (
+          {isCreator && !(ultimatumPassed && !thresholdReached) && (
             <button
               onClick={onUpdateVisibility}
               disabled={isGlobalLoading}
@@ -275,13 +275,13 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
               <LoadingSpinner size="sm" />
             ) : (
               <>
-                <Vote size={14} /> Finalize Vote Results
+                <Vote size={14} /> Finalize Vote
               </>
             )}
           </button>
         )}
 
-        <div className="flex gap-2 w-full">
+        <div className="flex flex-wrap gap-2 w-full">
           <button
             onClick={onOpenDetails}
             disabled={isGlobalLoading}
@@ -396,7 +396,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 w-full">
+        <div className="flex flex-wrap gap-2 w-full">
           <button
             onClick={onOpenDetails}
             disabled={isGlobalLoading}
@@ -443,7 +443,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
           )}
           {status === "completed" ? "Goal Achieved" : "Circle Terminated"}
         </div>
-        {isMember && !hasWithdrawn && (
+        {isMember && status === "dead" && !hasWithdrawn && (
           <button
             onClick={onWithdrawCollateral}
             disabled={isGlobalLoading}
@@ -457,12 +457,12 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
               <LoadingSpinner size="sm" />
             ) : (
               <>
-                <DollarSign size={14} /> Withdraw Collateral
+                <DollarSign size={14} /> Withdraw
               </>
             )}
           </button>
         )}
-        <div className="flex gap-2 w-full">
+        <div className="flex flex-wrap gap-2 w-full">
           <button
             onClick={onOpenDetails}
             disabled={isGlobalLoading}
@@ -484,7 +484,7 @@ export const CircleActions: React.FC<CircleActionsProps> = ({
     <button
       onClick={onOpenDetails}
       disabled={isGlobalLoading}
-      className={`${buttonBaseClass} w-full`}
+      className={`${buttonBaseClass} flex-1 w-full`}
       style={{ borderColor: colors.border, color: colors.text, opacity: 0.6 }}
     >
       <Info size={14} /> View Status
