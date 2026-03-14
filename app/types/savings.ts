@@ -247,7 +247,7 @@ export interface VoteCast {
     fullName?: string;
   };
   circleId: string;
-  choice: string;
+  choice: number;
   transaction: {
     blockTimestamp: string;
   };

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CheckCircle, UserX, Loader2, Info } from "lucide-react";
+import { X, CheckCircle, UserX, Loader2, Info, AlertTriangle } from "lucide-react";
 import { useThemeColors } from "../../hooks/useThemeColors";
 
 interface VoteModalProps {
@@ -13,6 +13,9 @@ interface VoteModalProps {
   startVotes?: number;
   withdrawVotes?: number;
   totalMembers?: number;
+  hasVoted?: boolean;
+  isCreator?: boolean;
+  creatorDeadFee?: string;
 }
 
 export const VoteModal: React.FC<VoteModalProps> = ({
@@ -24,6 +27,9 @@ export const VoteModal: React.FC<VoteModalProps> = ({
   startVotes = 0,
   withdrawVotes = 0,
   totalMembers = 0,
+  hasVoted = false,
+  isCreator = false,
+  creatorDeadFee = "0.00",
 }) => {
   const colors = useThemeColors();
   const [selectedChoice, setSelectedChoice] = useState<boolean | null>(null);
@@ -124,19 +130,35 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                   </div>
                 </div>
               )}
+
+              {isCreator && Number(creatorDeadFee) > 0 && (
+                <div className="p-3 rounded-xl bg-orange-500/5 border border-orange-500/10 flex items-center gap-2">
+                  <AlertTriangle className="text-orange-500" size={14} />
+                  <p className="text-[10px] font-bold text-orange-600/80 uppercase tracking-tight">
+                    Creator Penalty: ${creatorDeadFee} if circle is terminated
+                  </p>
+                </div>
+              )}
+
+              {hasVoted && (
+                <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-emerald-500/10 text-emerald-600 w-fit">
+                  <CheckCircle size={12} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Your vote is recorded</span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <button
               onClick={() => handleVote(true)}
-              disabled={isLoading}
-              className="group relative w-full p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 hover:scale-[1.02] active:scale-95 flex items-center justify-between"
+              disabled={isLoading || hasVoted}
+              className={`group relative w-full p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 ${!hasVoted ? "hover:scale-[1.02] active:scale-95" : "opacity-60 cursor-default"} flex items-center justify-between`}
               style={{
                 borderColor:
-                  selectedChoice === true ? colors.primary : colors.border,
+                  selectedChoice === true || (hasVoted && startVotes > withdrawVotes) ? colors.primary : colors.border,
                 backgroundColor:
-                  selectedChoice === true
+                  selectedChoice === true || (hasVoted && startVotes > withdrawVotes)
                     ? `${colors.primary}10`
                     : colors.surface,
               }}
@@ -169,13 +191,13 @@ export const VoteModal: React.FC<VoteModalProps> = ({
 
             <button
               onClick={() => handleVote(false)}
-              disabled={isLoading}
-              className="group relative w-full p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 hover:scale-[1.02] active:scale-95 flex items-center justify-between"
+              disabled={isLoading || hasVoted}
+              className={`group relative w-full p-4 sm:p-6 rounded-3xl border-2 transition-all duration-300 ${!hasVoted ? "hover:scale-[1.02] active:scale-95" : "opacity-60 cursor-default"} flex items-center justify-between`}
               style={{
                 borderColor:
-                  selectedChoice === false ? "#ef4444" : colors.border,
+                  selectedChoice === false || (hasVoted && withdrawVotes > startVotes) ? "#ef4444" : colors.border,
                 backgroundColor:
-                  selectedChoice === false ? "#ef444410" : colors.surface,
+                  selectedChoice === false || (hasVoted && withdrawVotes > startVotes) ? "#ef444410" : colors.surface,
               }}
             >
               <div className="flex items-center gap-3 sm:gap-4">
@@ -209,13 +231,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         <div
           className="p-6 sm:p-8 border-t shrink-0"
           style={{ borderColor: `${colors.border}40` }}
-        >
-          <button
-            onClick={onClose}
-            className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs bg-black text-white hover:opacity-90 transition-opacity"
-          >
-            Cancel
-          </button>
+        >   
         </div>
       </div>
     </div>
