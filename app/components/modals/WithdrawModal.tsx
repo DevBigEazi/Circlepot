@@ -45,7 +45,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose }) => {
         onClick={onClose}
       />
       <div
-        className="relative w-full sm:max-w-md bg-surface rounded-t-[2rem] sm:rounded-2xl shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-0 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300"
+        className="relative w-full sm:max-w-md bg-surface rounded-t-4xl sm:rounded-2xl shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-0 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto"
         style={{ backgroundColor: colors.surface }}
       >
         <div className="p-6 sm:p-8">

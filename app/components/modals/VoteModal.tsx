@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CheckCircle, UserX, Loader2, Info, AlertTriangle } from "lucide-react";
+import { X, CheckCircle, UserX, Info, AlertTriangle } from "lucide-react";
 import { useThemeColors } from "../../hooks/useThemeColors";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface VoteModalProps {
   isOpen: boolean;
@@ -185,7 +186,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 </div>
               </div>
               {isLoading && selectedChoice === true && (
-                <Loader2 size={16} className="animate-spin" />
+                <LoadingSpinner size="sm" />
               )}
             </button>
 
@@ -222,7 +223,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 </div>
               </div>
               {isLoading && selectedChoice === false && (
-                <Loader2 size={16} className="animate-spin" />
+                <LoadingSpinner size="sm" />
               )}
             </button>
           </div>
