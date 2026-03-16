@@ -6,8 +6,11 @@ import { publicClient } from "@/lib/viem";
 import { CIRCLE_SAVINGS_ABI, TOKEN_ABI } from "../constants/abis";
 import { CHECK_USER_STATUS } from "../graphql/savingsQueries";
 import { request } from "graphql-request";
-import { parseUnits, getAddress, BaseError } from "viem";
+import { parseUnits, getAddress } from "viem";
+
 import { useState, useCallback } from "react";
+import { handleSmartAccountError } from "@/lib/error-handler";
+
 
 const CIRCLE_SAVING_CONTRACT = process.env
   .NEXT_PUBLIC_CIRCLE_SAVING_CONTRACT as `0x${string}`;
@@ -82,44 +85,10 @@ export const useCircleSavings = () => {
    * Helper to normalize transaction errors.
    */
   const normalizeError = (err: unknown): Error => {
-    console.error("Original Error:", err);
-
-    // Check for contract revert errors
-    const errorString = String(err).toLowerCase();
-    if (errorString.includes("notinvited"))
-      return new Error("You are not invited to this private circle.");
-    if (
-      errorString.includes("alreadyjoined") ||
-      errorString.includes("0x003b2682")
-    )
-      return new Error("You have already joined this circle.");
-    if (errorString.includes("circlenotopen"))
-      return new Error("This circle is no longer accepting members.");
-    if (errorString.includes("insufficientcollateral"))
-      return new Error("Insufficient collateral or balance.");
-
-    if (err instanceof BaseError) {
-      // Walk down to find the most specific error message
-      const revertedError = err.walk(
-        (e) => e instanceof Error && "data" in (e as { data?: unknown }),
-      );
-      const message = revertedError
-        ? (revertedError as unknown as { data?: { message?: string } }).data
-            ?.message || err.shortMessage
-        : err.shortMessage || err.message;
-      return new Error(`Transaction failed: ${message}`);
-    } else if (err instanceof Error) {
-      // Check if it's an RPC error with a body
-      if ((err as unknown as { body?: string }).body) {
-        try {
-          const body = JSON.parse((err as unknown as { body: string }).body);
-          if (body.error?.message) return new Error(body.error.message);
-        } catch {}
-      }
-      return err;
-    }
-    return new Error("An unknown transaction error occurred");
+    const message = handleSmartAccountError(err);
+    return new Error(message);
   };
+
 
   /**
    * Subgraph version of status checks

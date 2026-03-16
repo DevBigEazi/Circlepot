@@ -4,8 +4,11 @@ import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { isZeroDevConnector } from "@dynamic-labs/ethereum-aa";
 import { publicClient } from "@/lib/viem";
 import { PERSONAL_SAVINGS_ABI, TOKEN_ABI } from "../constants/abis";
-import { parseUnits, getAddress, BaseError } from "viem";
+import { parseUnits, getAddress } from "viem";
+
 import { useState } from "react";
+import { handleSmartAccountError } from "@/lib/error-handler";
+
 
 const PERSONAL_SAVING_CONTRACT = process.env
   .NEXT_PUBLIC_PERSONAL_SAVING_CONTRACT as `0x${string}`;
@@ -73,15 +76,10 @@ export const usePersonalGoals = () => {
    * Helper to normalize transaction errors.
    */
   const normalizeError = (err: unknown): Error => {
-    if (err instanceof BaseError) {
-      return new Error(
-        `Transaction failed: ${err.shortMessage || err.message}`,
-      );
-    } else if (err instanceof Error) {
-      return err;
-    }
-    return new Error("An unknown transaction error occurred");
+    const message = handleSmartAccountError(err);
+    return new Error(message);
   };
+
 
   /**
    * Checks if the contract has a vault assigned for the given token.

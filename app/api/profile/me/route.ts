@@ -44,8 +44,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(profile);
   } catch (error) {
     console.error("Get profile error:", error);
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const isTimeout = error instanceof Error && error.message.includes("ETIMEOUT");
+    const message = isTimeout 
+      ? "Database connection timed out. Please check your network or DNS." 
+      : (error instanceof Error ? error.message : "Internal server error");
+    
+    return NextResponse.json({ error: message }, { status: isTimeout ? 503 : 500 });
   }
 }

@@ -4,8 +4,11 @@ import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { isZeroDevConnector } from "@dynamic-labs/ethereum-aa";
 import { publicClient } from "@/lib/viem";
 import { TOKEN_ABI } from "../constants/abis";
-import { parseUnits, getAddress, BaseError } from "viem";
+import { parseUnits, getAddress } from "viem";
+
 import { useState, useCallback } from "react";
+import { handleSmartAccountError } from "@/lib/error-handler";
+
 
 const USDT_CONTRACT = process.env.NEXT_PUBLIC_USDT_CONTRACT as `0x${string}`;
 const PLATFORM_FEE_RECIPIENT = process.env.NEXT_PUBLIC_PLATFORM_FEE_RECIPIENT as `0x${string}`;
@@ -64,13 +67,9 @@ export const useTransfer = () => {
    * Helper to normalize transaction errors.
    */
   const normalizeError = (err: unknown): string => {
-    if (err instanceof BaseError) {
-      return `Transaction failed: ${err.shortMessage || err.message}`;
-    } else if (err instanceof Error) {
-      return err.message;
-    }
-    return "An unknown transaction error occurred";
+    return handleSmartAccountError(err);
   };
+
 
   /**
    * Performs a transfer (internal or external)
