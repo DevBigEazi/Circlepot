@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { useAccountAddress } from "@/app/hooks/useAccountAddress";
 import { useQueryClient } from "@tanstack/react-query";
+import { handleSmartAccountError } from "@/lib/error-handler";
 
 export default function JoinCirclePage() {
   const params = useParams();
@@ -88,7 +89,7 @@ export default function JoinCirclePage() {
       }, 2000);
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "Failed to join circle");
+      toast.error(handleSmartAccountError(err));
     }
   };
 

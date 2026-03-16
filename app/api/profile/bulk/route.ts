@@ -33,9 +33,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Bulk profile fetch error:", error);
+    const isTimeout = error instanceof Error && error.message.includes("ETIMEOUT");
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
+      { error: isTimeout ? "Database connection timeout" : "Internal server error" },
+      { status: isTimeout ? 503 : 500 },
     );
   }
 }

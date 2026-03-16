@@ -29,6 +29,9 @@ export default function PersonalGoalCard({
 
   const current = Number(formatUnits(BigInt(goal.currentAmount || "0"), 6));
   const target = Number(formatUnits(BigInt(goal.goalAmount || "0"), 6));
+  const contribution = Number(
+    formatUnits(BigInt(goal.contributionAmount || "0"), 6),
+  );
   const progress = Math.min((current / target) * 100, 100);
 
   const frequencyLabel =
@@ -155,15 +158,20 @@ export default function PersonalGoalCard({
             Completed
           </div>
         ) : (
-          <div
-            className="p-1 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest"
-            style={{
-              backgroundColor: colors.background,
-              color: colors.text,
-              opacity: 0.6,
-            }}
-          >
-            {frequencyLabel}
+          <div className="flex flex-col items-end gap-1.5">
+            <div
+              className="p-1 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest"
+              style={{
+                backgroundColor: colors.background,
+                color: colors.text,
+                opacity: 0.6,
+              }}
+            >
+              {frequencyLabel}
+            </div>
+            <div className="text-[10px] font-bold opacity-40">
+              ${contribution.toLocaleString()} / {["day", "week", "month"][goal.frequency] || "cycle"}
+            </div>
           </div>
         )}
       </div>
@@ -180,7 +188,7 @@ export default function PersonalGoalCard({
               </span>
               <div className="flex items-baseline gap-1 truncate">
                 <span
-                  className="text-xl sm:text-2xl font-black truncate"
+                  className="text-lg sm:text-2xl font-black truncate"
                   style={{ color: colors.text }}
                 >
                   ${current.toLocaleString()}
@@ -233,7 +241,7 @@ export default function PersonalGoalCard({
                 onWithdraw(e);
               }
             }}
-            className="flex-1 flex justify-center items-center px-3 py-2.5 sm:py-2 rounded-xl border text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#ef4444] transition hover:scale-[1.02] active:scale-95"
+            className="flex-1 flex justify-center items-center px-3 py-2.5 sm:py-2 rounded-xl border text-[8px] sm:text-[11px] font-black uppercase tracking-wider text-[#ef4444] transition hover:scale-[1.02] active:scale-95"
             style={{
               borderColor: "rgba(239, 68, 68, 0.2)",
               backgroundColor: "rgba(239, 68, 68, 0.05)",
@@ -249,7 +257,7 @@ export default function PersonalGoalCard({
               }
             }}
             disabled={!canContribute}
-            className={`flex-1 flex justify-center items-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-xl border text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+            className={`flex-1 flex justify-center items-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-xl border text-[8px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 ${
               canContribute
                 ? "hover:gap-2.5 hover:scale-[1.02] active:scale-95"
                 : "opacity-50 cursor-not-allowed"

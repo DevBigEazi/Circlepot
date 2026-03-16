@@ -18,6 +18,7 @@ import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { formatUnits } from "viem";
 import { GoalContributionModal } from "@/app/components/modals/GoalContributionModal";
 import { GoalWithdrawalModal } from "@/app/components/modals/GoalWithdrawalModal";
+import { handleSmartAccountError } from "@/lib/error-handler";
 import { usePersonalGoals } from "@/app/hooks/usePersonalGoals";
 import { useSavings } from "@/app/components/SavingsProvider";
 import { toast } from "sonner";
@@ -138,7 +139,7 @@ export default function SavingsPage() {
       }, 2500);
     } catch (err: unknown) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "Action failed.");
+      toast.error(handleSmartAccountError(err));
     } finally {
       if (options.circleId) setProcessingCircleId(null);
     }
@@ -362,29 +363,31 @@ export default function SavingsPage() {
 
         {activeTab === "personal" ? (
           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-3 duration-500">
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x snap-mandatory">
               {personalMetrics.map((card, idx) => (
                 <div
                   key={idx}
-                  className="rounded-2xl sm:rounded-3xl p-3 sm:p-5 border transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 min-w-0"
+                  className="rounded-2xl sm:rounded-3xl p-5 sm:p-6 border transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 flex flex-col justify-between shrink-0 w-[85%] sm:w-[300px] snap-center min-h-[120px] sm:min-h-[140px]"
                   style={{
                     backgroundColor: colors.surface,
                     borderColor: colors.border,
                   }}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider opacity-40 pr-1">
-                      {card.label}
-                    </span>
-                    <span
-                      className="scale-75 sm:scale-100 origin-right"
-                      style={{ color: card.color }}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest opacity-40 truncate">
+                        {card.label}
+                      </span>
+                    </div>
+                    <div
+                      className="p-2 sm:p-2.5 rounded-xl shrink-0"
+                      style={{ backgroundColor: `${card.color}15`, color: card.color }}
                     >
                       {card.icon}
-                    </span>
+                    </div>
                   </div>
                   <div
-                    className="text-lg sm:text-2xl font-black tracking-tight"
+                    className="text-sm sm:text-3xl font-black tracking-tight"
                     style={{ color: colors.text }}
                   >
                     {card.value}

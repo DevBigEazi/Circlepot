@@ -8,6 +8,7 @@ import { useCircleSavings } from "@/app/hooks/useCircleSavings";
 import { useBalance } from "@/app/hooks/useBalance";
 import NavBar from "@/app/components/NavBar";
 import { toast } from "sonner";
+import { handleSmartAccountError } from "@/lib/error-handler";
 import confetti from "canvas-confetti";
 
 export default function CreateCirclePage() {
@@ -95,8 +96,7 @@ export default function CreateCirclePage() {
         router.push("/dashboard");
       }, 1500);
     } catch (err) {
-      const error = err as Error;
-      toast.error(error.message || "Failed to create circle!");
+      toast.error(handleSmartAccountError(err));
     }
   };
 

@@ -216,6 +216,15 @@
   animation: float 6s ease-in-out infinite;
 }
 
+@keyframes bounceSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-bounce-soft {
+  animation: bounceSoft 2s ease-in-out infinite;
+}
+
 /* ── PWA (Ensuring clean dark mode transitions) ── */
 .dark [data-install-prompt] {
   background-color: var(--surface) !important;

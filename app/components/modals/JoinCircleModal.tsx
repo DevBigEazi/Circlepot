@@ -3,7 +3,6 @@
 import React from "react";
 import {
   X,
-  Loader,
   Users,
   DollarSign,
   ShieldCheck,
@@ -14,6 +13,7 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
+import LoadingSpinner from "../LoadingSpinner";
 import { Circle } from "../../types/savings";
 import { formatUnits } from "viem";
 import { useEffect, useState } from "react";
@@ -130,7 +130,7 @@ export const JoinCircleModal: React.FC<JoinCircleModalProps> = ({
 
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div
-          className="w-full sm:max-w-md bg-[var(--surface)] rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-4 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] flex flex-col"
+          className="w-full sm:max-w-md bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-4 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] flex flex-col"
           style={{ borderColor: "var(--border)" }}
         >
           {/* Header */}
@@ -266,7 +266,7 @@ export const JoinCircleModal: React.FC<JoinCircleModalProps> = ({
                     Circle Protocols
                   </h3>
                   <div
-                    className="p-6 rounded-[2rem] border-2 border-dashed space-y-4"
+                    className="p-6 rounded-4xl border-2 border-dashed space-y-4"
                     style={{
                       borderColor: "var(--border)",
                       backgroundColor: "hsla(var(--primary) / 0.02)",
@@ -421,7 +421,7 @@ export const JoinCircleModal: React.FC<JoinCircleModalProps> = ({
                 >
                   {isLoading || status.loading ? (
                     <>
-                      <Loader size={18} className="animate-spin" />
+                      <LoadingSpinner size="sm" />
                       {status.loading ? "Verifying..." : "Joining..."}
                     </>
                   ) : (

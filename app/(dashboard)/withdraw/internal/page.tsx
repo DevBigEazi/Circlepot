@@ -17,6 +17,7 @@ import { useTransfer } from "@/app/hooks/useTransfer";
 import { toast } from "sonner";
 import { parseUnits } from "viem";
 import Image from "next/image";
+import { handleSmartAccountError } from "@/lib/error-handler";
 
 const WithdrawInternalPage: React.FC = () => {
   const router = useRouter();
@@ -85,6 +86,7 @@ const WithdrawInternalPage: React.FC = () => {
       refetchBalance();
     } catch (err) {
       console.error(err);
+      toast.error(handleSmartAccountError(err));
     }
   };
 

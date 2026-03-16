@@ -22,6 +22,7 @@ import ReferralSection from "@/app/components/ReferralSection";
 import { getInitials } from "@/app/utils/helpers";
 import Image from "next/image";
 import NavBar from "@/app/components/NavBar";
+import { handleSmartAccountError } from "@/lib/error-handler";
 
 const ProfilePage = () => {
   const colors = useThemeColors();
@@ -96,9 +97,7 @@ const ProfilePage = () => {
       });
       setSelectedFile(null);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to update profile";
-      toast.error(message);
+      toast.error(handleSmartAccountError(err));
     } finally {
       setIsUpdating(false);
     }

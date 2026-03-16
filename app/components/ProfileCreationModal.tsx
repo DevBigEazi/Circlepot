@@ -13,6 +13,7 @@ import { useAccountAddress } from "../hooks/useAccountAddress";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import Image from "next/image";
+import { handleSmartAccountError } from "@/lib/error-handler";
 
 interface ProfileCreationModalProps {
   onProfileCreated?: () => void;
@@ -203,9 +204,7 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
       }
     } catch (err) {
       setHasFailed(true);
-      const message =
-        err instanceof Error ? err.message : "Failed to create profile";
-      toast.error(message);
+      toast.error(handleSmartAccountError(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -226,13 +225,16 @@ const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
   const isProcessing = isSubmitting || isAccountInitializing;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
-        className="rounded-3xl w-[94%] sm:w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        // No onClick here as it's a mandatory onboarding modal
+      />
+      <div
+        className="relative w-full sm:w-full max-w-md bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-4 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] flex flex-col"
         style={{
           backgroundColor: colors.surface,
           borderColor: colors.border,
-          borderWidth: "1px",
         }}
       >
         {/* Header */}

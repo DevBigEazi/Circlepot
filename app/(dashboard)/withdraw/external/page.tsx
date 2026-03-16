@@ -16,6 +16,7 @@ import { useBalance } from "@/app/hooks/useBalance";
 import { useTransfer } from "@/app/hooks/useTransfer";
 import { toast } from "sonner";
 import { parseUnits } from "viem";
+import { handleSmartAccountError } from "@/lib/error-handler";
 
 const WithdrawExternalPage: React.FC = () => {
   const router = useRouter();
@@ -72,7 +73,7 @@ const WithdrawExternalPage: React.FC = () => {
       refetchBalance();
     } catch (err) {
       console.error(err);
-      // Error handled by useTransfer and toast
+      toast.error(handleSmartAccountError(err));
     }
   };
 
