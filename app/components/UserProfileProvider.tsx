@@ -131,7 +131,8 @@ export function UserProfileProvider({
       const message =
         err instanceof Error ? err.message : "An unknown error occurred";
       setError(message);
-      setProfile(null);
+      // DO NOT set profile to null here. null means "Profile definitely doesn't exist".
+      // Keeping it as undefined (or previous value) prevents unwanted redirects to profile creation.
     } finally {
       setIsLoading(false);
       fetchInProgress.current = false;

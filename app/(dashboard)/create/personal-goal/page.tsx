@@ -17,6 +17,7 @@ import NavBar from "@/app/components/NavBar";
 import { usePersonalGoals } from "@/app/hooks/usePersonalGoals";
 import { useYieldAPY } from "@/app/hooks/useYieldAPY";
 import { toast } from "sonner";
+import { handleSmartAccountError } from "@/lib/error-handler";
 import confetti from "canvas-confetti";
 
 export default function CreatePersonalGoalPage() {
@@ -106,8 +107,7 @@ export default function CreatePersonalGoalPage() {
         router.push("/savings");
       }, 1500);
     } catch (e) {
-      const err = e as Error;
-      toast.error(err.message || "Failed to create goal");
+      toast.error(handleSmartAccountError(e));
     }
   };
 

@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { useSavings } from "@/app/components/SavingsProvider";
+import { handleSmartAccountError } from "@/lib/error-handler";
 
 export default function BrowsePage() {
   const colors = useThemeColors();
@@ -126,9 +127,7 @@ export default function BrowsePage() {
       }, 2000);
     } catch (error) {
       console.error(error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to join circle",
-      );
+      toast.error(handleSmartAccountError(error));
     }
   };
 

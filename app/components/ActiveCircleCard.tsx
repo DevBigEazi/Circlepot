@@ -38,6 +38,7 @@ export default function ActiveCircleCard({
     totalPositions,
     currentPosition,
     payoutAmount,
+    contribution,
     nextPayout,
     status,
     membersList,
@@ -322,40 +323,53 @@ export default function ActiveCircleCard({
           })()}
       </div>
 
-      {/* Main Stats Row */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5 sm:mb-6">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-4 mb-5 sm:mb-6">
         <div
-          className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-opacity-40"
+          className="p-2 sm:p-4 rounded-xl sm:rounded-2xl bg-opacity-40 min-w-0"
           style={{ backgroundColor: colors.background }}
         >
-          <div className="flex items-center gap-2 mb-1.5 opacity-40">
-            <TrendingUp size={12} style={{ color: colors.primary }} />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 mb-1.5 opacity-40">
+            <TrendingUp size={10} className="shrink-0 sm:w-3 sm:h-3" style={{ color: colors.primary }} />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest truncate">
+              Contrib
+            </span>
+          </div>
+          <div
+            className="text-xs sm:text-xl font-black tracking-tight truncate"
+            style={{ color: colors.text }}
+          >
+            ${Number(contribution).toLocaleString()}
+          </div>
+        </div>
+        <div
+          className="p-2 sm:p-4 rounded-xl sm:rounded-2xl bg-opacity-40 min-w-0"
+          style={{ backgroundColor: colors.background }}
+        >
+          <div className="flex items-center gap-1.5 mb-1.5 opacity-40">
+            <Award size={10} className="shrink-0 sm:w-3 sm:h-3" style={{ color: colors.primary }} />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest truncate">
               Payout
             </span>
           </div>
           <div
-            className="text-lg sm:text-xl font-black tracking-tight"
+            className="text-xs sm:text-xl font-black tracking-tight truncate"
             style={{ color: colors.text }}
           >
-            ${Number(payoutAmount).toLocaleString()}{" "}
-            <span className="text-[9px] opacity-40 font-bold ml-0.5 uppercase">
-              USDT
-            </span>
+            ${Number(payoutAmount).toLocaleString()}
           </div>
         </div>
         <div
-          className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-opacity-40"
+          className="p-2 sm:p-4 rounded-xl sm:rounded-2xl bg-opacity-40 min-w-0"
           style={{ backgroundColor: colors.background }}
         >
-          <div className="flex items-center gap-2 mb-1.5 opacity-40">
-            <Clock size={12} style={{ color: colors.primary }} />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 mb-1.5 opacity-40">
+            <Clock size={10} className="shrink-0 sm:w-3 sm:h-3" style={{ color: colors.primary }} />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest truncate">
               Round
             </span>
           </div>
           <div
-            className="text-lg sm:text-xl font-black tracking-tight"
+            className="text-xs sm:text-xl font-black tracking-tight truncate"
             style={{ color: colors.text }}
           >
             {currentRound}/{totalPositions}

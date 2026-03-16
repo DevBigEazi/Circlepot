@@ -170,14 +170,14 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     transaction.type === "circle_forfeit";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
-        className="absolute inset-0 backdrop-blur-sm bg-black/20 dark:bg-black/60 transition-opacity duration-300"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
       <div
-        className="w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl relative animate-in fade-in zoom-in-95 duration-300"
+        className="relative w-full max-w-sm bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-4 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] flex flex-col"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
         {/* Header */}

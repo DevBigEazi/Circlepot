@@ -225,10 +225,14 @@ const UpdateContactModal: React.FC<UpdateContactModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
-        className="rounded-3xl w-full max-w-md shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden"
-        style={{ backgroundColor: colors.surface }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full max-w-md bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-4 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] flex flex-col"
+        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
         {/* Header */}
         <div className="p-6 border-b" style={{ borderColor: colors.border }}>

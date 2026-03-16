@@ -18,9 +18,13 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
   const colors = useThemeColors();
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-end sm:items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
-        className="w-full max-w-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 border shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onCancel}
+      />
+      <div
+        className="relative w-full max-w-sm bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl overflow-hidden border-x-4 border-t-4 sm:border-4 animate-in fade-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
         <div className="flex justify-between items-start mb-4 sm:mb-6">
