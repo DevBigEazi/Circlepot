@@ -18,8 +18,9 @@ export default function DashboardLayout({
   const { user, sdkHasLoaded } = useDynamicContext();
   const {
     isLoading: isProfileLoading,
-    profile, // Need raw profile to distinguish null vs undefined
+    profile,
     refreshProfile,
+    error: profileError,
   } = useUserProfile();
   const { isInitializing: isAccountInitializing } = useAccountAddress();
   const [isClient, setIsClient] = useState(false);
@@ -77,6 +78,42 @@ export default function DashboardLayout({
 
   // If we have a user, check for profile
   if (user) {
+    if (profileError) {
+      return (
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6">
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-black mb-2">Systems Connection Issue</h2>
+          <p className="text-sm opacity-50 mb-8 max-w-xs">
+            We&apos;re having trouble reaching our database. This is usually a
+            temporary network issue.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Retry Connection
+          </button>
+          <p className="mt-4 text-[9px] opacity-30 font-bold uppercase tracking-widest">
+            Error: {profileError}
+          </p>
+        </div>
+      );
+    }
+
     if (!profile) {
       return (
         <section className="w-full h-screen overflow-hidden">
