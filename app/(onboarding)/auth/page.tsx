@@ -65,6 +65,7 @@ function AuthPageContent() {
   // Redirect if already logged in
   useEffect(() => {
     if (isLoggedIn && user) {
+      setIsLoading(true); // Keep spinner on during redirect
       router.replace(redirectPath);
     }
   }, [isLoggedIn, user, router, redirectPath]);
@@ -177,11 +178,11 @@ function AuthPageContent() {
       setIsLoading(true);
       await verifyOneTimePassword(otp);
       toast.success("Successfully verified!");
+      // We keep isLoading true to show the spinner until redirected
     } catch (error) {
       console.error("OTP verification error:", error);
       const msg = mapDynamicError(error);
       if (msg) toast.error(msg);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -278,7 +279,12 @@ export default function AuthPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center"></div>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">
+            Secure Auth Loading...
+          </p>
+        </div>
       }
     >
       <AuthPageContent />
