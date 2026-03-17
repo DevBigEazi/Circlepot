@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "../hooks/useUserProfile";
+import PushNotificationReminderModal from "../components/modals/PushNotificationReminderModal";
+import { shouldShowPushReminder } from "../utils/pushNotificationManager";
 import ProfileCreationModal from "../components/ProfileCreationModal";
 import BottomNav from "../components/BottomNav";
 import { useAccountAddress } from "../hooks/useAccountAddress";
@@ -24,6 +26,7 @@ export default function DashboardLayout({
   } = useUserProfile();
   const { isInitializing: isAccountInitializing } = useAccountAddress();
   const [isClient, setIsClient] = useState(false);
+  const [showPushReminder, setShowPushReminder] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -44,6 +47,24 @@ export default function DashboardLayout({
       }
     }
   }, [isClient, sdkHasLoaded, user, router]);
+
+  // Check if we should show push notification reminder
+  useEffect(() => {
+    const checkReminder = async () => {
+      // Only check when user is authenticated, has profile, and app is loaded
+      if (isClient && user && profile && !isProfileLoading) {
+        // Add a small delay to let the user settle in before showing the prompt
+        const timer = setTimeout(async () => {
+          const shouldShow = await shouldShowPushReminder();
+          setShowPushReminder(shouldShow);
+        }, 3000); // 3 second delay
+
+        return () => clearTimeout(timer);
+      }
+    };
+
+    checkReminder();
+  }, [isClient, user, profile, isProfileLoading]);
 
   const isDeterminingProfile = user && profile === undefined;
 
@@ -126,9 +147,15 @@ export default function DashboardLayout({
       <section className="w-full flex flex-col min-h-screen pb-12">
         <div className="flex-1">{children}</div>
         <BottomNav />
+        {showPushReminder && (
+          <PushNotificationReminderModal
+            onClose={() => setShowPushReminder(false)}
+          />
+        )}
       </section>
     );
   }
+
 
   // Fallback while redirecting
   return null;
