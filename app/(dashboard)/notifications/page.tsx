@@ -1,13 +1,27 @@
 "use client";
 
-import React from "react";
+import { useNotifications } from "@/app/components/NotificationsProvider";
+import { NotificationList } from "@/app/components/NotificationList";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
-import NavBar from "@/app/components/NavBar";
 import { useRouter } from "next/navigation";
+import NavBar from "@/app/components/NavBar";
+import { CheckCheck } from "lucide-react";
 
 export default function NotificationsPage() {
   const colors = useThemeColors();
   const router = useRouter();
+  const { markAllAsRead, unreadCount } = useNotifications();
+
+  const actions = unreadCount > 0 ? (
+    <button
+      onClick={() => markAllAsRead()}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:opacity-80 border"
+      style={{ color: colors.primary, borderColor: `${colors.primary}40`, backgroundColor: `${colors.primary}10` }}
+    >
+      <CheckCheck size={14} />
+      Mark all read
+    </button>
+  ) : null;
 
   return (
     <div
@@ -19,12 +33,11 @@ export default function NotificationsPage() {
         title="Notifications"
         onBack={() => router.back()}
         colors={colors}
+        actions={actions}
       />
-      <div className="p-3 sm:p-4">
-        <p style={{ color: colors.text, opacity: 0.7 }}>
-          Your recent notifications.
-        </p>
-      </div>
+      <main className="max-w-4xl mx-auto p-4">
+        <NotificationList />
+      </main>
     </div>
   );
 }

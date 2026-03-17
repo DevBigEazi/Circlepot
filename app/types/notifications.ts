@@ -51,6 +51,7 @@ export interface Notification {
   read: boolean;
   timeAgo: string;
   timestamp: number;
+  url?: string;
   action?: {
     label?: string;
     action: string;
