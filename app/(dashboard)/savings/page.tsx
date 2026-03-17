@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useThemeColors } from "@/app/hooks/useThemeColors";
 import NavBar from "@/app/components/NavBar";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   User,
   Users,
@@ -42,8 +42,17 @@ import { UpdateVisibilityModal } from "@/app/components/modals/UpdateVisibilityM
 export default function SavingsPage() {
   const colors = useThemeColors();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("personal");
+
+  // Handle deep linking from notifications
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "personal" || tab === "group") {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   const [processingCircleId, setProcessingCircleId] = useState<string | null>(
     null,
   );

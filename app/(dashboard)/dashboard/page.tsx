@@ -12,6 +12,7 @@ import { RecentTransactions } from "@/app/components/RecentTransactions";
 import { Bell, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSavings } from "@/app/components/SavingsProvider";
+import { useNotifications } from "@/app/components/NotificationsProvider";
 import { useMemo, useState } from "react";
 import { formatUnits } from "viem";
 
@@ -20,6 +21,7 @@ export default function Home() {
   const { profile } = useUserProfile();
   const { formattedBalance, isLoading: isBalanceLoading } = useBalance();
   const { data: creditScore, isLoading: isCreditLoading } = useCreditScore();
+  const { unreadCount } = useNotifications();
   const {
     personalGoals,
     isLoading: isSavingsLoading,
@@ -49,6 +51,14 @@ export default function Home() {
         style={{ color: colors.text, borderColor: colors.border }}
       >
         <Bell size={16} />
+        {unreadCount > 0 && (
+          <span 
+            className="absolute -top-1 -right-1 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold"
+            style={{ backgroundColor: colors.primary }}
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
       </button>
       <button
         onClick={() => router.push("/settings")}

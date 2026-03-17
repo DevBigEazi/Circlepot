@@ -4,9 +4,7 @@ import type {
 } from "../types/notifications";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-const NOTIFICATION_API_URL =
-  process.env.NEXT_PUBLIC_NOTIFICATION_API_URL ||
-  "http://localhost:3001/api/notifications";
+const NOTIFICATION_API_URL = "/api/notifications";
 
 /**
  * Utility function to convert a base64 string to Uint8Array
