@@ -14,6 +14,7 @@ import type {
   Notification,
   NotificationPreferences,
   NotificationType,
+  NotificationPriority,
 } from "../types/notifications";
 import { DEFAULT_NOTIFICATION_PREFERENCES } from "../types/notifications";
 import {
@@ -51,6 +52,7 @@ interface NotificationsContextType {
 
   // Utility to get real-time timeAgo
   getTimeAgo: (timestamp: number) => string;
+  refetchNotifications: () => Promise<void>;
 }
 
 const NotificationsContext = createContext<
@@ -65,16 +67,6 @@ const serializeNotifications = (notifications: Notification[]): string => {
   return JSON.stringify(notifications, (_key, value) => {
     if (typeof value === "bigint") {
       return value.toString() + "n"; // Mark as BigInt with 'n' suffix
-    }
-    return value;
-  });
-};
-
-// Helper function to deserialize notifications with BigInt support
-const deserializeNotifications = (jsonString: string): Notification[] => {
-  return JSON.parse(jsonString, (_key, value) => {
-    if (typeof value === "string" && /^\d+n$/.test(value)) {
-      return BigInt(value.slice(0, -1)); // Remove 'n' and convert to BigInt
     }
     return value;
   });
@@ -95,6 +87,19 @@ const getTimeAgo = (timestamp: number): string => {
   return `${months}mo ago`;
 };
 
+interface BackendNotification {
+  _id: string;
+  title: string;
+  message?: string;
+  body?: string;
+  type: string;
+  priority?: string;
+  createdAt: string;
+  read: boolean;
+  url?: string;
+  data?: Record<string, unknown>;
+}
+
 export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
@@ -102,65 +107,101 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
     useAccountAddress();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [preferences, setPreferences] = useState<NotificationPreferences>(
-    DEFAULT_NOTIFICATION_PREFERENCES,
-  );
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isPushSupported, setIsPushSupported] = useState(false);
-
-  // Initialize client side state
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsPushSupported(isPushNotificationSupported());
-
+  const [preferences, setPreferences] = useState<NotificationPreferences>(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(PREFERENCES_KEY);
       if (stored) {
         try {
-          const loadedNotifications = deserializeNotifications(stored);
-          const migratedNotifications = loadedNotifications.map(
-            (n: Notification) => {
-              let type = n.type;
-              // Migrate legacy types based on titles for better filtering
-              if (
-                n.type === ("payment_received" as unknown as NotificationType)
-              ) {
-                if (n.title.toLowerCase().includes("referral bonus")) {
-                  type = "referral_reward";
-                } else if (
-                  n.title.toLowerCase().includes("contribution successful")
-                ) {
-                  type = "circle_contribution_self";
-                }
-              }
-              return {
-                ...n,
-                type,
-                timeAgo: getTimeAgo(n.timestamp),
-              };
-            },
-          );
-          setNotifications(migratedNotifications);
-        } catch {
-          setNotifications([]);
-        }
-      }
-
-      // Load preferences
-      const storedPreferences = localStorage.getItem(PREFERENCES_KEY);
-      if (storedPreferences) {
-        try {
-          const loadedPreferences = JSON.parse(storedPreferences);
-          setPreferences({
+          return {
             ...DEFAULT_NOTIFICATION_PREFERENCES,
-            ...loadedPreferences,
-          });
+            ...JSON.parse(stored),
+          };
         } catch {
-          // Handle silently in production
+          return DEFAULT_NOTIFICATION_PREFERENCES;
         }
       }
     }
+    return DEFAULT_NOTIFICATION_PREFERENCES;
+  });
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isPushSupported] = useState(() => isPushNotificationSupported());
+
+  // Initialize data from localStorage or external systems
+  useEffect(() => {
+    // Other initialization if needed
   }, []);
+
+  // Fetch notifications from the backend history
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!address || isAccountInitializing) return;
+      try {
+        const res = await fetch(`/api/notifications?userAddress=${address.toLowerCase()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            const fetchedNotifications: Notification[] = (data.notifications as BackendNotification[]).map((n) => ({
+              id: n._id,
+              title: n.title,
+              message: n.message || n.body || "",
+              type: n.type as NotificationType,
+              priority: (n.priority as NotificationPriority) || "medium",
+              timestamp: new Date(n.createdAt).getTime(),
+              read: n.read,
+              url: n.url,
+              timeAgo: getTimeAgo(new Date(n.createdAt).getTime()),
+              data: n.data,
+            }));
+            setNotifications(fetchedNotifications);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch notification history:", err);
+      }
+    };
+
+    if (address && !isAccountInitializing) {
+      fetchNotifications();
+      // Polling every 60 seconds
+      const pollInterval = setInterval(fetchNotifications, 60000);
+      
+      // Refresh on window focus
+      const handleFocus = () => fetchNotifications();
+      window.addEventListener("focus", handleFocus);
+
+      return () => {
+        clearInterval(pollInterval);
+        window.removeEventListener("focus", handleFocus);
+      };
+    }
+  }, [address, isAccountInitializing]);
+
+  const refetchNotifications = useCallback(async () => {
+    if (!address || isAccountInitializing) return;
+    try {
+      const res = await fetch(`/api/notifications?userAddress=${address.toLowerCase()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          const fetchedNotifications: Notification[] = (data.notifications as BackendNotification[]).map((n) => ({
+            id: n._id,
+            title: n.title,
+            message: n.message || n.body || "",
+            type: n.type as NotificationType,
+            priority: (n.priority as NotificationPriority) || "medium",
+            timestamp: new Date(n.createdAt).getTime(),
+            read: n.read,
+            url: n.url,
+            timeAgo: getTimeAgo(new Date(n.createdAt).getTime()),
+            data: n.data,
+          }));
+          setNotifications(fetchedNotifications);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch notification history manually:", err);
+    }
+  }, [address, isAccountInitializing]);
 
   // Check push subscription status on mount and account change
   useEffect(() => {
@@ -236,15 +277,47 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
     [preferences],
   );
 
-  const markAsRead = useCallback((id: string) => {
+  const markAsRead = useCallback(async (id: string) => {
+    // Optimistic update
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
-  }, []);
 
-  const markAllAsRead = useCallback(() => {
+    if (address) {
+      try {
+        await fetch("/api/notifications", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userAddress: address.toLowerCase(),
+            notificationId: id,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to sync read status:", err);
+      }
+    }
+  }, [address]);
+
+  const markAllAsRead = useCallback(async () => {
+    // Optimistic update
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }, []);
+
+    if (address) {
+      try {
+        await fetch("/api/notifications", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userAddress: address.toLowerCase(),
+            all: true,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to sync read status:", err);
+      }
+    }
+  }, [address]);
 
   const toggleNotifications = useCallback((enabled: boolean) => {
     setPreferences((prev) => ({ ...prev, inAppEnabled: enabled }));
@@ -357,6 +430,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
         togglePushNotifications,
         updatePreferences,
         getTimeAgo,
+        refetchNotifications,
       }}
     >
       {children}

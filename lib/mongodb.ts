@@ -92,4 +92,26 @@ export async function ensureIndexes() {
       }
     }
   }
+
+  // Initialize subscriptions collection indexes
+  try {
+    const subCol = db.collection("subscriptions");
+    await subCol.createIndex({ userAddress: 1 });
+    await subCol.createIndex({ endpoint: 1 }, { unique: true });
+  } catch (err: unknown) {
+    if (err instanceof Error && !err.message.includes("already exists")) {
+      console.error("Subscription index error:", err.message);
+    }
+  }
+
+  // Initialize notifications history collection indexes
+  try {
+    const notifCol = db.collection("notifications");
+    await notifCol.createIndex({ userAddress: 1 });
+    await notifCol.createIndex({ createdAt: -1 });
+  } catch (err: unknown) {
+    if (err instanceof Error && !err.message.includes("already exists")) {
+      console.error("Notification history index error:", err.message);
+    }
+  }
 }
