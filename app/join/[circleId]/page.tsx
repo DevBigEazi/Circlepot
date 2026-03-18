@@ -85,7 +85,7 @@ export default function JoinCirclePage() {
 
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["userSavings"] });
-        router.push("/savings");
+        router.push("/savings?tab=group");
       }, 2000);
     } catch (err) {
       console.error(err);

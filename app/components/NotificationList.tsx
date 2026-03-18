@@ -13,7 +13,7 @@ import {
   Trophy,
   ArrowRight
 } from "lucide-react";
-import { NotificationType } from "../types/notifications";
+import { NotificationType, Notification } from "../types/notifications";
 import { useRouter } from "next/navigation";
 
 const NotificationIcon = ({ type }: { type: NotificationType }) => {
@@ -43,19 +43,30 @@ const NotificationIcon = ({ type }: { type: NotificationType }) => {
     case "vote_executed":
       return <Info size={18} className="text-indigo-500" />;
     case "circle_member_contributed":
-    case "circle_contribution_self":
       return <CheckCircle2 size={18} className="text-emerald-500" />;
     default:
       return <Bell size={18} className="text-gray-500" />;
   }
 };
 
-export const NotificationList: React.FC = () => {
-  const { notifications, markAsRead } = useNotifications();
+interface NotificationListProps {
+  notifications?: Notification[];
+  emptyTitle?: string;
+  emptyMessage?: string;
+}
+
+export const NotificationList: React.FC<NotificationListProps> = ({ 
+  notifications: propNotifications,
+  emptyTitle = "No notifications yet",
+  emptyMessage = "When you receive updates about your circles, goals, or referrals, they'll appear here."
+}) => {
+  const { notifications: contextNotifications, markAsRead } = useNotifications();
   const colors = useThemeColors();
   const router = useRouter();
 
-  if (notifications.length === 0) {
+  const displayNotifications = propNotifications || contextNotifications;
+
+  if (displayNotifications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div 
@@ -65,10 +76,10 @@ export const NotificationList: React.FC = () => {
           <Bell size={32} style={{ color: colors.primary }} className="opacity-40" />
         </div>
         <h3 className="text-lg font-bold mb-1" style={{ color: colors.text }}>
-          No notifications yet
+          {emptyTitle}
         </h3>
         <p className="text-sm opacity-60 max-w-xs" style={{ color: colors.text }}>
-          When you receive updates about your circles, goals, or referrals, they&apos;ll appear here.
+          {emptyMessage}
         </p>
       </div>
     );
@@ -85,7 +96,7 @@ export const NotificationList: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      {notifications.map((notification) => (
+      {displayNotifications.map((notification) => (
         <div
           key={notification.id}
           className={`relative p-4 rounded-2xl border transition-all duration-300 group ${!notification.read ? 'shadow-sm' : 'opacity-80'} ${notification.url ? 'cursor-pointer hover:shadow-md' : ''}`}
