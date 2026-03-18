@@ -66,14 +66,14 @@ export async function ensureIndexes() {
       { email: 1 },
       {
         unique: true,
-        partialFilterExpression: { email: { $exists: true, $ne: "" } },
+        partialFilterExpression: { email: { $gt: "" } },
       },
     ],
     [
       { phoneNumber: 1 },
       {
         unique: true,
-        partialFilterExpression: { phoneNumber: { $exists: true, $ne: "" } },
+        partialFilterExpression: { phoneNumber: { $gt: "" } },
       },
     ],
   ];
@@ -112,6 +112,22 @@ export async function ensureIndexes() {
   } catch (err: unknown) {
     if (err instanceof Error && !err.message.includes("already exists")) {
       console.error("Notification history index error:", err.message);
+    }
+  }
+
+  // Initialize webhook deduplication collection
+  try {
+    const logCol = db.collection("processed_logs");
+    await logCol.createIndex({ logId: 1 }, { unique: true });
+    // Auto-delete processed log records after 7 days
+    await logCol.createIndex({ processedAt: 1 }, { expireAfterSeconds: 604800 });
+  } catch (err: unknown) {
+    if (
+      err instanceof Error &&
+      !err.message.includes("already exists") &&
+      !err.message.includes("same name")
+    ) {
+      console.error("Webhook log index error:", err.message);
     }
   }
 }

@@ -3,6 +3,7 @@ import { notifyUser } from "@/lib/notifications";
 import { GraphQLClient, gql } from "graphql-request";
 import crypto from "crypto";
 import { decodeEventLog } from "viem";
+import { getDb, ensureIndexes } from "@/lib/mongodb";
 import {
   CIRCLE_SAVINGS_ABI,
   PERSONAL_SAVINGS_ABI,
@@ -11,6 +12,8 @@ import {
 
 const ALCHEMY_WEBHOOK_SECRET = process.env.ALCHEMY_WEBHOOK_SECRET;
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
+
+// --- Interfaces for Event Decoding ---
 
 interface CircleJoinedArgs {
   circleId: bigint;
@@ -36,6 +39,7 @@ interface ContributionMadeArgs {
   member: string;
   circleId: bigint;
   round: bigint;
+  amount?: bigint; // Optional in some versions of the event
 }
 
 interface LateContributionMadeArgs {
@@ -62,6 +66,20 @@ interface CollateralReturnedArgs {
   token: string;
 }
 
+interface CollateralWithdrawnArgs {
+  circleId: bigint;
+  member: string;
+  amount: bigint;
+  token: string;
+}
+
+interface MemberInvitedArgs {
+  circleId: bigint;
+  creator: string;
+  invitee: string;
+  invitedAt: bigint;
+}
+
 interface VotingInitiatedArgs {
   circleId: bigint;
   votingStartTime: bigint;
@@ -74,7 +92,6 @@ interface VoteExecutedArgs {
   startVoteCount: bigint;
   withdrawVoteCount: bigint;
 }
-
 
 interface GoalWithdrawnArgs {
   goalId: bigint;
@@ -91,9 +108,13 @@ interface YieldDistributedArgs {
 
 interface ReferralRewardPaidArgs {
   referrer: string;
+  referee: string;
+  token: string;
+  amount: bigint;
 }
 
-// Contract addresses for filtering
+// --- Constants & Client ---
+
 const CIRCLE_SAVINGS_ADDRESS =
   process.env.NEXT_PUBLIC_CIRCLE_SAVING_CONTRACT?.toLowerCase();
 const PERSONAL_SAVINGS_ADDRESS =
@@ -103,111 +124,189 @@ const REFERRAL_REWARDS_ADDRESS =
 
 const client = SUBGRAPH_URL ? new GraphQLClient(SUBGRAPH_URL) : null;
 
+// --- Helper Functions ---
+
+interface SubgraphCircleMetadataResponse {
+  circles: Array<{
+    circleName: string | null;
+    creator: { id: string };
+  }>;
+  circleJoineds: Array<{
+    user: { id: string };
+  }>;
+}
+
+interface SubgraphGoalMetadataResponse {
+  personalGoals: Array<{
+    goalName: string | null;
+  }>;
+}
+
 /**
- * Verify Alchemy Webhook signature (HMAC-SHA256)
+ * Verify Alchemy Webhook signature
  */
 function verifyAlchemySignature(req: NextRequest, body: string): boolean {
   if (!ALCHEMY_WEBHOOK_SECRET) return true;
-
   const signature = req.headers.get("x-alchemy-signature");
   if (!signature) return false;
-
   const hmac = crypto.createHmac("sha256", ALCHEMY_WEBHOOK_SECRET);
   const hash = hmac.update(body).digest("hex");
-
   return hash === signature;
 }
 
-interface SubgraphCircleMemberResponse {
-  circle: {
-    creator: { id: string };
-    circlesJoined: Array<{
-      user: { id: string };
-    }>;
-  } | null;
+/**
+ * Resolve username from wallet address using MongoDB
+ */
+async function resolveUsername(address: string): Promise<string> {
+  if (!address) return "Unknown User";
+  const normalized = address.toLowerCase();
+  try {
+    const db = await getDb();
+    // Use collation for case-insensitive matching in case some profiles have mixed case addresses
+    const profile = await db
+      .collection("profiles")
+      .findOne(
+        { walletAddress: normalized },
+        { collation: { locale: "en", strength: 2 } },
+      );
+
+    if (profile?.username) {
+      const username = profile.username;
+      const capitalized = username.charAt(0).toUpperCase() + username.slice(1);
+      return capitalized;
+    }
+
+    return `User ${normalized.slice(0, 6).toUpperCase()}...`;
+  } catch {
+    return `User ${normalized.slice(0, 6)}...`;
+  }
 }
 
 /**
- * Fetch all member addresses for a given circle from the Subgraph
+ * Format USDT amount (6 decimals)
  */
-async function getCircleMembers(circleId: string): Promise<string[]> {
-  if (!client) return [];
+function formatUSDT(amount: bigint): string {
+  const decimals = 6;
+  const divisor = BigInt(10 ** decimals);
+  const whole = amount / divisor;
+  const fraction = amount % divisor;
+  const fractionStr = fraction.toString().padStart(decimals, "0").slice(0, 2);
+  return `$${whole}.${fractionStr}`;
+}
+
+/**
+ * Fetch Circle Metadata (Name & Members) from Subgraph
+ */
+async function getCircleMetadata(
+  circleId: string,
+): Promise<{ name: string; members: string[] }> {
+  if (!client) {
+    console.error("[Subgraph] Client not initialized");
+    return { name: "your circle", members: [] };
+  }
 
   const query = gql`
-    query GetCircleMembers($circleId: String!) {
-      circle(id: $circleId) {
+    query GetCircleMetadata($circleId: BigInt!) {
+      circles(where: { circleId: $circleId }) {
+        circleName
         creator {
           id
         }
-        circlesJoined {
-          user {
-            id
-          }
+      }
+      circleJoineds(where: { circleId: $circleId }) {
+        user {
+          id
         }
       }
     }
   `;
 
   try {
-    const data = await client.request<SubgraphCircleMemberResponse>(query, {
-      circleId,
+    const data = await client.request<SubgraphCircleMetadataResponse>(query, {
+      circleId: circleId.toString(),
     });
-    if (!data.circle) return [];
+
+    const circle = data.circles?.[0];
+    if (!circle) {
+      return { name: "your circle", members: [] };
+    }
 
     const members = new Set<string>();
-    members.add(data.circle.creator.id.toLowerCase());
+    if (circle.creator?.id) {
+      members.add(circle.creator.id.toLowerCase());
+    }
 
-    data.circle.circlesJoined.forEach((cj) => {
-      members.add(cj.user.id.toLowerCase());
-    });
+    if (data.circleJoineds) {
+      data.circleJoineds.forEach((cj) => {
+        if (cj.user?.id) {
+          members.add(cj.user.id.toLowerCase());
+        }
+      });
+    }
 
-    return Array.from(members);
+    const memberList = Array.from(members);
+
+    return {
+      name: circle.circleName || "your circle",
+      members: memberList,
+    };
   } catch (error) {
-    console.error("[Subgraph] Error fetching members:", error);
-    return [];
+    console.error("[Subgraph] Error fetching circle metadata:", error);
+    return { name: "your circle", members: [] };
   }
 }
 
 /**
- * Alchemy Webhook Payload Structure
+ * Fetch Goal Metadata from Subgraph
  */
+async function getGoalMetadata(goalId: string): Promise<string> {
+  if (!client) return "your goal";
+
+  const query = gql`
+    query GetGoalMetadata($goalId: BigInt!) {
+      personalGoals(where: { goalId: $goalId }) {
+        goalName
+      }
+    }
+  `;
+
+  try {
+    const data = await client.request<SubgraphGoalMetadataResponse>(query, {
+      goalId: goalId.toString(),
+    });
+    return data.personalGoals?.[0]?.goalName || "your goal";
+  } catch (error) {
+    console.error("[Subgraph] Error fetching goal metadata:", error);
+    return "your goal";
+  }
+}
+
+// --- Webhook Payload Types ---
+
 interface AlchemyWebhookLog {
   address?: string;
-  account?: {
-    address: string;
-  };
+  account?: { address: string };
   topics: string[];
   data: string;
-  blockNumber?: string;
   transactionHash?: string;
-  transaction?: {
-    hash: string;
-  };
+  logIndex?: string;
+  index?: number;
 }
 
 interface AlchemyWebhookBody {
-  webhookId: string;
-  id: string;
-  createdAt: string;
   type: string;
   event: {
     data?: {
-      block?: {
-        logs: AlchemyWebhookLog[];
-      };
+      block?: { logs: AlchemyWebhookLog[] };
     };
-    // For ADDRESS_ACTIVITY type
     activity?: Array<{
-      fromAddress: string;
-      toAddress: string;
-      hash: string;
-      rawContract?: {
-        address: string;
-      };
       log?: AlchemyWebhookLog;
+      hash?: string;
     }>;
   };
 }
+
+// --- Main Handler ---
 
 export async function POST(req: NextRequest) {
   let rawBody = "";
@@ -220,15 +319,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    // Extract logs from different possible Alchemy payload formats
     let logs: AlchemyWebhookLog[] = [];
-
     if (body.type === "GRAPHQL" && body.event?.data?.block?.logs) {
       logs = body.event.data.block.logs;
     } else if (body.type === "ADDRESS_ACTIVITY" && body.event?.activity) {
-      logs = body.event.activity
-        .map((a) => a.log)
-        .filter((l): l is AlchemyWebhookLog => !!l);
+      // Map address activity to logs, carrying over the transaction hash
+      const activities = body.event.activity;
+      logs = activities
+        .filter((a) => !!a.log)
+        .map((a) => ({
+          ...a.log!,
+          transactionHash: a.hash,
+        }));
     }
 
     if (!body.event) {
@@ -242,15 +344,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: "no_logs_processed" });
     }
 
+    await ensureIndexes();
+    const db = await getDb();
+    const processedCol = db.collection("processed_logs");
+
     for (const log of logs) {
       const logAddress = (log.address || log.account?.address)?.toLowerCase();
-
       if (!logAddress) continue;
+
+      // DEDUPLICATION: transactionHash + logIndex/index + some data hash
+      const txHash = log.transactionHash || "notx";
+      const index = log.logIndex || log.index || "0";
+      const logId = `${txHash}-${index}-${crypto
+        .createHash("md5")
+        .update(log.data || "")
+        .digest("hex")
+        .slice(0, 8)}`;
+
+      const alreadyProcessed = await processedCol.findOne({ logId });
+      if (alreadyProcessed) {
+        continue;
+      }
 
       try {
         let decoded;
-
-        // 1. Identify which contract emitted the log and decode accordingly
         if (logAddress === CIRCLE_SAVINGS_ADDRESS) {
           decoded = decodeEventLog({
             abi: CIRCLE_SAVINGS_ABI,
@@ -272,72 +389,121 @@ export async function POST(req: NextRequest) {
         }
 
         if (!decoded) continue;
+        const eventName = decoded.eventName as string;
+        const args = decoded.args;
 
-        const { eventName, args } = decoded;
-
-        // 2. Handle specific events
         switch (eventName) {
           case "CircleJoined": {
             const joinedArgs = args as unknown as CircleJoinedArgs;
             const circleId = joinedArgs.circleId?.toString();
-            const member = joinedArgs.member;
-            if (!circleId || !member) break;
+            const memberAddr = joinedArgs.member;
 
-            const members = await getCircleMembers(circleId);
-            const others = members.filter((m) => m !== member.toLowerCase());
+            if (!circleId || !memberAddr) {
+              console.warn(
+                "[Webhook] Missing circleId or memberAddr in CircleJoined event",
+              );
+              break;
+            }
+
+            const [userName, circle] = await Promise.all([
+              resolveUsername(memberAddr),
+              getCircleMetadata(circleId),
+            ]);
+
+            const others = circle.members.filter(
+              (m) => m !== memberAddr.toLowerCase(),
+            );
+
+            if (others.length > 0) {
+              await notifyUser(others, {
+                title: "New Member Joined 👋",
+                body: `${userName} joined "${circle.name}"`,
+                url: "/savings?tab=group",
+                type: "circle_member_joined",
+              });
+            }
+            break;
+          }
+
+          case "ContributionMade": {
+            const contArgs = args as unknown as ContributionMadeArgs;
+            const memberAddr = contArgs.member;
+            const circleId = contArgs.circleId?.toString();
+            const round = contArgs.round?.toString();
+            if (!memberAddr || !circleId || !round) break;
+
+            const [userName, circle] = await Promise.all([
+              resolveUsername(memberAddr),
+              getCircleMetadata(circleId),
+            ]);
+
+            const others = circle.members.filter(
+              (m) => m !== memberAddr.toLowerCase(),
+            );
+            await notifyUser(others, {
+              title: "Circle Contribution Made ✅",
+              body: `${userName} has contributed to ${circle.name} for round ${round}`,
+              url: "/savings?tab=group",
+              type: "circle_member_contributed",
+            });
+            break;
+          }
+
+          case "LateContributionMade": {
+            const lateArgs = args as unknown as LateContributionMadeArgs;
+            const memberAddr = lateArgs.member;
+            const circleId = lateArgs.circleId?.toString();
+            const round = lateArgs.round?.toString();
+            if (!memberAddr || !circleId || !round) break;
+
+            const [userName, circle] = await Promise.all([
+              resolveUsername(memberAddr),
+              getCircleMetadata(circleId),
+            ]);
+
+            const others = circle.members.filter(
+              (m) => m !== memberAddr.toLowerCase(),
+            );
 
             await notifyUser(others, {
-              title: "New Member! 👋",
-              body: `A new member has joined your circle.`,
+              title: "Circle Contribution Made ✅",
+              body: `${userName} has made a late contribution to ${circle.name} for round ${round}`,
               url: "/savings?tab=group",
-
-              type: "circle_member_joined",
+              type: "circle_member_contributed",
             });
             break;
           }
 
           case "PayoutDistributed": {
             const payoutArgs = args as unknown as PayoutDistributedArgs;
-            const recipient = payoutArgs.recipient;
+            const recipientAddr = payoutArgs.recipient;
             const circleId = payoutArgs.circleId?.toString();
             const round = payoutArgs.round?.toString();
-            if (!recipient || !circleId || !round) break;
+            const amount = formatUSDT(payoutArgs.amount);
+            if (!recipientAddr || !circleId || !round) break;
 
-            // Notify the recipient
-            await notifyUser(recipient, {
-              title: "Payout Received! 💰",
-              body: `You received a payout for round ${round}.`,
-              url: "/savings?tab=group",
+            const [recipientName, circle] = await Promise.all([
+              resolveUsername(recipientAddr),
+              getCircleMetadata(circleId),
+            ]);
+
+            // Notify recipient
+            await notifyUser(recipientAddr, {
+              title: "Payment Received! 💰",
+              body: `You received ${amount} from "${circle.name}" payout (Round ${round})`,
+              url: "/dashboard",
               type: "circle_payout",
             });
 
-            // Notify other members
-            const members = await getCircleMembers(circleId);
-            const others = members.filter((m) => m !== recipient.toLowerCase());
+            // Notify others
+            const others = circle.members.filter(
+              (m) => m !== recipientAddr.toLowerCase(),
+            );
             await notifyUser(others, {
               title: "Circle Payout Completed",
-              body: `A payout was distributed for round ${round}.`,
+              body: `${recipientName} received their payout of ${amount} for "${circle.name}" circle (Round ${round})`,
               url: "/savings?tab=group",
               type: "circle_member_payout",
-            });
-            break;
-          }
-
-          case "ContributionMade": {
-            const contArgs = args as unknown as ContributionMadeArgs;
-            const member = contArgs.member;
-            const circleId = contArgs.circleId?.toString();
-            const round = contArgs.round?.toString();
-            if (!member || !circleId || !round) break;
-
-            const members = await getCircleMembers(circleId);
-            const others = members.filter((m) => m !== member.toLowerCase());
-
-            await notifyUser(others, {
-              title: "Contribution Made ✅",
-              body: `A member made their contribution for round ${round}.`,
-              url: "/savings?tab=group",
-              type: "circle_member_contributed",
             });
             break;
           }
@@ -347,10 +513,10 @@ export async function POST(req: NextRequest) {
             const circleId = startedArgs.circleId?.toString();
             if (!circleId) break;
 
-            const members = await getCircleMembers(circleId);
-            await notifyUser(members, {
-              title: "Circle ACTIVE! 🚀",
-              body: `Your circle is now active. Contributions has started!`,
+            const circle = await getCircleMetadata(circleId);
+            await notifyUser(circle.members, {
+              title: "Voting Results",
+              body: `Circle Started! 🚀`,
               url: "/savings?tab=group",
               type: "circle_started",
             });
@@ -362,12 +528,16 @@ export async function POST(req: NextRequest) {
             const circleId = voteArgs.circleId?.toString();
             if (!circleId) break;
 
-            const members = await getCircleMembers(circleId);
-            await notifyUser(members, {
+            const circle = await getCircleMetadata(circleId);
+            const deadline = new Date(
+              Number(voteArgs.votingEndTime) * 1000,
+            ).toLocaleDateString();
+
+            await notifyUser(circle.members, {
               title: "Vote Required! 🗳️",
-              body: `A vote to start the circle has been initiated. Please cast your vote.`,
+              body: `Voting has started for your circle. Cast your vote before ${deadline}`,
               url: "/savings?tab=group",
-              type: "circle_voting",
+              type: "vote_required",
             });
             break;
           }
@@ -377,50 +547,95 @@ export async function POST(req: NextRequest) {
             const circleId = executedArgs.circleId?.toString();
             if (!circleId) break;
 
-            const members = await getCircleMembers(circleId);
-            const status = executedArgs.circleStarted ? "started" : "withdrawn";
+            const circle = await getCircleMetadata(circleId);
+            const statusMessage = executedArgs.circleStarted
+              ? "Circle Started! 🚀"
+              : "Circle did not start";
 
-            await notifyUser(members, {
-              title: `Voting Result: ${status === "started" ? "Circle Started! ✅" : "Circle Withdrawn ⚠️"}`,
-              body:
-                status === "started"
-                  ? "The vote passed and the circle is now active."
-                  : "The vote result chose to withdraw. You can now withdraw your collateral.",
-              url: "/savings?tab=group",
-              type: "circle_voting",
+            await notifyUser(circle.members, {
+              title: "Voting Results",
+              body: statusMessage,
+              url: executedArgs.circleStarted
+                ? "/savings?tab=group"
+                : "/transactions-history",
+              type: executedArgs.circleStarted
+                ? "circle_started"
+                : "vote_executed",
             });
             break;
           }
 
-          case "LateContributionMade": {
-            const lateArgs = args as unknown as LateContributionMadeArgs;
-            const member = lateArgs.member;
-            const circleId = lateArgs.circleId?.toString();
-            const round = lateArgs.round?.toString();
-            if (!member || !circleId || !round) break;
+          case "MemberInvited": {
+            const inviteArgs = args as unknown as MemberInvitedArgs;
+            const circleId = inviteArgs.circleId?.toString();
+            const inviterAddr = inviteArgs.creator;
+            const inviteeAddr = inviteArgs.invitee;
+            if (!circleId || !inviterAddr || !inviteeAddr) break;
 
-            const members = await getCircleMembers(circleId);
-            const others = members.filter((m) => m !== member.toLowerCase());
+            const [inviterName, circle] = await Promise.all([
+              resolveUsername(inviterAddr),
+              getCircleMetadata(circleId),
+            ]);
 
+            await notifyUser(inviteeAddr, {
+              title: "Circle Invitation 📩",
+              body: `${inviterName} invited you to join "${circle.name}"`,
+              url: `/join/${circleId}`,
+              type: "circle_invite",
+            });
+            break;
+          }
+
+          case "CollateralWithdrawn": {
+            const withdrawnArgs = args as unknown as CollateralWithdrawnArgs;
+            const memberAddr = withdrawnArgs.member;
+            const circleId = withdrawnArgs.circleId?.toString();
+            if (!memberAddr || !circleId) break;
+
+            const [circle] = await Promise.all([
+              getCircleMetadata(circleId),
+            ]);
+
+            const others = circle.members.filter(
+              (m) => m !== memberAddr.toLowerCase(),
+            );
             await notifyUser(others, {
-              title: "Late Payment Made ✅",
-              body: `A member completed their late payment for round ${round}.`,
-              url: "/savings?tab=group",
-              type: "circle_member_contributed",
+              title: "Member Withdrew",
+              body: `All members got their collateral back from "${circle.name}"`,
+              url: "/transactions-history",
+              type: "circle_member_withdrew",
             });
             break;
           }
 
           case "MemberForfeited": {
             const forfeitArgs = args as unknown as MemberForfeitedArgs;
-            const member = forfeitArgs.member;
+            const memberAddr = forfeitArgs.member;
             const circleId = forfeitArgs.circleId?.toString();
-            if (!member || !circleId) break;
+            const amount = formatUSDT(forfeitArgs.deduction);
+            const round = forfeitArgs.round?.toString();
+            if (!memberAddr || !circleId) break;
 
-            const members = await getCircleMembers(circleId);
-            await notifyUser(members, {
-              title: "Member Forfeited ⚠️",
-              body: `A member has forfeited and been removed from the circle.`,
+            const [forfeitedName, circle] = await Promise.all([
+              resolveUsername(memberAddr),
+              getCircleMetadata(circleId),
+            ]);
+
+            // Notify the forfeited user
+            await notifyUser(memberAddr, {
+              title: "You have been forfeited ⚠️",
+              body: `You were forfeited from "${circle.name}". Deduction: ${amount} (Round ${round})`,
+              url: "/transactions-history",
+              type: "member_forfeited",
+            });
+
+            // Notify others
+            const others = circle.members.filter(
+              (m) => m !== memberAddr.toLowerCase(),
+            );
+            await notifyUser(others, {
+              title: "Member Forfeited",
+              body: `${forfeitedName} has been forfeited from "${circle.name}" (Round ${round})`,
               url: "/savings?tab=group",
               type: "member_forfeited",
             });
@@ -429,29 +644,31 @@ export async function POST(req: NextRequest) {
 
           case "CollateralReturned": {
             const returnedArgs = args as unknown as CollateralReturnedArgs;
-            const member = returnedArgs.member;
-            const circleId = returnedArgs.circleId?.toString();
-            if (!member || !circleId) break;
+            const memberAddr = returnedArgs.member;
+            const amount = formatUSDT(returnedArgs.amount);
+            if (!memberAddr) break;
 
-            await notifyUser(member, {
-              title: "Collateral Returned! 💰",
-              body: `Your collateral for circle #${circleId} has been returned to your wallet.`,
-              url: "/savings?tab=group",
+            await notifyUser(memberAddr, {
+              title: "Collateral Returned 💵",
+              body: `Your collateral of ${amount} has been returned`,
+              url: "/transactions-history",
               type: "collateral_returned",
             });
             break;
           }
 
+          // Goals
           case "GoalWithdrawn": {
             const withdrawArgs = args as unknown as GoalWithdrawnArgs;
-            const owner = withdrawArgs.owner;
+            const ownerAddr = withdrawArgs.owner;
             const goalId = withdrawArgs.goalId?.toString();
-            if (!owner || !goalId) break;
+            if (!ownerAddr || !goalId) break;
 
-            await notifyUser(owner, {
+            const goalName = await getGoalMetadata(goalId);
+            await notifyUser(ownerAddr, {
               title: "Goal Withdrawal! 💸",
-              body: `You have successfully withdrawn funds from your goal.`,
-              url: "/savings?tab=personal",
+              body: `You have successfully withdrawn funds from your goal "${goalName}".`,
+              url: "/transactions-history",
               type: "goal_milestone",
             });
             break;
@@ -459,13 +676,14 @@ export async function POST(req: NextRequest) {
 
           case "YieldDistributed": {
             const yieldArgs = args as unknown as YieldDistributedArgs;
-            const owner = yieldArgs.owner;
+            const ownerAddr = yieldArgs.owner;
             const goalId = yieldArgs.goalId?.toString();
-            if (!owner || !goalId) break;
+            if (!ownerAddr || !goalId) break;
 
-            await notifyUser(owner, {
+            const goalName = await getGoalMetadata(goalId);
+            await notifyUser(ownerAddr, {
               title: "Yield Earned! 📈",
-              body: `You earned yield rewards on your savings goal.`,
+              body: `You earned yield rewards on your "${goalName}" savings goal.`,
               url: "/savings?tab=personal",
               type: "goal_milestone",
             });
@@ -474,35 +692,40 @@ export async function POST(req: NextRequest) {
 
           case "ReferralRewardPaid": {
             const refArgs = args as unknown as ReferralRewardPaidArgs;
-            const referrer = refArgs.referrer;
-            if (!referrer) break;
+            const referrerAddr = refArgs.referrer;
+            const amount = formatUSDT(refArgs.amount);
+            if (!referrerAddr) break;
 
-            await notifyUser(referrer, {
+            const refereeName = await resolveUsername(refArgs.referee);
+            await notifyUser(referrerAddr, {
               title: "Referral Bonus! 🎁",
-              body: `You earned a reward for successfully referring a friend.`,
+              body: `You just earned ${amount} because ${refereeName} joined Circlepot!`,
               url: "/profile",
               type: "referral_reward",
             });
             break;
           }
         }
+
+        // Mark log as processed
+        await processedCol.insertOne({
+          logId,
+          transactionHash: log.transactionHash,
+          processedAt: new Date(),
+        });
       } catch (decodeError) {
-        // Skip logs that don't match the ABI or fail to decode
-        console.warn(
-          `Webhook Failed to decode log at ${log.transactionHash}:`,
-          decodeError,
-        );
+        console.warn(`[Webhook] Failed to process log ${logId}:`, decodeError);
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, processed: logs.length });
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error("WebhookAPI Error:", errorMessage);
+    const isTimeout =
+      error instanceof Error && error.message.includes("ETIMEOUT");
+    console.error(`[Webhook] Handler error:`, error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
+      { error: isTimeout ? "Database Timeout" : "Internal Server Error" },
+      { status: isTimeout ? 503 : 500 },
     );
   }
 }
