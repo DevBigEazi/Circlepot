@@ -196,7 +196,7 @@ export const transformCircleToActiveCircle = (
     payoutAmountBigInt = BigInt(Math.floor(parseFloat(userPayout.payoutAmount) * 1000000));
   } else {
     // Prediction logic (Tiered Fee)
-    const totalPot = BigInt(circle.contributionAmount) * BigInt(circle.maxMembers || 0);
+    const totalPot = BigInt(circle.contributionAmount) * BigInt(circle.currentMembers || circle.maxMembers || 0);
     payoutAmountBigInt = totalPot;
     if (!isCreator) {
       if (totalPot <= 1000000000n) { // <= $1000
@@ -257,9 +257,10 @@ export const transformCircleToActiveCircle = (
 
   const collateralRequired = calcCollateral(currentMembersCount);
 
-  // Map members plus empty slots
+  // Map members plus empty slots (only hide once started)
   const combinedMembers = [];
-  for (let i = 0; i < maxMembersCount; i++) {
+  const displayCount = circle.state < 3 ? maxMembersCount : currentMembersCount;
+  for (let i = 0; i < displayCount; i++) {
     const m =
       members.find((member) => Number(member.position) === i + 1) ||
       (i < currentMembersCount ? members[i] : null); // Fallback for unstarted circles
@@ -298,23 +299,37 @@ export const transformCircleToActiveCircle = (
     }
   }
 
+  const stateNum = Number(circle.state);
+  const currentRoundNum = Number(circle.currentRound);
+  let status = getStateText(stateNum);
+
+  // Logical completion: if active but round exceeds actual participant count
+  if (
+    stateNum === 3 &&
+    currentRoundNum > currentMembersCount &&
+    currentMembersCount > 0
+  ) {
+    status = "completed";
+  }
+
   return {
     id: circle.id,
     name: circle.circleName,
     contribution: formatBigInt(circle.contributionAmount),
     frequency: circle.frequency,
-    totalPositions: maxMembersCount,
+    totalPositions: displayCount,
     currentPosition:
       combinedMembers.find(
         (m) => m.id.toLowerCase() === userAddress?.toLowerCase(),
       )?.position || 0,
     payoutAmount: formatBigInt(payoutAmountBigInt),
+    payouts,
     nextPayout: calculateNextPayout(
       circle.startedAt,
       circle.frequency,
       circle.currentRound,
     ),
-    status: getStateText(circle.state),
+    status,
     membersList: combinedMembers,
     currentRound: circle.currentRound,
     contributionDeadline: contributionDeadlineBigInt.toString(),
@@ -326,17 +341,16 @@ export const transformCircleToActiveCircle = (
       user: m.user,
       position: m.position,
     })),
-    payouts,
     hasContributed: false,
     userTotalContributed,
     hasWithdrawn:
-      circle.state === 4 || circle.state === 5
+      stateNum === 4 || stateNum === 5
         ? userMember
           ? !userMember.isActive
           : false
         : false,
     hasReceivedCollateral:
-      circle.state === 4 && userMember ? userMember.isActive === false : false,
+      stateNum === 4 && userMember ? userMember.isActive === false : false,
     isForfeited: userMember ? userMember.isForfeited : false,
     isForfeitedThisRound: false,
     forfeitedAmount: "0",
