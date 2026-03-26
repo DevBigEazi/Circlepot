@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "../hooks/useUserProfile";
@@ -27,6 +27,8 @@ export default function DashboardLayout({
   const { isInitializing: isAccountInitializing } = useAccountAddress();
   const [isClient, setIsClient] = useState(false);
   const [showPushReminder, setShowPushReminder] = useState(false);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -68,13 +70,39 @@ export default function DashboardLayout({
 
   const isDeterminingProfile = user && profile === undefined;
 
-  // Handle loading states to prevent layout flashes
-  if (
+  // Loading timeout — prevent infinite loading screen
+  const isInLoadingState =
     !isClient ||
     !sdkHasLoaded ||
-    (user &&
-      (isProfileLoading || isDeterminingProfile || isAccountInitializing))
-  ) {
+    (!!user &&
+      (isProfileLoading || !!isDeterminingProfile || isAccountInitializing));
+
+  useEffect(() => {
+    if (isInLoadingState) {
+      // Start timeout if not already running
+      if (!loadingTimeoutRef.current) {
+        loadingTimeoutRef.current = setTimeout(() => {
+          setLoadingTimedOut(true);
+        }, 20000); // 20 seconds
+      }
+    } else {
+      // Loading finished — clear timeout
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    }
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, [isInLoadingState]);
+
+  // Handle loading states to prevent layout flashes
+  if (isInLoadingState) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 animate-fade-in">
         <div className="relative w-24 h-24 sm:w-28 sm:h-28">
@@ -93,6 +121,21 @@ export default function DashboardLayout({
             />
           </div>
         </div>
+
+        {/* Timeout recovery UI */}
+        {loadingTimedOut && (
+          <div className="flex flex-col items-center gap-4 animate-fade-in">
+            <p className="text-sm opacity-60 text-center max-w-xs">
+              This is taking longer than expected. Please try again.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-primary text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Retry
+            </button>
+          </div>
+        )}
       </div>
     );
   }
