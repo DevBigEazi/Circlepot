@@ -16,6 +16,7 @@ import { ActiveCircle, CircleActionData } from "../types/savings";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { CircleActions } from "./CircleActions";
 import CountdownTimer from "./CountdownTimer";
+import { getFrequencyText } from "../lib/circleUtils";
 
 interface ActiveCircleCardProps {
   circle: ActiveCircle;
@@ -331,11 +332,11 @@ export default function ActiveCircleCard({
           <div className="flex items-center gap-1.5 mb-1.5 opacity-40">
             <TrendingUp size={10} className="shrink-0 sm:w-3 sm:h-3" style={{ color: colors.primary }} />
             <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest truncate">
-              Contrib
+              {getFrequencyText(circle.frequency)}
             </span>
           </div>
           <div
-            className="text-xs sm:text-xl font-black tracking-tight truncate"
+            className="text-xs sm:text-sm font-black tracking-tight truncate"
             style={{ color: colors.text }}
           >
             ${Number(contribution).toLocaleString()}
@@ -352,7 +353,7 @@ export default function ActiveCircleCard({
             </span>
           </div>
           <div
-            className="text-xs sm:text-xl font-black tracking-tight truncate"
+            className="text-xs sm:text-sm font-black tracking-tight truncate"
             style={{ color: colors.text }}
           >
             ${Number(payoutAmount).toLocaleString()}
@@ -369,7 +370,7 @@ export default function ActiveCircleCard({
             </span>
           </div>
           <div
-            className="text-xs sm:text-xl font-black tracking-tight truncate"
+            className="text-xs sm:text-sm font-black tracking-tight truncate"
             style={{ color: colors.text }}
           >
             {currentRound}/{totalPositions}
@@ -383,7 +384,9 @@ export default function ActiveCircleCard({
           <div className="flex items-center gap-2 opacity-50 min-w-0">
             <Users size={12} className="shrink-0" />
             <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest truncate">
-              {rawCircle.currentMembers} / {totalPositions} Members
+              {status === "active" || status === "completed"
+                ? `${rawCircle.currentMembers} Members`
+                : `${rawCircle.currentMembers} / ${totalPositions} Members`}
             </span>
           </div>
           <div className="flex -space-x-1.5 shrink-0">

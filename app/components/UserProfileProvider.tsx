@@ -181,7 +181,6 @@ export function UserProfileProvider({
     formData: Partial<ProfileResponse> & { referralCode?: string },
   ) => {
     if (!authToken) throw new Error("Not authenticated");
-    setIsLoading(true);
     try {
       const res = await fetch("/api/profile/create", {
         method: "POST",
@@ -196,13 +195,11 @@ export function UserProfileProvider({
       setProfile(data);
       return data;
     } finally {
-      setIsLoading(false);
     }
   };
 
   const updateProfile = async (formData: Partial<ProfileResponse>) => {
     if (!authToken) throw new Error("Not authenticated");
-    setIsLoading(true);
     try {
       if (formData.firstName || formData.lastName) {
         await updateUser({
@@ -225,7 +222,7 @@ export function UserProfileProvider({
       toast.success("Profile updated");
       return data;
     } finally {
-      setIsLoading(false);
+      // No-op: profile page handles its own loading state for updates
     }
   };
 

@@ -85,9 +85,9 @@ export const AuthMethodSelect: React.FC<AuthMethodSelectProps> = ({
       <div className="mt-4 sm:mt-6 grid grid-cols-1 gap-2 sm:gap-3">
         {[
           "No complex wallet setup",
-          "Recover with your email/phone",
+          "Recover with your email or google",
           "Decentralized and non-custodial",
-          "Option to export private keys",
+          "No seed phrases or private keys to manage or lost",
         ].map((benefit) => (
           <div
             key={benefit}
