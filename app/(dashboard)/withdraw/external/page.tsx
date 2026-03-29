@@ -17,6 +17,7 @@ import { useTransfer } from "@/app/hooks/useTransfer";
 import { toast } from "sonner";
 import { parseUnits } from "viem";
 import { handleSmartAccountError } from "@/lib/error-handler";
+import TransactionPreviewModal from "@/app/components/modals/TransactionPreviewModal";
 
 const WithdrawExternalPage: React.FC = () => {
   const router = useRouter();
@@ -32,6 +33,7 @@ const WithdrawExternalPage: React.FC = () => {
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const isValidAddress = (addr: string) => {
     return /^0x[a-fA-F0-9]{40}$/.test(addr);
@@ -66,9 +68,15 @@ const WithdrawExternalPage: React.FC = () => {
       return;
     }
 
+    setShowPreview(true);
+  };
+
+  const confirmWithdrawal = async () => {
+    const amountWei = parseUnits(amount, 6);
     try {
       await transfer(address, amountWei, true);
       setIsSuccess(true);
+      setShowPreview(false);
       toast.success("Withdrawal successful!");
       refetchBalance();
     } catch (err) {
@@ -325,6 +333,18 @@ const WithdrawExternalPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <TransactionPreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        onConfirm={confirmWithdrawal}
+        isProcessing={isTransferring}
+        type="external"
+        amount={amount}
+        recipient={address}
+        fee={withdrawalFee}
+        total={(Number(amount) + Number(withdrawalFee)).toFixed(2)}
+      />
     </>
   );
 };
