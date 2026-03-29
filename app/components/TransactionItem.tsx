@@ -81,42 +81,58 @@ function getLabel(tx: Transaction) {
   const goalName = tx.metadata?.goalName || tx.displayName;
   switch (tx.type) {
     case "goal_contribution":
-      return { prefix: "Saved to ", highlight: goalName || "Goal" };
+      return {
+        prefix: "Saved to ",
+        highlight: goalName || "Goal",
+        shortLabel: "Saved",
+      };
     case "goal_withdrawal":
-      return { prefix: "Withdrew from ", highlight: goalName || "Goal" };
+      return {
+        prefix: "Withdrew from ",
+        highlight: goalName || "Goal",
+        shortLabel: "Withdrew",
+      };
     case "goal_completion":
-      return { prefix: "Completed ", highlight: goalName || "Goal" };
+      return {
+        prefix: "Completed ",
+        highlight: goalName || "Goal",
+        shortLabel: "Saved",
+      };
     case "circle_joined":
       return {
         prefix: "Joined ",
         highlight: tx.metadata?.circleName || "Circle",
+        shortLabel: "Joined Circle",
       };
     case "circle_created":
       return {
         prefix: "Created ",
         highlight: tx.metadata?.circleName || "Circle",
+        shortLabel: "Created Circle",
       };
     case "circle_contribution":
       return {
         prefix: "Contributed to ",
         highlight: tx.metadata?.circleName || "Circle",
+        shortLabel: "Contributed",
       };
     case "circle_payout":
       return {
         prefix: "Won pot in ",
         highlight: tx.metadata?.circleName || "Circle",
+        shortLabel: "Won Pot",
       };
     case "circle_collateral_return":
       return {
         prefix: "Returned deposit from ",
         highlight: tx.metadata?.circleName || "Circle",
+        shortLabel: "Returned",
       };
     case "circle_forfeit":
       return {
-        prefix: tx.metadata?.note?.includes("Penalty")
-          ? "Default penalty in "
-          : "Forfeited member in ",
+        prefix: "Default penalty in ",
         highlight: tx.metadata?.circleName || "Circle",
+        shortLabel: "Default",
       };
     default: {
       const isInternal = tx.displayName?.startsWith("@");
@@ -124,9 +140,14 @@ function getLabel(tx: Transaction) {
         return {
           prefix: tx.isIncoming ? "Received from " : "Sent to ",
           highlight: tx.displayName!,
+          shortLabel: tx.isIncoming ? "Received" : "Sent",
         };
       }
-      return { prefix: tx.isIncoming ? "Received" : "Sent", highlight: "" };
+      return {
+        prefix: tx.isIncoming ? "Received" : "Sent",
+        highlight: "",
+        shortLabel: tx.isIncoming ? "Received" : "Sent",
+      };
     }
   }
 }
@@ -225,15 +246,23 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         </div>
 
         <div className="flex flex-col items-start gap-1">
-          <span
-            className="text-sm font-bold truncate max-w-[140px] sm:max-w-full"
+          <div
+            className="text-sm font-bold truncate max-w-[140px] sm:max-w-full flex"
             style={{ color: colors.text }}
           >
-            {label.prefix}
-            {label.highlight && (
-              <span style={{ color: colors.primary }}>{label.highlight}</span>
-            )}
-          </span>
+            {/* Desktop View */}
+            <span className="hidden sm:inline">
+              {label.prefix}
+              {label.highlight && (
+                <span style={{ color: colors.primary }}>{label.highlight}</span>
+              )}
+            </span>
+
+            {/* Mobile View */}
+            <span className="sm:hidden">
+              {label.shortLabel}
+            </span>
+          </div>
           <span
             className="text-[11px] opacity-60 font-medium"
             style={{ color: colors.text }}

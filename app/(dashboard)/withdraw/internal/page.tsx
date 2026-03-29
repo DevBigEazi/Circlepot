@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { parseUnits } from "viem";
 import Image from "next/image";
 import { handleSmartAccountError } from "@/lib/error-handler";
+import TransactionPreviewModal from "@/app/components/modals/TransactionPreviewModal";
 
 const WithdrawInternalPage: React.FC = () => {
   const router = useRouter();
@@ -32,6 +33,7 @@ const WithdrawInternalPage: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [amount, setAmount] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -79,9 +81,16 @@ const WithdrawInternalPage: React.FC = () => {
       return;
     }
 
+    setShowPreview(true);
+  };
+
+  const confirmInternalTransfer = async () => {
+    if (!recipient?.walletAddress) return;
+    const amountWei = parseUnits(amount, 6);
     try {
       await transfer(recipient.walletAddress, amountWei, false); // false = internal
       setIsSuccess(true);
+      setShowPreview(false);
       toast.success("Transfer successful!");
       refetchBalance();
     } catch (err) {
@@ -360,6 +369,20 @@ const WithdrawInternalPage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      {recipient && (
+        <TransactionPreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          onConfirm={confirmInternalTransfer}
+          isProcessing={isTransferring}
+          type="internal"
+          amount={amount}
+          recipient={recipient}
+          fee="0"
+          total={amount}
+        />
+      )}
     </div>
   );
 };
