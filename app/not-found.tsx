@@ -43,19 +43,20 @@ export default function NotFound() {
         </div>
 
         {/* Text Content */}
-        <h1
-          className="text-8xl md:text-9xl font-black mb-4 tracking-tighter opacity-10 transition-colors duration-300"
+        <span
+          aria-hidden="true"
+          className="text-8xl md:text-9xl font-black mb-4 tracking-tighter opacity-10 transition-colors duration-300 block"
           style={{ color: colors.accent }}
         >
           404
-        </h1>
+        </span>
 
-        <h2
+        <h1
           className="text-3xl md:text-4xl font-bold mb-4 -mt-12 relative z-20 transition-colors duration-300"
           style={{ color: colors.accent }}
         >
           Oops! You&apos;re lost in space.
-        </h2>
+        </h1>
 
         <p
           className="text-lg mb-10 max-w-md mx-auto leading-relaxed transition-colors duration-300"
