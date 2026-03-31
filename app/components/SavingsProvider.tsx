@@ -58,6 +58,7 @@ type GraphForfeit = {
   [key: string]: unknown;
 };
 type GraphLateContribution = {
+  circleId: string;
   amount: string;
   fee: string;
 };
@@ -439,15 +440,31 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
     });
 
     // 4. Late Fees
+    let rawActiveLateFees = 0n;
     ((data?.lateContributionMades as GraphLateContribution[]) || []).forEach(
       (lc) => {
+        const isMember = joinedIds.includes(lc.circleId.toString());
+        const isActive = activeCircles.some(c => c.rawCircle.circleId.toString() === lc.circleId.toString());
+        
+        if (isMember && isActive) {
+          rawActiveLateFees += BigInt(lc.fee || 0);
+        }
+        
         rawLateFees += BigInt(lc.fee || 0);
         rawContributions += BigInt(lc.amount || 0);
       },
     );
 
     // 5. Forfeitures
+    let rawActiveForfeitureDeductions = 0n;
     ((data?.memberForfeiteds as GraphForfeit[]) || []).forEach((f) => {
+      const isMember = joinedIds.includes(f.circleId.toString());
+      const isActive = activeCircles.some(c => c.rawCircle.circleId.toString() === f.circleId.toString());
+      
+      if (isMember && isActive) {
+        rawActiveForfeitureDeductions += BigInt(f.deductionAmount || 0);
+      }
+
       rawForfeitureDeductions += BigInt(f.deductionAmount || 0);
       rawContributions += BigInt(f.potAmount || 0);
       rawLateFees += BigInt(f.feeAmount || 0);
@@ -459,15 +476,16 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
     });
 
     // Net Savings formula for balance reconciliation:
-    // (Contributions - Payouts - PayoutFees) + (Collateral - ForfeitureDeductions)
-    // Note: Late fees are already deducted from wallet balance, so we don't subtract them again here.
-    const netSavings = (rawContributions - rawPayouts - rawPayoutFees) + (rawCollateral - rawForfeitureDeductions);
+    // (TotalContributions - TotalPayouts - TotalPayoutFees) + (ActiveCollateral - ActiveDeductions)
+    // ActiveDeductions = ActiveForfeitures + ActiveLateFees
+    const activeDeductions = rawActiveForfeitureDeductions + rawActiveLateFees;
+    const netSavings = (rawContributions - rawPayouts - rawPayoutFees) + (rawCollateral - activeDeductions);
 
     return {
       netSavings: formatUnits(netSavings, 6),
       contributions: formatUnits(rawContributions, 6),
       payouts: formatUnits(rawPayouts, 6),
-      collateral: formatUnits(rawCollateral - rawForfeitureDeductions, 6),
+      collateral: formatUnits(rawCollateral - activeDeductions, 6),
       payoutFees: formatUnits(rawPayoutFees, 6),
       lateFees: formatUnits(rawLateFees, 6),
       forfeitures: formatUnits(rawForfeitureDeductions, 6),
