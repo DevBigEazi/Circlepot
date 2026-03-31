@@ -43,6 +43,7 @@ export const GET_USER_SAVINGS_SUMMARY = `
       circleId
     }
     lateContributionMades(where: { user: $userAddress }) {
+      circleId
       amount
       fee
     }

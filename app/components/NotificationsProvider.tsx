@@ -475,7 +475,6 @@ function getPrefKeyFromType(
     goal_reminder: "goalReminder",
     circle_invite: "circleInvite",
     invite_accepted: "inviteAccepted",
-    payment_received: "paymentReceived",
     payment_late: "paymentLate",
     credit_score_changed: "creditScoreChanged",
     withdrawal_fee_applied: "withdrawalFeeApplied",

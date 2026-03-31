@@ -15,7 +15,6 @@ export const CircleStatistics: React.FC<CircleStatisticsProps> = ({
   activeCircles,
   totalSaved,
   totalPayouts,
-  reputation,
 }) => {
   const colors = useThemeColors();
 
@@ -38,12 +37,6 @@ export const CircleStatistics: React.FC<CircleStatisticsProps> = ({
       value: `$${Number(totalPayouts).toLocaleString()}`,
       icon: <Award size={16} />,
       color: colors.primary,
-    },
-    {
-      label: "Trust Score",
-      value: reputation.toString(),
-      icon: <Award size={16} />,
-      color: "#f59e0b",
     },
   ];
 
