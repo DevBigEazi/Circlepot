@@ -19,7 +19,6 @@ import { useRouter } from "next/navigation";
 const NotificationIcon = ({ type }: { type: NotificationType }) => {
   switch (type) {
     case "circle_payout":
-    case "payment_received":
     case "referral_reward":
     case "collateral_returned":
       return <CircleDollarSign size={18} className="text-green-500" />;

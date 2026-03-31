@@ -11,7 +11,6 @@ import {
   Users,
   Target,
   Trophy,
-  TrendingUp,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
