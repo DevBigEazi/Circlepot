@@ -27,7 +27,6 @@ export type NotificationType =
   | "circle_invite"
   | "invite_accepted"
   // Financial notifications
-  | "payment_received"
   | "payment_late"
   | "credit_score_changed"
   | "withdrawal_fee_applied"
@@ -287,12 +286,6 @@ export const NOTIFICATION_CONFIGS: Record<
   },
 
   // Financial notifications
-  payment_received: {
-    type: "payment_received",
-    defaultPriority: "medium",
-    defaultAction: "/transactions-history",
-    requiresAction: false,
-  },
   payment_late: {
     type: "payment_late",
     defaultPriority: "high",
