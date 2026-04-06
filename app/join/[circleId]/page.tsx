@@ -33,7 +33,7 @@ export default function JoinCirclePage() {
   const { address } = useAccountAddress();
 
   const { data: circle, isLoading, error } = useCircleDetails(circleId);
-  const { joinCircle, isJoining, checkUserStatusSubgraph } = useCircleSavings();
+  const { joinCircle, isJoining, checkUserStatus } = useCircleSavings();
   const [status, setStatus] = useState<{
     isInvited: boolean | null;
     isMember: boolean | null;
@@ -55,7 +55,7 @@ export default function JoinCirclePage() {
 
       setStatus((prev) => ({ ...prev, loading: true }));
       try {
-        const result = await checkUserStatusSubgraph(circle.circleId, address);
+        const result = await checkUserStatus(circle.circleId, address);
 
         setStatus({
           isMember: result.isMember,
@@ -68,7 +68,7 @@ export default function JoinCirclePage() {
       }
     };
     checkStatus();
-  }, [circle, address, checkUserStatusSubgraph]);
+  }, [circle, address, checkUserStatus]);
 
   const handleJoin = async () => {
     if (!circle || !address) {
