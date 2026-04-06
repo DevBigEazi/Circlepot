@@ -468,8 +468,5 @@ export const CHECK_USER_STATUS = `
     circleJoineds(where: { circleId: $circleId, user: $userAddress }) {
       id
     }
-    memberInviteds(where: { circleId: $circleId, invitee: $userAddress }) {
-      id
-    }
   }
 `;

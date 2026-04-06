@@ -96,7 +96,7 @@ function getLabel(tx: Transaction) {
       return {
         prefix: "Completed ",
         highlight: goalName || "Goal",
-        shortLabel: "Saved",
+        shortLabel: "Completed",
       };
     case "circle_joined":
       return {
