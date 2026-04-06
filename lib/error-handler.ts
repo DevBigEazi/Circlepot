@@ -149,6 +149,10 @@ export const handleSmartAccountError = (err: unknown): string => {
         return "The request timed out or signing failed. Please try again.";
       }
 
+      if (lower.includes("session id and public key")) {
+        return "Your wallet session is still initializing. Please wait a moment and try again.";
+      }
+
       if (lower.includes("user rejected") || lower.includes("user denied")) {
         return "Transaction cancelled by user.";
       }

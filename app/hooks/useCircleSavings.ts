@@ -4,8 +4,7 @@ import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { isZeroDevConnector } from "@dynamic-labs/ethereum-aa";
 import { publicClient } from "@/lib/viem";
 import { CIRCLE_SAVINGS_ABI, TOKEN_ABI } from "../constants/abis";
-import { CHECK_USER_STATUS } from "../graphql/savingsQueries";
-import { request } from "graphql-request";
+
 import { parseUnits, getAddress } from "viem";
 
 import { useState, useCallback } from "react";
@@ -15,7 +14,7 @@ import { handleSmartAccountError } from "@/lib/error-handler";
 const CIRCLE_SAVING_CONTRACT = process.env
   .NEXT_PUBLIC_CIRCLE_SAVING_CONTRACT as `0x${string}`;
 const USDT_CONTRACT = process.env.NEXT_PUBLIC_USDT_CONTRACT as `0x${string}`;
-const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL || "";
+
 
 export interface CreateCircleParams {
   title: string;
@@ -49,22 +48,22 @@ export const useCircleSavings = () => {
     await connector.getNetwork();
 
     if (isZeroDevConnector(connector)) {
-      const provider = await (
-        connector as unknown as {
-          getAccountAbstractionProvider: (config: {
-            withSponsorship: boolean;
-          }) => Promise<{
-            writeContract: (args: unknown) => Promise<`0x${string}`>;
-            account: { address: string };
-          }>;
-        }
-      ).getAccountAbstractionProvider({
-        withSponsorship: true,
-      });
-      return {
-        walletClient: provider,
-        targetAddress: getAddress(provider.account?.address || ""),
-      };
+          const provider = await (
+            connector as unknown as {
+              getAccountAbstractionProvider: (config: {
+                withSponsorship: boolean;
+              }) => Promise<{
+                writeContract: (args: unknown) => Promise<`0x${string}`>;
+                account: { address: string };
+              }>;
+            }
+          ).getAccountAbstractionProvider({
+            withSponsorship: true,
+          });
+          return {
+            walletClient: provider,
+            targetAddress: getAddress(provider.account?.address || ""),
+          };
     } else {
       const client = await (
         primaryWallet as unknown as {
@@ -91,35 +90,55 @@ export const useCircleSavings = () => {
 
 
   /**
-   * Subgraph version of status checks
+   * On-chain status check — reads both membership and invitation status
+   * directly from the contract in parallel. This is the authoritative source
+   * of truth and avoids subgraph indexing lag / User-entity-not-found bugs.
    */
-  const checkUserStatusSubgraph = useCallback(
+  const checkUserStatus = useCallback(
     async (circleId: string, userAddress: string) => {
-      if (!SUBGRAPH_URL || !circleId || !userAddress) {
+      if (!circleId || !userAddress) {
         return { isMember: false, isInvited: false };
       }
 
-      // Subgraph BigInt expects a decimal string, but we might receive a hex string (0x01)
-      const normalizedCircleId = circleId.startsWith("0x")
-        ? BigInt(circleId).toString()
-        : circleId;
+      const circleIdBig = BigInt(circleId);
+      const address = getAddress(userAddress) as `0x${string}`;
 
       try {
-        const result = await request<{
-          circleJoineds: { id: string }[];
-          memberInviteds: { id: string }[];
-        }>(SUBGRAPH_URL, CHECK_USER_STATUS, {
-          circleId: normalizedCircleId,
-          userAddress: userAddress.toLowerCase(),
-        });
+        const [memberInfoResult, isInvitedResult] = await Promise.all([
+          publicClient.readContract({
+            address: CIRCLE_SAVING_CONTRACT,
+            abi: CIRCLE_SAVINGS_ABI,
+            functionName: "getMemberInfo",
+            args: [circleIdBig, address],
+          }),
+          publicClient.readContract({
+            address: CIRCLE_SAVING_CONTRACT,
+            abi: CIRCLE_SAVINGS_ABI,
+            functionName: "isInvited",
+            args: [circleIdBig, address],
+          }),
+        ]);
+
+        // getMemberInfo returns [memberInfo tuple, hasContributedThisRound, nextDeadline]
+        const memberInfo = memberInfoResult as [
+          {
+            position: bigint;
+            totalContributed: bigint;
+            hasReceivedPayout: boolean;
+            isActive: boolean;
+            collateralLocked: bigint;
+            joinedAt: bigint;
+          },
+          boolean,
+          bigint
+        ];
 
         return {
-          isMember: result.circleJoineds.length > 0,
-          isInvited: result.memberInviteds.length > 0,
+          isMember: memberInfo[0].isActive,
+          isInvited: isInvitedResult as boolean,
         };
       } catch (err) {
-        console.error("Subgraph status check failed:", err);
-        // Fallback to true/false or re-throw
+        console.error("On-chain status check failed:", err);
         return { isMember: false, isInvited: false };
       }
     },
@@ -609,7 +628,7 @@ export const useCircleSavings = () => {
     inviteMembers,
     updateCircleVisibility,
     forfeitMember,
-    checkUserStatusSubgraph,
+    checkUserStatus,
     calculateRequiredCollateral,
     isCreating,
     isJoining,
