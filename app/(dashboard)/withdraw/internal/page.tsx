@@ -122,7 +122,7 @@ const WithdrawInternalPage: React.FC = () => {
           <span className="font-bold" style={{ color: colors.primary }}>
             {amount} USDT
           </span>{" "}
-          to @{recipient?.username || recipient?.firstName}
+          to {recipient?.firstName} ({searchInput})
         </p>
         <button
           onClick={() => router.push("/dashboard")}
@@ -269,7 +269,7 @@ const WithdrawInternalPage: React.FC = () => {
                     {recipient.profilePhoto ? (
                       <Image
                         src={recipient.profilePhoto}
-                        alt={recipient.username}
+                        alt={recipient.firstName || "Recipient"}
                         width={48}
                         height={48}
                         className="w-full h-full object-cover"
@@ -291,7 +291,7 @@ const WithdrawInternalPage: React.FC = () => {
                       className="text-xs font-bold"
                       style={{ color: colors.primary }}
                     >
-                      @{recipient.username}
+                      {searchInput}
                     </span>
                   </div>
                   <CheckCircle2 size={24} className="text-emerald-500" />
@@ -381,6 +381,7 @@ const WithdrawInternalPage: React.FC = () => {
           recipient={recipient}
           fee="0"
           total={amount}
+          identifierUsed={searchInput}
         />
       )}
     </div>

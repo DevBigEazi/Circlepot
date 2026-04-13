@@ -108,7 +108,7 @@ export const InviteMembersModal: React.FC<InviteMembersModalProps> = ({
 
       setInviteList((prev) => [...prev, newItem]);
       setIdentifier("");
-      toast.success(`Added ${newItem.username} to invites`);
+      toast.success(`Added ${newItem.fullName} to invites`);
     } catch (error) {
       console.error(error);
       toast.error("Resolution failed. Please try again.");
@@ -214,12 +214,12 @@ export const InviteMembersModal: React.FC<InviteMembersModalProps> = ({
                         {item.avatarUrl ? (
                           <img
                             src={item.avatarUrl}
-                            alt={item.username}
+                            alt={item.fullName}
                             className="w-full h-full object-cover"
                           />
                         ) : (
                           <span className="text-[10px] font-black opacity-30">
-                            {item.username.slice(0, 2).toUpperCase()}
+                            {item.fullName.slice(0, 2).toUpperCase()}
                           </span>
                         )}
                       </div>
@@ -229,9 +229,6 @@ export const InviteMembersModal: React.FC<InviteMembersModalProps> = ({
                           style={{ color: colors.text }}
                         >
                           {item.fullName}
-                        </div>
-                        <div className="text-[9px] font-bold opacity-40 truncate">
-                          @{item.username}
                         </div>
                       </div>
                     </div>

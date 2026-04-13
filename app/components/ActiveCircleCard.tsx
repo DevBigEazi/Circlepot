@@ -127,7 +127,7 @@ export default function ActiveCircleCard({
               {rawCircle.creator.avatarUrl ? (
                 <img
                   src={rawCircle.creator.avatarUrl}
-                  alt={rawCircle.creator.username || "Creator"}
+                  alt={rawCircle.creator.fullName || "Creator"}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -149,7 +149,6 @@ export default function ActiveCircleCard({
                 </>
               ) : (
                 rawCircle.creator.fullName ||
-                rawCircle.creator.username ||
                 rawCircle.creator.id.slice(0, 8)
               )}
             </span>
@@ -406,11 +405,11 @@ export default function ActiveCircleCard({
                 {m.avatarUrl ? (
                   <img
                     src={m.avatarUrl}
-                    alt={m.username}
+                    alt={m.fullName}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  m.username.slice(0, 2).toUpperCase()
+                  m.fullName.slice(0, 2).toUpperCase()
                 )}
               </div>
             ))}

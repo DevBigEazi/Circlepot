@@ -6,7 +6,7 @@ import NavBar from "@/app/components/NavBar";
 import { useRouter } from "next/navigation";
 import { useActivityFeed } from "@/app/hooks/useActivityFeed";
 import { TransactionItem } from "@/app/components/TransactionItem";
-import { TransactionDetailModal } from "@/app/components/TransactionDetailModal";
+import { TransactionDetailModal } from "@/app/components/modals/TransactionDetailModal";
 import { Transaction } from "@/app/types/transaction";
 import { History, Loader2 } from "lucide-react";
 

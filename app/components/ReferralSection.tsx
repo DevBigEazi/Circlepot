@@ -12,10 +12,10 @@ import { toast } from "sonner";
 import { formatUnits } from "viem";
 
 interface ReferralSectionProps {
-  username: string;
+  referralCode: string;
 }
 
-const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
+const ReferralSection: React.FC<ReferralSectionProps> = ({ referralCode }) => {
   const colors = useThemeColors();
   const { selectedCurrency } = useCurrency();
   const { convertToLocal, availableCurrencies } = useCurrencyConverter();
@@ -42,14 +42,19 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ username }) => {
     },
   });
 
-  // Use username as the referral code, following the React app's logic
+  // Use random referral code
   const referralLink =
-    typeof window !== "undefined"
-      ? `${window.location.origin}?ref=${username}`
-      : `?ref=${username}`;
+    typeof window !== "undefined" && referralCode
+      ? `${window.location.origin}?ref=${referralCode}`
+      : referralCode 
+        ? `?ref=${referralCode}`
+        : "Generating link...";
 
   const handleCopy = () => {
-    if (!username) return;
+    if (!referralCode) {
+      toast.error("Referral link is still generating. Please wait a moment.");
+      return;
+    }
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
     toast.success("Referral link copied!");

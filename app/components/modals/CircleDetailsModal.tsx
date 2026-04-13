@@ -253,11 +253,11 @@ export const CircleDetailsModal: React.FC<CircleDetailsModalProps> = ({
                           ) : member.avatarUrl ? (
                             <img
                               src={member.avatarUrl}
-                              alt={member.username}
+                              alt={member.fullName}
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            member.username.slice(0, 2).toUpperCase()
+                            member.fullName.slice(0, 2).toUpperCase()
                           )}
                         </div>
                         <div>
@@ -279,13 +279,13 @@ export const CircleDetailsModal: React.FC<CircleDetailsModalProps> = ({
                                 </span>
                               </>
                             ) : (
-                              member.fullName || member.username
+                              member.fullName
                             )}
                           </div>
                           <div className="text-[10px] font-bold opacity-30 truncate max-w-[150px]">
                             {isEmpty
                               ? "Waiting for member"
-                              : `@${member.username.replace("@", "")}`}
+                              : "Active"}
                           </div>
                         </div>
                       </div>

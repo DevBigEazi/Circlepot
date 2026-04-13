@@ -5,7 +5,7 @@ import { Transaction } from "../types/transaction";
 import { useActivityFeed } from "../hooks/useActivityFeed";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { TransactionItem } from "./TransactionItem";
-import { TransactionDetailModal } from "./TransactionDetailModal";
+import { TransactionDetailModal } from "./modals/TransactionDetailModal";
 import { useRouter } from "next/navigation";
 import { History, ArrowRight, Loader2 } from "lucide-react";
 

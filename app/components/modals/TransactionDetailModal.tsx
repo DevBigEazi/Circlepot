@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Transaction } from "../types/transaction";
-import { useThemeColors } from "../hooks/useThemeColors";
-import { useCurrency } from "./CurrencyProvider";
-import { useCurrencyConverter } from "../hooks/useCurrencyConverter";
+import { Transaction } from "../../types/transaction";
+import { useThemeColors } from "../../hooks/useThemeColors";
+import { useCurrency } from "../CurrencyProvider";
+import { useCurrencyConverter } from "../../hooks/useCurrencyConverter";
 import {
   X,
   ExternalLink,
@@ -155,7 +155,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     "MMMM dd, yyyy 'at' hh:mm a",
   );
 
-  const isInternal = transaction.displayName?.startsWith("@");
+  const isInternal = !!transaction.fromName || !!transaction.toName;
 
   const goalName = transaction.metadata?.goalName;
   const circleName = transaction.metadata?.circleName;
@@ -299,35 +299,22 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             )}
 
             {/* Counterparty — shown only for internal profile transfers */}
-            {!isSavings &&
-              (transaction.isIncoming
-                ? transaction.fromName || isInternal
-                : transaction.toName || isInternal) && (
-                <div className="space-y-1">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-widest opacity-40"
-                    style={{ color: colors.text }}
-                  >
-                    {transaction.isIncoming ? "From" : "To"}
-                  </span>
-                  <p
-                    className="text-sm font-bold truncate"
-                    style={{ color: colors.primary }}
-                  >
-                    {transaction.isIncoming
-                      ? transaction.fromName || transaction.displayName
-                      : transaction.toName || transaction.displayName}
-                  </p>
-                  {(transaction.fromName || transaction.toName) && (
-                    <p
-                      className="text-[10px] opacity-60 font-medium"
-                      style={{ color: colors.text }}
-                    >
-                      {transaction.displayName}
-                    </p>
-                  )}
-                </div>
-              )}
+            {!isSavings && isInternal && (
+              <div className="space-y-1">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest opacity-40"
+                  style={{ color: colors.text }}
+                >
+                  {transaction.isIncoming ? "From" : "To"}
+                </span>
+                <p
+                  className="text-sm font-bold truncate"
+                  style={{ color: colors.primary }}
+                >
+                  {transaction.displayName}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-1">
               <span

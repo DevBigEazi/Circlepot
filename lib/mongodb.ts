@@ -130,4 +130,18 @@ export async function ensureIndexes() {
       console.error("Webhook log index error:", err.message);
     }
   }
+
+  // Initialize circles cache collection
+  try {
+    const circleCol = db.collection("circles");
+    await circleCol.createIndex({ circleId: 1 }, { unique: true });
+  } catch (err: unknown) {
+    if (
+      err instanceof Error &&
+      !err.message.includes("already exists") &&
+      !err.message.includes("same name")
+    ) {
+      console.error("Circles cache index error:", err.message);
+    }
+  }
 }

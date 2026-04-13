@@ -30,12 +30,25 @@ export async function POST(req: NextRequest) {
       .collation({ locale: "en", strength: 2 })
       .toArray();
 
-    return NextResponse.json(result);
+    const safeResults = result.map((p) => ({
+      ...p,
+      username: "",
+      email: null,
+      phoneNumber: null,
+      accountId: 0,
+    }));
+
+    return NextResponse.json(safeResults);
   } catch (error) {
     console.error("Bulk profile fetch error:", error);
-    const isTimeout = error instanceof Error && error.message.includes("ETIMEOUT");
+    const isTimeout =
+      error instanceof Error && error.message.includes("ETIMEOUT");
     return NextResponse.json(
-      { error: isTimeout ? "Database connection timeout" : "Internal server error" },
+      {
+        error: isTimeout
+          ? "Database connection timeout"
+          : "Internal server error",
+      },
       { status: isTimeout ? 503 : 500 },
     );
   }
