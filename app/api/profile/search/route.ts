@@ -36,7 +36,19 @@ export async function GET(req: NextRequest) {
       .limit(1)
       .toArray();
 
-    return NextResponse.json(result.length > 0 ? result[0] : null);
+    let safeProfile = null;
+    if (result.length > 0) {
+      const p = result[0];
+      safeProfile = {
+        ...p,
+        username: "",
+        email: null,
+        phoneNumber: null,
+        accountId: 0,
+      };
+    }
+
+    return NextResponse.json(safeProfile);
   } catch (error) {
     console.error("Profile search error:", error);
     return NextResponse.json(

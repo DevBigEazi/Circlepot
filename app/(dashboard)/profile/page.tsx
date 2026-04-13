@@ -446,7 +446,7 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {profile && <ReferralSection username={profile.username} />}
+            {profile && <ReferralSection referralCode={profile.referralCode} />}
           </div>
         </div>
       </div>

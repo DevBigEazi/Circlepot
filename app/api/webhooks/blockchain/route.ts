@@ -20,6 +20,12 @@ interface CircleJoinedArgs {
   member: string;
 }
 
+interface CircleCreatedArgs {
+  circleId: bigint;
+  title: string;
+  creator: string;
+}
+
 interface CircleStartedArgs {
   circleId: bigint;
   startedAt: bigint;
@@ -155,14 +161,13 @@ function verifyAlchemySignature(req: NextRequest, body: string): boolean {
 }
 
 /**
- * Resolve username from wallet address using MongoDB
+ * Resolve display name (First Name) from wallet address using MongoDB
  */
-async function resolveUsername(address: string): Promise<string> {
+async function resolveDisplayName(address: string): Promise<string> {
   if (!address) return "Unknown User";
   const normalized = address.toLowerCase();
   try {
     const db = await getDb();
-    // Use collation for case-insensitive matching in case some profiles have mixed case addresses
     const profile = await db
       .collection("profiles")
       .findOne(
@@ -170,15 +175,13 @@ async function resolveUsername(address: string): Promise<string> {
         { collation: { locale: "en", strength: 2 } },
       );
 
-    if (profile?.username) {
-      const username = profile.username;
-      const capitalized = username.charAt(0).toUpperCase() + username.slice(1);
-      return capitalized;
+    if (profile?.firstName) {
+      return profile.firstName.trim();
     }
 
     return `User ${normalized.slice(0, 6).toUpperCase()}...`;
   } catch {
-    return `User ${normalized.slice(0, 6)}...`;
+    return `User ${normalized.slice(0, 6).toUpperCase()}...`;
   }
 }
 
@@ -228,6 +231,19 @@ async function getCircleMetadata(
 
     const circle = data.circles?.[0];
     if (!circle) {
+      // Fallback to local MongoDB cache (resolves race condition with subgraph indexing)
+      try {
+        const db = await getDb();
+        const local = await db.collection("circles").findOne({ circleId });
+        if (local) {
+          return {
+            name: local.title || "your circle",
+            members: [local.creator.toLowerCase()],
+          };
+        }
+      } catch (err) {
+        console.error("[MongoDB] Cache lookup failed:", err);
+      }
       return { name: "your circle", members: [] };
     }
 
@@ -393,6 +409,30 @@ export async function POST(req: NextRequest) {
         const args = decoded.args;
 
         switch (eventName) {
+          case "CircleCreated": {
+            const createArgs = args as unknown as CircleCreatedArgs;
+            const circleId = createArgs.circleId?.toString();
+            if (circleId) {
+              try {
+                const db = await getDb();
+                await db.collection("circles").updateOne(
+                  { circleId },
+                  {
+                    $set: {
+                      title: createArgs.title,
+                      creator: createArgs.creator,
+                      updatedAt: new Date(),
+                    },
+                  },
+                  { upsert: true } as any,
+                );
+              } catch (err) {
+                console.error("[MongoDB] Failed to cache circle:", err);
+              }
+            }
+            break;
+          }
+
           case "CircleJoined": {
             const joinedArgs = args as unknown as CircleJoinedArgs;
             const circleId = joinedArgs.circleId?.toString();
@@ -405,8 +445,8 @@ export async function POST(req: NextRequest) {
               break;
             }
 
-            const [userName, circle] = await Promise.all([
-              resolveUsername(memberAddr),
+            const [displayName, circle] = await Promise.all([
+              resolveDisplayName(memberAddr),
               getCircleMetadata(circleId),
             ]);
 
@@ -417,7 +457,7 @@ export async function POST(req: NextRequest) {
             if (others.length > 0) {
               await notifyUser(others, {
                 title: "New Member Joined 👋",
-                body: `${userName} joined "${circle.name}"`,
+                body: `${displayName} joined "${circle.name}"`,
                 url: "/savings?tab=group",
                 type: "circle_member_joined",
               });
@@ -432,8 +472,8 @@ export async function POST(req: NextRequest) {
             const round = contArgs.round?.toString();
             if (!memberAddr || !circleId || !round) break;
 
-            const [userName, circle] = await Promise.all([
-              resolveUsername(memberAddr),
+            const [displayName, circle] = await Promise.all([
+              resolveDisplayName(memberAddr),
               getCircleMetadata(circleId),
             ]);
 
@@ -442,7 +482,7 @@ export async function POST(req: NextRequest) {
             );
             await notifyUser(others, {
               title: "Circle Contribution Made ✅",
-              body: `${userName} has contributed to ${circle.name} for round ${round}`,
+              body: `${displayName} has contributed to ${circle.name} for round ${round}`,
               url: "/savings?tab=group",
               type: "circle_member_contributed",
             });
@@ -456,8 +496,8 @@ export async function POST(req: NextRequest) {
             const round = lateArgs.round?.toString();
             if (!memberAddr || !circleId || !round) break;
 
-            const [userName, circle] = await Promise.all([
-              resolveUsername(memberAddr),
+            const [displayName, circle] = await Promise.all([
+              resolveDisplayName(memberAddr),
               getCircleMetadata(circleId),
             ]);
 
@@ -467,7 +507,7 @@ export async function POST(req: NextRequest) {
 
             await notifyUser(others, {
               title: "Circle Contribution Made ✅",
-              body: `${userName} has made a late contribution to ${circle.name} for round ${round}`,
+              body: `${displayName} has made a late contribution to ${circle.name} for round ${round}`,
               url: "/savings?tab=group",
               type: "circle_member_contributed",
             });
@@ -482,8 +522,8 @@ export async function POST(req: NextRequest) {
             const amount = formatUSDT(payoutArgs.amount);
             if (!recipientAddr || !circleId || !round) break;
 
-            const [recipientName, circle] = await Promise.all([
-              resolveUsername(recipientAddr),
+            const [recipientDisplayName, circle] = await Promise.all([
+              resolveDisplayName(recipientAddr),
               getCircleMetadata(circleId),
             ]);
 
@@ -501,7 +541,7 @@ export async function POST(req: NextRequest) {
             );
             await notifyUser(others, {
               title: "Circle Payout Completed",
-              body: `${recipientName} received their payout of ${amount} for "${circle.name}" circle (Round ${round})`,
+              body: `${recipientDisplayName} received their payout of ${amount} for "${circle.name}" circle (Round ${round})`,
               url: "/savings?tab=group",
               type: "circle_member_payout",
             });
@@ -515,7 +555,7 @@ export async function POST(req: NextRequest) {
 
             const circle = await getCircleMetadata(circleId);
             await notifyUser(circle.members, {
-              title: "Voting Results",
+              title: "Members Completed",
               body: `Circle Started! 🚀`,
               url: "/savings?tab=group",
               type: "circle_started",
@@ -572,14 +612,14 @@ export async function POST(req: NextRequest) {
             const inviteeAddr = inviteArgs.invitee;
             if (!circleId || !inviterAddr || !inviteeAddr) break;
 
-            const [inviterName, circle] = await Promise.all([
-              resolveUsername(inviterAddr),
+            const [inviterDisplayName, circle] = await Promise.all([
+              resolveDisplayName(inviterAddr),
               getCircleMetadata(circleId),
             ]);
 
             await notifyUser(inviteeAddr, {
               title: "Circle Invitation 📩",
-              body: `${inviterName} invited you to join "${circle.name}"`,
+              body: `${inviterDisplayName} invited you to join "${circle.name}"`,
               url: `/join/${circleId}`,
               type: "circle_invite",
             });
@@ -592,9 +632,7 @@ export async function POST(req: NextRequest) {
             const circleId = withdrawnArgs.circleId?.toString();
             if (!memberAddr || !circleId) break;
 
-            const [circle] = await Promise.all([
-              getCircleMetadata(circleId),
-            ]);
+            const [circle] = await Promise.all([getCircleMetadata(circleId)]);
 
             const others = circle.members.filter(
               (m) => m !== memberAddr.toLowerCase(),
@@ -616,8 +654,8 @@ export async function POST(req: NextRequest) {
             const round = forfeitArgs.round?.toString();
             if (!memberAddr || !circleId) break;
 
-            const [forfeitedName, circle] = await Promise.all([
-              resolveUsername(memberAddr),
+            const [forfeitedDisplayName, circle] = await Promise.all([
+              resolveDisplayName(memberAddr),
               getCircleMetadata(circleId),
             ]);
 
@@ -635,7 +673,7 @@ export async function POST(req: NextRequest) {
             );
             await notifyUser(others, {
               title: "Member Forfeited",
-              body: `${forfeitedName} has been forfeited from "${circle.name}" (Round ${round})`,
+              body: `${forfeitedDisplayName} has been forfeited from "${circle.name}" (Round ${round})`,
               url: "/savings?tab=group",
               type: "member_forfeited",
             });
@@ -696,10 +734,12 @@ export async function POST(req: NextRequest) {
             const amount = formatUSDT(refArgs.amount);
             if (!referrerAddr) break;
 
-            const refereeName = await resolveUsername(refArgs.referee);
+            const refereeDisplayName = await resolveDisplayName(
+              refArgs.referee,
+            );
             await notifyUser(referrerAddr, {
               title: "Referral Bonus! 🎁",
-              body: `You just earned ${amount} because ${refereeName} joined Circlepot!`,
+              body: `You just earned ${amount} because ${refereeDisplayName} joined Circlepot!`,
               url: "/profile",
               type: "referral_reward",
             });

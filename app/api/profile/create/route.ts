@@ -103,20 +103,33 @@ export async function POST(req: NextRequest) {
     // 4. Resolve Referrer
     let referrerAddress: string | null = null;
     if (referralCode) {
-      // Try resolving by username
-      const referrerProfile = await profiles.findOne({
-        username: referralCode.toLowerCase(),
+      // Priority 1: Try resolving by random referral code
+      const profileByCode = await profiles.findOne({
+        referralCode: referralCode.toUpperCase(),
       });
-      if (referrerProfile) {
-        referrerAddress = referrerProfile.walletAddress;
-      } else if (referralCode.startsWith("0x") && referralCode.length === 42) {
-        // Fallback to direct address if it's a valid address
-        referrerAddress = referralCode.toLowerCase();
+
+      if (profileByCode) {
+        referrerAddress = profileByCode.walletAddress;
+      } else {
+        // Priority 2: Fallback to username for backward compatibility
+        const profileByUsername = await profiles.findOne({
+          username: referralCode.toLowerCase(),
+        });
+
+        if (profileByUsername) {
+          referrerAddress = profileByUsername.walletAddress;
+        } else if (referralCode.startsWith("0x") && referralCode.length === 42) {
+          // Priority 3: Fallback to direct address
+          referrerAddress = referralCode.toLowerCase();
+        }
       }
     }
 
-    // 5. Generate unique account ID
+    // 5. Generate unique account ID & unique referral code
     let accountId = 0;
+    let finalReferralCode = "";
+
+    // Generate Account ID
     let attempts = 0;
     while (attempts < 10) {
       const candidate =
@@ -130,9 +143,25 @@ export async function POST(req: NextRequest) {
       attempts++;
     }
 
-    if (accountId === 0) {
+    // Generate Referral Code (e.g., CP-XXXXXX)
+    attempts = 0;
+    while (attempts < 10) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let code = "";
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const codeExists = await profiles.findOne({ referralCode: code });
+      if (!codeExists) {
+        finalReferralCode = code;
+        break;
+      }
+      attempts++;
+    }
+
+    if (accountId === 0 || !finalReferralCode) {
       return NextResponse.json(
-        { error: "Could not generate unique account ID" },
+        { error: "Could not generate unique identifiers" },
         { status: 500 },
       );
     }
@@ -149,6 +178,7 @@ export async function POST(req: NextRequest) {
       email: getEmailFromPayload(payload),
       phoneNumber: getPhoneFromPayload(payload),
       referredBy: referrerAddress,
+      referralCode: finalReferralCode,
       onChainReferralStatus:
         referrerAddress && walletAddress ? "failed" : "none",
       createdAt: new Date(),

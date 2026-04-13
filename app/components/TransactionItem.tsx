@@ -135,7 +135,7 @@ function getLabel(tx: Transaction) {
         shortLabel: "Default",
       };
     default: {
-      const isInternal = tx.displayName?.startsWith("@");
+      const isInternal = !!tx.fromName || !!tx.toName;
       if (isInternal) {
         return {
           prefix: tx.isIncoming ? "Received from " : "Sent to ",
@@ -144,8 +144,8 @@ function getLabel(tx: Transaction) {
         };
       }
       return {
-        prefix: tx.isIncoming ? "Received" : "Sent",
-        highlight: "",
+        prefix: tx.isIncoming ? "Received " : "Sent ",
+        highlight: tx.displayName || "",
         shortLabel: tx.isIncoming ? "Received" : "Sent",
       };
     }
@@ -231,7 +231,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
           {transaction.displayPhoto && !isSavingsType ? (
             <Image
               src={transaction.displayPhoto}
-              alt={transaction.displayName || ""}
+              alt={transaction.displayName || "Transaction Photo"}
               fill
               sizes="44px"
               className="object-cover"

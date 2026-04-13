@@ -477,7 +477,7 @@ export default function CreatePersonalGoalPage() {
               )}
             </div>
 
-            {/* Fees & Penalty Info Card */}
+            {/* Withdrawal Fees Info Card */}
             <div
               className="p-6 rounded-3xl border shadow-sm"
               style={{
@@ -512,22 +512,22 @@ export default function CreatePersonalGoalPage() {
                 {[
                   {
                     range: "0% - 24%",
-                    label: "Early Withdrawal Penalty",
+                    label: "Early Withdrawal Fee",
                     fee: "1.0%",
                   },
                   {
                     range: "25% - 49%",
-                    label: "Early Withdrawal Penalty",
+                    label: "Early Withdrawal Fee",
                     fee: "0.6%",
                   },
                   {
                     range: "50% - 74%",
-                    label: "Early Withdrawal Penalty",
+                    label: "Early Withdrawal Fee",
                     fee: "0.3%",
                   },
                   {
                     range: "75% - 99%",
-                    label: "Early Withdrawal Penalty",
+                    label: "Early Withdrawal Fee",
                     fee: "0.25%",
                   },
                   {

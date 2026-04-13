@@ -12,19 +12,36 @@ export default function ReferralCapturer() {
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) {
-      localStorage.setItem(REFERRAL_KEY, ref.trim());
+      const storedRef = ref.trim();
+      localStorage.setItem(REFERRAL_KEY, storedRef);
 
-      // We don't clean the URL here because useSearchParams is reactive,
-      // and cleaning the URL might trigger unwanted side effects in some setups.
-      // But for consistency with the React app, we'll keep the toast if not already set.
-      const hasProfileId =
-        localStorage.getItem("circlepot_profile_loaded") === "true";
-      if (!hasProfileId) {
-        toast.info("Welcome to Circlepot!", {
-          description: `You've been referred by ${ref}. Complete your account to join the community.`,
-          duration: 5000,
-        });
-      }
+      // Attempt to resolve the inviter's name for a better UX
+      const resolveInviter = async () => {
+        try {
+          const res = await fetch(`/api/profile/resolve-referrer?code=${encodeURIComponent(storedRef)}`);
+          if (res.ok) {
+            const data = await res.json();
+            const fullName = `${data.firstName} ${data.lastName}`.trim();
+            
+            const hasProfileLoaded = localStorage.getItem("circlepot_profile_loaded") === "true";
+            if (!hasProfileLoaded) {
+              toast.info("Welcome to Circlepot! 👋", {
+                description: `You've been invited by ${fullName}. Complete your setup to join the community.`,
+                duration: 6000,
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Failed to resolve inviter:", err);
+          // Fallback to anonymous toast if resolution fails
+          toast.info("Welcome to Circlepot!", {
+            description: "You've been invited by a friend. Join now to start saving!",
+            duration: 5000,
+          });
+        }
+      };
+
+      resolveInviter();
     }
   }, [searchParams]);
 

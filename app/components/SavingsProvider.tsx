@@ -265,10 +265,10 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
             ? "You"
             : profile
               ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() ||
-                profile.username
+                addr.slice(0, 8)
               : addr.slice(0, 8);
 
-          const userName = profile?.username || addr.slice(0, 8);
+          const userName = addr.slice(0, 8);
 
           const hasContributed = allContributions.some(
             (cm) =>
@@ -321,11 +321,10 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
         ? "You"
         : creatorProfile
           ? `${creatorProfile.firstName || ""} ${creatorProfile.lastName || ""}`.trim() ||
-            creatorProfile.username
+            creatorAddr.slice(0, 8)
           : creatorAddr.slice(0, 8);
 
-      const creatorUserName =
-        creatorProfile?.username || creatorAddr.slice(0, 8);
+      const creatorUserName = creatorAddr.slice(0, 8);
 
       // Filter and Enriched Payouts for this circle
       const payoutsForCircle = allPayouts
@@ -339,12 +338,12 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
             id: pm.id,
             user: {
               id: uAddr,
-              username: uProfile?.username || uAddr.slice(0, 8),
+              username: uAddr.slice(0, 8),
               fullName: isUser
                 ? "You"
                 : uProfile
                   ? `${uProfile.firstName || ""} ${uProfile.lastName || ""}`.trim() ||
-                    uProfile.username
+                    uAddr.slice(0, 8)
                   : uAddr.slice(0, 8),
             },
             round: pm.round.toString(),

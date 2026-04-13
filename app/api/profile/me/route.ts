@@ -33,11 +33,36 @@ export async function GET(req: NextRequest) {
     }
 
     // AUTO-RETRY: If the referral was never successfully recorded on-chain, try now.
-    // This handles profiles created when the relayer was out of gas.
     if (profile.referredBy && profile.onChainReferralStatus !== "success") {
       const success = await syncReferralOnChain(profile);
       if (success) {
         profile.onChainReferralStatus = "success";
+      }
+    }
+
+    // SELF-HEALING: Ensure every user has a referralCode (for development & existing users)
+    if (!profile.referralCode) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let code = "";
+      let unique = false;
+      let generateAttempts = 0;
+
+      while (!unique && generateAttempts < 10) {
+        code = "";
+        for (let i = 0; i < 8; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const exists = await profiles.findOne({ referralCode: code });
+        if (!exists) unique = true;
+        generateAttempts++;
+      }
+
+      if (unique) {
+        await profiles.updateOne(
+          { _id: (profile as { _id: ObjectId })._id },
+          { $set: { referralCode: code, updatedAt: new Date() } },
+        );
+        profile.referralCode = code;
       }
     }
 

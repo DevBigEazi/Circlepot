@@ -25,6 +25,7 @@ interface TransactionPreviewModalProps {
   recipient: Profile | string;
   fee: string;
   total: string;
+  identifierUsed?: string;
 }
 
 const TransactionPreviewModal: React.FC<TransactionPreviewModalProps> = ({
@@ -37,6 +38,7 @@ const TransactionPreviewModal: React.FC<TransactionPreviewModalProps> = ({
   recipient,
   fee,
   total,
+  identifierUsed,
 }) => {
   const colors = useThemeColors();
 
@@ -150,7 +152,7 @@ const TransactionPreviewModal: React.FC<TransactionPreviewModalProps> = ({
                     {recipientProfile.profilePhoto ? (
                       <Image
                         src={recipientProfile.profilePhoto}
-                        alt={recipientProfile.username}
+                        alt={recipientProfile.firstName || "Recipient"}
                         width={56}
                         height={56}
                         className="w-full h-full object-cover"
@@ -169,13 +171,17 @@ const TransactionPreviewModal: React.FC<TransactionPreviewModalProps> = ({
                       {recipientProfile.firstName} {recipientProfile.lastName}
                     </h4>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <span
-                        className="text-xs font-bold truncate max-w-[80px] sm:max-w-none"
-                        style={{ color: colors.primary }}
-                      >
-                        @{recipientProfile.username}
-                      </span>
-                      <div className="w-0.5 h-0.5 rounded-full bg-gray-300 sm:mx-0.5" />
+                      {identifierUsed && (
+                        <>
+                          <span
+                            className="text-xs font-bold truncate max-w-[80px] sm:max-w-none"
+                            style={{ color: colors.primary }}
+                          >
+                            {identifierUsed}
+                          </span>
+                          <div className="w-0.5 h-0.5 rounded-full bg-gray-300 sm:mx-0.5" />
+                        </>
+                      )}
                       <span
                         className="text-[9px] sm:text-[10px] font-black uppercase opacity-40 whitespace-nowrap"
                         style={{ color: colors.text }}

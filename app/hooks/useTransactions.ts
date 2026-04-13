@@ -135,7 +135,8 @@ export const useTransactions = (limit?: number) => {
               from,
               to,
               displayName: otherProfile
-                ? `@${otherProfile.username}`
+                ? `${otherProfile.firstName || ""} ${otherProfile.lastName || ""}`.trim() ||
+                  `${otherAddress.slice(0, 6)}...${otherAddress.slice(-4)}`
                 : otherAddress
                   ? `${otherAddress.slice(0, 6)}...${otherAddress.slice(-4)}`
                   : "Unknown",
