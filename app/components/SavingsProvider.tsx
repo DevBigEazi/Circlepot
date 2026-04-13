@@ -52,6 +52,7 @@ type GraphPosition = {
 type GraphForfeit = {
   circleId: string;
   forfeitedUser: GraphUser;
+  round: string;
   deductionAmount: string;
   potAmount: string;
   feeAmount: string;
@@ -59,6 +60,8 @@ type GraphForfeit = {
 };
 type GraphLateContribution = {
   circleId: string;
+  user: GraphUser;
+  round: string;
   amount: string;
   fee: string;
 };
@@ -184,6 +187,7 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
       );
     },
     enabled: !!SUBGRAPH_URL && joinedIds.length > 0 && !!address,
+    refetchInterval: 30000,
   });
 
   // 4. Fetch Profiles for all involved members and creators
@@ -231,9 +235,31 @@ export function SavingsProvider({ children }: { children: ReactNode }) {
     const assignedPositions =
       ((circlesData as Record<string, unknown>)
         ?.positionAssigneds as GraphPosition[]) || [];
-    const allContributions =
+    const contributionMades =
       ((circlesData as Record<string, unknown>)
         ?.contributionMades as GraphContribution[]) || [];
+    const lateContributionMades =
+      ((circlesData as Record<string, unknown>)
+        ?.lateContributionMades as GraphLateContribution[]) || [];
+    const forfeits =
+      ((circlesData as Record<string, unknown>)
+        ?.memberForfeiteds as GraphForfeit[]) || [];
+
+    const allContributions = [
+      ...contributionMades,
+      ...lateContributionMades.map((lc) => ({
+        circleId: lc.circleId,
+        user: lc.user,
+        round: lc.round,
+        amount: lc.amount,
+      })),
+      ...forfeits.map((f) => ({
+        circleId: f.circleId,
+        user: f.forfeitedUser,
+        round: f.round,
+        amount: f.potAmount,
+      })),
+    ];
     const allPayouts =
       ((circlesData as Record<string, unknown>)
         ?.payoutDistributeds as GraphPayout[]) || [];
