@@ -53,7 +53,7 @@ const CONTRACT_ERROR_MAP: Record<string, string> = {
   CircleNotPrivate: "This action is only available for private circles.",
   NotInvited: "You have not been invited to this private circle.",
   CircleNotActive: "The circle is not currently in an active state.",
-  AlreadyContributed: "You have already made your contribution for this period.",
+  AlreadyContributed: "You have already made your contribution for this round.",
   InsufficientCollateral: "You do not have enough collateral or balance for this action.",
   GracePeriodNotExpired: "The grace period for the late member hasn't expired yet.",
   NotNextRecipient: "It is not your turn to receive the payout yet.",

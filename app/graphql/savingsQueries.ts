@@ -12,6 +12,7 @@ export const GET_USER_SAVINGS_SUMMARY = `
       where: { user: $userAddress, isActive: true }
       orderBy: createdAt
       orderDirection: desc
+      first: 1000
     ) {
       id
       goalId
@@ -29,36 +30,41 @@ export const GET_USER_SAVINGS_SUMMARY = `
     }
     circlesJoined: circleJoineds(
       where: { user: $userAddress }
+      first: 1000
     ) {
       circleId
     }
-    contributionMades(where: { user: $userAddress }) {
+    contributionMades(where: { user: $userAddress }, first: 1000) {
       amount
       circleId
       round
     }
-    payoutDistributeds(where: { user: $userAddress }) {
+    payoutDistributeds(where: { user: $userAddress }, first: 1000) {
       payoutAmount
       fee
       circleId
     }
-    lateContributionMades(where: { user: $userAddress }) {
+    lateContributionMades(where: { user: $userAddress }, first: 1000) {
       circleId
+      round
       amount
       fee
+      user { id }
     }
-    memberForfeiteds(where: { forfeitedUser: $userAddress }) {
+    memberForfeiteds(where: { forfeitedUser: $userAddress }, first: 1000) {
       circleId
+      round
       deductionAmount
       potAmount
       feeAmount
+      forfeitedUser { id }
     }
   }
 `;
 
 export const GET_CIRCLES_BY_IDS = `
   query GetCirclesByIds($ids: [BigInt!]) {
-    circles(where: { circleId_in: $ids }) {
+    circles(where: { circleId_in: $ids }, first: 1000) {
       id
       circleId
       circleName
@@ -89,20 +95,20 @@ export const GET_CIRCLES_BY_IDS = `
         withdrawWon
       }
     }
-    circleJoineds(where: { circleId_in: $ids }) {
+    circleJoineds(where: { circleId_in: $ids }, first: 1000) {
       circleId
       user {
         id
       }
     }
-    positionAssigneds(where: { circleId_in: $ids }) {
+    positionAssigneds(where: { circleId_in: $ids }, first: 1000) {
       circleId
       user {
         id
       }
       position
     }
-    contributionMades(where: { circleId_in: $ids }) {
+    contributionMades(where: { circleId_in: $ids }, first: 1000) {
       circleId
       user {
         id
@@ -110,7 +116,15 @@ export const GET_CIRCLES_BY_IDS = `
       round
       amount
     }
-    payoutDistributeds(where: { circleId_in: $ids }, orderBy: round, orderDirection: desc) {
+    lateContributionMades(where: { circleId_in: $ids }, first: 1000) {
+      circleId
+      user {
+        id
+      }
+      round
+      amount
+    }
+    payoutDistributeds(where: { circleId_in: $ids }, orderBy: round, orderDirection: desc, first: 1000) {
       id
       circleId
       user {
@@ -123,7 +137,7 @@ export const GET_CIRCLES_BY_IDS = `
         blockTimestamp
       }
     }
-    voteExecuteds(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc) {
+    voteExecuteds(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc, first: 1000) {
       id
       circleId
       circleStarted
@@ -134,7 +148,7 @@ export const GET_CIRCLES_BY_IDS = `
         blockTimestamp
       }
     }
-    votingInitiateds(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc) {
+    votingInitiateds(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc, first: 1000) {
       id
       circleId
       votingStartAt
@@ -143,7 +157,7 @@ export const GET_CIRCLES_BY_IDS = `
         blockTimestamp
       }
     }
-    voteCasts(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc) {
+    voteCasts(where: { circleId_in: $ids }, orderBy: transaction__blockTimestamp, orderDirection: desc, first: 1000) {
       id
       voter {
         id
@@ -238,7 +252,7 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       amount
@@ -253,7 +267,7 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       goalId
@@ -270,7 +284,7 @@ export const GET_PERSONAL_SAVINGS_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       goalId
@@ -294,7 +308,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
@@ -308,7 +322,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
@@ -323,7 +337,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
@@ -339,7 +353,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
@@ -355,7 +369,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
@@ -370,7 +384,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { user: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
@@ -385,7 +399,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { forfeitedUser: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
@@ -400,7 +414,7 @@ export const GET_USER_CIRCLE_ACTIVITY = `
       where: { creator: $address }
       orderBy: transaction__blockTimestamp
       orderDirection: desc
-      first: 50
+      first: 1000
     ) {
       id
       circleId
