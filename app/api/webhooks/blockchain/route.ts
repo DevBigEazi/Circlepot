@@ -236,9 +236,10 @@ async function getCircleMetadata(
         const db = await getDb();
         const local = await db.collection("circles").findOne({ circleId });
         if (local) {
+          const localMembers = local.members || (local.creator ? [local.creator.toLowerCase()] : []);
           return {
             name: local.title || "your circle",
-            members: [local.creator.toLowerCase()],
+            members: localMembers,
           };
         }
       } catch (err) {
@@ -423,8 +424,11 @@ export async function POST(req: NextRequest) {
                       creator: createArgs.creator,
                       updatedAt: new Date(),
                     },
+                    $addToSet: {
+                      members: createArgs.creator.toLowerCase(),
+                    },
                   },
-                  { upsert: true } as any,
+                  { upsert: true },
                 );
               } catch (err) {
                 console.error("[MongoDB] Failed to cache circle:", err);
@@ -443,6 +447,20 @@ export async function POST(req: NextRequest) {
                 "[Webhook] Missing circleId or memberAddr in CircleJoined event",
               );
               break;
+            }
+
+            try {
+              const db = await getDb();
+              await db.collection("circles").updateOne(
+                { circleId },
+                {
+                  $addToSet: { members: memberAddr.toLowerCase() },
+                  $set: { updatedAt: new Date() },
+                },
+                { upsert: true },
+              );
+            } catch (err) {
+              console.error("[MongoDB] Failed to cache joined member:", err);
             }
 
             const [displayName, circle] = await Promise.all([
